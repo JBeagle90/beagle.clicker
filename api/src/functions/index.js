@@ -9,7 +9,7 @@
 //   OPS_KEY           24+ random characters; the same value is the OPS_KEY secret on GitHub
 //   UPDATE_HOURS      the schedule in hours, matching the workflow's cron (default 3), for the countdown
 //   MIN_SCORE         optional: bones a suggestion needs before it can be picked (default 1)
-//   BUDGET_USD_30D    the most Claude may spend in 30 days; no build starts past it (default 60)
+//   BUDGET_USD_30D    the most Claude may spend in 30 days; no build starts past it (default 250)
 //   MAX_BUILDS_PER_DAY  default 8
 //   OWN_IDEAS         0 = Claude doesn't build its own ideas when no suggestion has bones (default 1)
 //   BLOCKED_WORDS     more words to refuse in suggestions and updates, comma-separated (../core/moderation.js)

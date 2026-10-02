@@ -1,7 +1,7 @@
 # beagle.clicker
 
 Pat the beagle, earn bones, spend them on the next update. Every 3 hours Claude builds the suggestion
-with the most bones (or an idea of its own) and puts it live. Players rate every update. https://clicker.beagle.games
+with the most bones (or an idea of its own) and puts it live. Players rate every update. https://beagle.games
 
 ```
 npm start      # the game with its API at http://127.0.0.1:5190

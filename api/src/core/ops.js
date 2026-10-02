@@ -13,7 +13,7 @@
 // Settings: OPS_KEY (24+ random characters, also a GitHub secret), MIN_SCORE (bones a suggestion
 // needs to be picked; default 1), UPDATE_HOURS (the schedule, for the countdown; default 3).
 // Limits on spending, checked before every build (the workflow also caps each run, --max-budget-usd):
-//   BUDGET_USD_30D      no build starts once the last 30 days' runs cost this much (default 60)
+//   BUDGET_USD_30D      no build starts once the last 30 days' runs cost this much (default 250)
 //   MAX_BUILDS_PER_DAY  no more builds than this in 24 hours (default 8)
 //   OWN_IDEAS           0: when no suggestion has bones, skip the run instead of building Claude's idea
 "use strict";
@@ -71,7 +71,7 @@ async function pick(c) {
   for (const s of open) if (s.status === "open" && !(s.score > 0) && c.now - s.at > STALE_MS) await c.store.remove(S.OPEN, s.id);
 
   const spent = await spending(c);
-  const budget = c.env.BUDGET_USD_30D != null && c.env.BUDGET_USD_30D !== "" ? +c.env.BUDGET_USD_30D : 60;
+  const budget = c.env.BUDGET_USD_30D != null && c.env.BUDGET_USD_30D !== "" ? +c.env.BUDGET_USD_30D : 250;
   const perDay = Math.max(0, Math.floor(+(c.env.MAX_BUILDS_PER_DAY || 8)));
   if (spent.usd >= budget) return json(200, { pick: null, reason: "budget", spent });
   if (spent.builds >= perDay) return json(200, { pick: null, reason: "daily_limit", spent });

@@ -1,6 +1,6 @@
 # beagle.clicker
 
-A small, cute clicker game at https://clicker.beagle.games that its players change. You pat a beagle to
+A small, cute clicker game at https://beagle.games that its players change. You pat a beagle to
 earn bones and buy upgrades. Players spend bones to suggest updates (one small idea, at most 140
 characters) and to vote for them. They rate each shipped update from terrible to great.
 

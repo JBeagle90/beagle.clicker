@@ -1,4 +1,4 @@
-# Tests, builds and deploys beagle.clicker to Azure Static Web Apps (https://clicker.beagle.games)
+# Tests, builds and deploys beagle.clicker to Azure Static Web Apps (https://beagle.games)
 # on every push to main, by hand from the Actions tab, and from the scheduled update once it has
 # pushed (pushes made with GITHUB_TOKEN don't start other workflows, so it calls this one).
 # Needs one repository secret: AZURE_STATIC_WEB_APPS_API_TOKEN (the Static Web App's deployment token).
@@ -20,7 +20,7 @@ on:
         default: ""
     secrets:
       AZURE_STATIC_WEB_APPS_API_TOKEN:
-        required: true
+        required: false
 
 permissions:
   contents: read
@@ -49,18 +49,30 @@ jobs:
       group: deploy-site
       cancel-in-progress: false
     steps:
+      # Not set up yet: skip quietly rather than fail every push (docs/OPERATIONS.md, setup).
+      - name: Is Azure set up?
+        id: setup
+        env:
+          TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+        run: |
+          if [ -n "$TOKEN" ]; then echo "ready=true" >> "$GITHUB_OUTPUT"
+          else echo "::notice::Skipped the deploy: add the AZURE_STATIC_WEB_APPS_API_TOKEN secret (docs/OPERATIONS.md)."; fi
       - uses: actions/checkout@v4
+        if: steps.setup.outputs.ready == 'true'
         with:
           ref: ${{ inputs.ref || github.sha }}
           persist-credentials: false
       - uses: actions/setup-node@v4
+        if: steps.setup.outputs.ready == 'true'
         with:
           node-version: 22
       - name: Build the site into dist/
+        if: steps.setup.outputs.ready == 'true'
         run: npm run build
         env:
           UPDATE_TITLE: ${{ inputs.title }}
       - name: Deploy
+        if: steps.setup.outputs.ready == 'true'
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}

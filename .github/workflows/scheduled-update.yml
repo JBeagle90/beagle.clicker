@@ -49,7 +49,8 @@ jobs:
           OPS_KEY: ${{ secrets.OPS_KEY }}
         run: |
           set -euo pipefail
-          [ -n "$OPS_URL" ] && [ -n "$OPS_KEY" ] || { echo "Set the SITE_URL variable and the OPS_KEY secret (docs/OPERATIONS.md)."; exit 1; }
+          # Not set up yet: skip quietly rather than fail every run (docs/OPERATIONS.md, setup).
+          [ -n "$OPS_URL" ] && [ -n "$OPS_KEY" ] || { echo "::notice::Skipped: set the SITE_URL variable and the OPS_KEY secret to start the scheduled updates (docs/OPERATIONS.md)."; exit 0; }
           mkdir -p .update-task
           node dev/ops.mjs pick > .update-task/pick.json
           echo "Spent in the last 30 days: \$$(jq -r '.spent.usd // 0' .update-task/pick.json); builds in the last day: $(jq -r '.spent.builds // 0' .update-task/pick.json)."
@@ -159,7 +160,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: |
             You're making this run's update to beagle.clicker, a small, cute clicker game about a
-            beagle that anyone, including young children, can play at clicker.beagle.games. Nobody
+            beagle that anyone, including young children, can play at beagle.games. Nobody
             reviews your change before it goes live: if the tests and the guard pass, it's deployed
             as soon as you finish. Build it as carefully as that deserves.
 
@@ -228,8 +229,8 @@ jobs:
           claude_args: >-
             --model ${{ vars.CLAUDE_MODEL || 'claude-opus-5-5' }}
             --effort ${{ vars.CLAUDE_EFFORT || 'medium' }}
-            --max-turns ${{ vars.CLAUDE_MAX_TURNS || '60' }}
-            --max-budget-usd ${{ vars.MAX_RUN_USD || '4' }}
+            --max-turns ${{ vars.CLAUDE_MAX_TURNS || '80' }}
+            --max-budget-usd ${{ vars.MAX_RUN_USD || '2' }}
             --allowedTools "Read,Edit,MultiEdit,Write,Glob,Grep,LS,Bash(npm test),Bash(npm run build),Bash(node dev/look.mjs:*),Bash(node dev/run-tests.cjs:*),Bash(node dev/guard.mjs),Bash(git status),Bash(git diff:*),Bash(git log:*),Bash(git show:*)"
 
       # What both Claude steps cost, and what the build was refused (tools outside its list).
