@@ -18,7 +18,7 @@ Same shape as beagle.fit: an Azure Static Web App with a managed API, Cosmos DB,
    - `OPS_KEY`: the same value as on Azure
    - `ANTHROPIC_API_KEY` (recommended: a key from console.anthropic.com, in a workspace with a **monthly spend limit**) **or** `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`; uses your plan's allowance)
 5. **GitHub variables**: `SITE_URL` = the address the game answers at: the app's `https://<name>.azurestaticapps.net` at first, then `https://beagle.games` once the domain has moved. Optional ones are below.
-6. Push to `main`: **Deploy** puts the site live. **Scheduled update** runs every 3 hours (at 0:00, 3:00, 6:00… UTC), or run it from the Actions tab.
+6. Push to `main`: **Deploy** puts the site live. **Scheduled update** checks every hour and builds when an update is due (every 3 hours to start: change it in the owner's panel), or run it from the Actions tab (always due).
 
 ## Moving beagle.games
 
@@ -38,7 +38,9 @@ To go back, put the apex A record back to `20.37.130.90`.
 
 | Where | Name | Default | What it does |
 |---|---|---|---|
-| Azure | `UPDATE_HOURS` | 3 | The schedule, for the countdown players see. Change it together with the `cron` in `scheduled-update.yml` (e.g. `0 */6 * * *` and 6). Use a number that divides 24. |
+| Azure | `UPDATE_HOURS` | 3 | Hours between updates until you pick them in the owner's panel, which then wins. |
+| Azure | `GH_DISPATCH_TOKEN` | (none) | Lets "Run it now" in the owner's panel start the workflow at once (below). Without it, it starts at the next hourly check. |
+| Azure | `GH_REPO` | `JBeagle90/beagle.clicker` | The repository "Run it now" starts the workflow in. |
 | Azure | `BUDGET_USD_30D` | 250 | No build starts once the last 30 days of runs cost this much. |
 | Azure | `MAX_BUILDS_PER_DAY` | 8 | No more builds than this in 24 hours. |
 | Azure | `OWN_IDEAS` | 1 | `0`: when no suggestion has bones, skip the run instead of building Claude's own idea. |
@@ -64,7 +66,7 @@ These limits stack, so one runaway build can't use much:
 
 For scale: beagle.fit's Claude builds (Opus, high effort) have cost $0.40 to $1.16 each at API prices, in 29 to 50 turns. Expect about $0.50 to $1.50 a build here, so the full schedule (8 a day) is roughly $120 to $360 in 30 days. The $2 cap stops a run that goes wrong, and the 30-day budget is a backstop. The run log shows each one's cost ("Cost and refusals"), and the pick step prints the 30-day total. The owner's panel (below) shows it all in one place.
 
-**On your subscription** (`CLAUDE_CODE_OAUTH_TOKEN`), the dollars are API-equivalent estimates, not charges: builds use your plan's usage limits, alongside your own Claude Code use. To use less, run every 6 hours (`0 */6 * * *` and `UPDATE_HOURS=6`), set `MAX_BUILDS_PER_DAY=4` or `OWN_IDEAS=0`, or set `CLAUDE_MODEL=claude-sonnet-5-5`. With `ANTHROPIC_API_KEY` they're real charges, and the Console spend limit is the hard cap.
+**On your subscription** (`CLAUDE_CODE_OAUTH_TOKEN`), the dollars are API-equivalent estimates, not charges: builds use your plan's usage limits, alongside your own Claude Code use. To use less, pick every 6 hours in the owner's panel, set `MAX_BUILDS_PER_DAY=4` or `OWN_IDEAS=0`, or set `CLAUDE_MODEL=claude-sonnet-5-5`. With `ANTHROPIC_API_KEY` they're real charges, and the Console spend limit is the hard cap.
 
 ## Keeping it friendly
 
@@ -79,7 +81,16 @@ beagle.clicker is meant for everyone, children included. The layers:
 
 ## The owner's panel
 
-`https://beagle.games/admin` shows what the scheduled updates cost: the last 24 hours, this week (from Monday, on your device's clock), the last 30 days against the budget, builds today, and the recent runs (what each one built, how it went, its cost, turns and minutes). Per-run details start with the first run after this was added.
+`https://beagle.games/admin` is where you run the updates:
+
+- **Next update**: a countdown to it (the same one players see), or what Claude is building right now.
+  - **Run it now** starts the next update without waiting. It still counts toward `MAX_BUILDS_PER_DAY` and the budget, and the countdown starts again from then. Without `GH_DISPATCH_TOKEN` (below) it starts at the workflow's next hourly check.
+  - **Time between updates**: every 1, 2, 3, 4, 6, 8, 12 or 24 hours, counted from the last update. It applies at once, players' countdown included. `MAX_BUILDS_PER_DAY` still caps the day, so raise it in Azure if you go below every 3 hours.
+- **Winning the next update**: the open suggestions, most bones first. The top one with at least `MIN_SCORE` bones is built.
+- **Your requirements for the next update**: up to 1,000 characters that go into the next update whatever players vote for. Claude follows them within CLAUDE.md's rules (for everyone, fair, small), alongside the winning suggestion, or as the update's idea when nothing has bones (even with `OWN_IDEAS=0`). They're used once. If that update doesn't ship (declined or failed), they come back for the next one. Players see the update, not your words, but the build's files on GitHub (the `suggestion` artifact, kept 7 days) include them, and the repository is public.
+- **Spending**: the last 24 hours, this week (from Monday, on your device's clock), the last 30 days against the budget, builds today, and the recent runs (what each one built, how it went, its cost, turns and minutes, and whether it had your requirements).
+
+**Starting "run now" straight away** (optional): make a fine-grained token at GitHub → Settings → Developer settings → Fine-grained tokens, for **only** `JBeagle90/beagle.clicker`, with the repository permission **Actions: Read and write** and nothing else. Add it in Azure as `GH_DISPATCH_TOKEN`. It can start, cancel and re-run workflows, but it can't change code or settings. Give it an expiry date and renew it when GitHub reminds you.
 
 Only you can sign in, with a **passkey**: your device's fingerprint, face, PIN or a security key. There's no password.
 

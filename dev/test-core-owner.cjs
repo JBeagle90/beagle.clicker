@@ -306,6 +306,9 @@ test("the panel shows what's winning the next update", async () => {
   const st = (await o("GET", "status")).jsonBody;
   eq(st.board.map(s => [s.text, s.score, s.voters, s.enough]), [[b.text, 10, 1, true], [a.text, 0, 0, false]]);
   eq(st.building, null);
+  await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY });
+  const after = (await o("GET", "status")).jsonBody;
+  eq([after.building.text, after.board.map(s => s.text)], [b.text, [a.text]], "the one being built isn't still 'winning'");
 });
 
 done();

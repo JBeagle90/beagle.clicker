@@ -14,6 +14,7 @@
 //   OWN_IDEAS         0 = Claude doesn't build its own ideas when no suggestion has bones (default 1)
 //   BLOCKED_WORDS     more words to refuse in suggestions and updates, comma-separated (../core/moderation.js)
 //   OWNER_ORIGIN      the owner's panel's address(es) for passkeys, comma-separated (default https://beagle.games)
+//   GH_DISPATCH_TOKEN optional: a GitHub token (this repo, Actions: read and write) so "run now" starts at once
 "use strict";
 const { app } = require("@azure/functions");
 const { CosmosClient } = require("@azure/cosmos");

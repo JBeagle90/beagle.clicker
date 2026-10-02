@@ -81,6 +81,64 @@ async function signIn() {
   setSession(session);
 }
 
+// --- The next update: countdown, run now, hours between updates ---
+let last = null, offset = 0, noteDirty = false;
+const num = n => (+n || 0).toLocaleString();
+const plural = (n, one, many) => `${num(n)} ${n === 1 ? one : many}`;
+const timeOf = t => new Date(t).toLocaleString(undefined, new Date(t).toDateString() === new Date().toDateString()
+  ? { hour: "numeric", minute: "2-digit" } : { weekday: "short", hour: "numeric", minute: "2-digit" });
+// 754000 → "12:34"; 9000000 → "2:30:00"
+function clock(ms) {
+  const s = Math.max(0, Math.ceil(ms / 1000)), hh = Math.floor(s / 3600), mm = Math.floor(s / 60) % 60, ss = String(s % 60).padStart(2, "0");
+  return hh ? `${hh}:${String(mm).padStart(2, "0")}:${ss}` : `${mm}:${ss}`;
+}
+
+function tick() {
+  if (!last) return;
+  const n = last.next, left = n.at - (Date.now() + offset);
+  $("countdown").textContent = last.building ? "Building" : n.runNowAt ? "Now" : left > 0 ? clock(left) : "Any minute";
+}
+
+function renderNext(st) {
+  const n = st.next, b = st.building, sel = $("hours");
+  if (!sel.options.length) sel.replaceChildren(...n.choices.map(x => h("option", { value: String(x), text: x === 1 ? "Every hour" : `Every ${x} hours` })));
+  if (document.activeElement !== sel) sel.value = String(n.hours);
+  $("building").hidden = !b;
+  if (b) $("building").textContent = (b.own ? "Claude is building an idea of its own right now" : `Claude is building “${b.text}” right now`) + (b.note ? ", with your requirements." : ".");
+  $("next-when").textContent = n.runNowAt
+    ? (n.dispatch ? "Starting now." : `Starts at the next hourly check, by ${timeOf(Math.floor(st.now / 3600e3) * 3600e3 + 3600e3)}.`)
+    : `At ${timeOf(n.at)}, then every ${n.hours === 1 ? "hour" : n.hours + " hours"}.`;
+  $("run-now").disabled = !!n.runNowAt;
+  $("run-now").textContent = n.runNowAt ? "Asked to run" : "Run it now";
+  $("hours-note").textContent = 24 / n.hours > st.spend.perDay
+    ? `At most ${st.spend.perDay} builds a day are allowed (MAX_BUILDS_PER_DAY in Azure), so some runs will be skipped.` : "";
+  tick();
+}
+
+// --- What's winning the next update ---
+function renderBoard(st) {
+  const list = st.board, min = st.settings.minScore;
+  $("board").replaceChildren(...(list.length ? list.map(s => h("li", { class: s.enough ? null : "low" },
+    h("div", { class: "sug", text: s.text }),
+    h("div", { class: "muted", text: `${plural(s.score, "bone", "bones")} · ${plural(s.voters, "player", "players")} · by ${s.byName}` })))
+    : [h("li", { class: "low", text: "No suggestions on the board." })]));
+  $("board-note").textContent = list.some(s => s.enough)
+    ? `The top one with at least ${plural(min, "bone", "bones")} is built next.`
+    : st.settings.ownIdeas ? "Nothing has bones yet, so Claude will build an idea of its own."
+      : "Nothing has bones yet, and Claude's own ideas are off, so the next run builds only your requirements, or skips.";
+}
+
+// --- Your requirements for the next update ---
+function renderNote(st) {
+  const n = st.next, box = $("note");
+  box.maxLength = n.noteMax;
+  if (!noteDirty) box.value = n.note ? n.note.text : "";
+  $("note-count").textContent = `${box.value.length} / ${n.noteMax}`;
+  $("note-state").textContent = !n.note ? "None set."
+    : n.note.tries ? `Back for the next update: the last one with them didn't ship. Saved ${when(n.note.at)}.`
+      : `Saved ${when(n.note.at)}. The next update will follow them.`;
+}
+
 // --- The panel ---
 const usd = n => "$" + (+n || 0).toFixed(2);
 const sum = list => list.reduce((a, r) => a + (+r.cost || 0), 0);
@@ -100,6 +158,8 @@ function stat(label, value, note) {
 }
 
 function render(st) {
+  last = st; offset = st.now - Date.now();
+  renderNext(st); renderBoard(st); renderNote(st);
   const sp = st.spend, runs = sp.runs, now = Date.now();
   const recent = runs.filter(r => now - r.at < 24 * 3600e3), week = runs.filter(r => r.at >= weekStart(now));
   $("stats").replaceChildren(
@@ -115,7 +175,7 @@ function render(st) {
   $("runs").hidden = !runs.length;
   $("runs-body").replaceChildren(...runs.slice(0, 10).map(r => h("tr", {},
     h("td", { class: "nowrap", text: when(r.at) }),
-    h("td", {}, r.title || "(no title)", r.own ? h("span", { class: "tag", text: "Claude's idea" }) : null),
+    h("td", {}, r.title || "(no title)", r.own ? h("span", { class: "tag", text: "Claude's idea" }) : null, r.note ? h("span", { class: "tag", text: "your requirements" }) : null),
     h("td", { class: "result " + r.status, text: RESULT[r.status] || r.status }),
     h("td", { class: "num", title: `Screen ${usd(r.screen)} + build ${usd(r.build)}`, text: usd(r.cost) }),
     h("td", { class: "num", text: r.turns ? String(r.turns) : "–" }),
@@ -127,8 +187,9 @@ function render(st) {
     h("button", { type: "button", class: "quiet", text: "Forget", "aria-label": `Forget ${d.name}`, on: { click: () => forget(d) } }))));
 }
 
-async function load() {
-  try { render(await call("GET", "status")); show("panel"); say(""); }
+// clearMsg = false keeps the message line (after an action, or the refresh every 30 s).
+async function load(clearMsg = true) {
+  try { render(await call("GET", "status")); show("panel"); if (clearMsg) say(""); }
   catch (e) { if (getSession()) say(e.message, true); }
 }
 
@@ -154,6 +215,34 @@ function start() {
     say("Follow your device's prompt…");
     try { await signIn(); await load(); } catch (err) { say(passkeyError(err), true); }
   });
+  $("run-now").addEventListener("click", async () => {
+    if (!confirm("Start the next update now? It counts toward today's builds.")) return;
+    try {
+      const r = await call("POST", "run-now");
+      say(r.started ? "Started. It goes live by itself when it's done."
+        : r.why || "It starts at the next hourly check, within the hour. To start it straight away, add GH_DISPATCH_TOKEN in Azure (docs/OPERATIONS.md).", !!r.why);
+      await load(false);
+    } catch (e) { say(e.message, true); }
+  });
+  $("hours-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    try { await call("POST", "schedule", { hours: +$("hours").value }); await load(false); say("Saved. The countdown players see has changed too."); }
+    catch (err) { say(err.message, true); }
+  });
+  $("note").addEventListener("input", () => { noteDirty = true; $("note-count").textContent = `${$("note").value.length} / ${$("note").maxLength}`; });
+  $("note-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    try { await call("POST", "note", { text: $("note").value }); noteDirty = false; await load(false); say($("note").value ? "Saved for the next update." : "Cleared."); }
+    catch (err) { say(err.message, true); }
+  });
+  $("note-clear").addEventListener("click", async () => {
+    if (!$("note").value || !confirm("Clear your requirements for the next update?")) return;
+    try { await call("POST", "note", { text: "" }); noteDirty = false; await load(false); say("Cleared."); }
+    catch (err) { say(err.message, true); }
+  });
+  setInterval(tick, 1000);
+  setInterval(() => { if (!$("panel").hidden && document.visibilityState === "visible") load(false); }, 30000);
+
   $("logout").addEventListener("click", async () => {
     try { await call("POST", "logout"); } catch (e) { /* signed out here either way */ }
     setSession(null);

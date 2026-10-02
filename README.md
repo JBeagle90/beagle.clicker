@@ -1,6 +1,6 @@
 # beagle.clicker
 
-Pat the beagle, earn bones, spend them on the next update. Every 3 hours Claude builds the suggestion
+Pat the beagle, earn bones, spend them on the next update. Every few hours Claude builds the suggestion
 with the most bones (or an idea of its own) and puts it live. Players rate every update. https://beagle.games
 
 ```

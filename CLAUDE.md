@@ -4,8 +4,9 @@ A small, cute clicker game at https://beagle.games that its players change. You 
 earn bones and buy upgrades. Players spend bones to suggest updates (one small idea, at most 140
 characters) and to vote for them. They rate each shipped update from terrible to great.
 
-Every 3 hours the scheduled update (`.github/workflows/scheduled-update.yml`) builds the suggestion
-with the most bones. When none has any, Claude builds an idea of its own. Nobody reviews the change
+On the owner's schedule (every 3 hours to start; the owner changes it, or runs one now, in the
+owner's panel at `/admin`), the scheduled update (`.github/workflows/scheduled-update.yml`) builds
+the suggestion with the most bones, together with any requirements the owner has set for it. When none has any, Claude builds an idea of its own. Nobody reviews the change
 first. A declined suggestion gives every voter their bones back.
 
 No framework and no build tools: plain JavaScript modules in the browser, Azure Functions for the

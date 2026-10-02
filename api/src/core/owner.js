@@ -162,7 +162,7 @@ async function status(c, s) {
     now: c.now,
     next: { at: schedule.nextAt(set, c.env, c.now), hours: schedule.hoursOf(set, c.env), choices: schedule.HOURS, lastRunAt: set.lastRunAt || null,
       runNowAt: set.runNowAt || null, dispatch: !!c.env.GH_DISPATCH_TOKEN, note: set.note || null, noteMax: schedule.NOTE_LEN },
-    board: open.filter(x => !(x.own && x.status === "building")).slice(0, 8).map(x => ({ id: x.id, text: x.text, byName: x.byName, score: x.score || 0,
+    board: open.filter(x => x.status === "open").slice(0, 8).map(x => ({ id: x.id, text: x.text, byName: x.byName, score: x.score || 0,
       voters: Object.keys(x.votes || {}).length, status: x.status, at: x.at, enough: (x.score || 0) >= min })),
     building: (b => b ? { text: b.text, own: !!b.own, startedAt: b.startedAt, note: !!b.ownerNote } : null)(open.find(x => x.status === "building")),
     spend: { ...(await ops.spending(c)), budget, perDay, days: spend.days || {}, runs: (spend.runs || []).slice(-50).reverse() },

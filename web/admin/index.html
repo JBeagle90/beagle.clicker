@@ -35,6 +35,45 @@
     </section>
 
     <div id="panel" hidden>
+      <section class="card" aria-labelledby="next-h">
+        <h2 id="next-h">Next update</h2>
+        <div class="next">
+          <div>
+            <div class="countdown" id="countdown" aria-live="off">–</div>
+            <p class="muted" id="next-when"></p>
+          </div>
+          <button type="button" id="run-now">Run it now</button>
+        </div>
+        <p class="building" id="building" hidden></p>
+        <form class="row" id="hours-form">
+          <label for="hours">Time between updates</label>
+          <select id="hours"></select>
+          <button type="submit" class="quiet">Save</button>
+        </form>
+        <p class="muted" id="hours-note"></p>
+      </section>
+
+      <section class="card" aria-labelledby="board-h">
+        <h2 id="board-h">Winning the next update</h2>
+        <ol class="board" id="board"></ol>
+        <p class="muted" id="board-note"></p>
+      </section>
+
+      <section class="card" aria-labelledby="note-h">
+        <h2 id="note-h">Your requirements for the next update</h2>
+        <p class="muted">These go into the next update whatever players vote for. Claude follows them within the game's rules, alongside the winning suggestion (or as the update's idea when nothing has bones). Players see the update, not these words.</p>
+        <form id="note-form">
+          <label class="sr" for="note">Requirements</label>
+          <textarea id="note" rows="4" placeholder="For example: make the shop buttons bigger on phones."></textarea>
+          <div class="row">
+            <button type="submit">Save</button>
+            <button type="button" class="quiet" id="note-clear">Clear</button>
+            <span class="muted count" id="note-count"></span>
+          </div>
+        </form>
+        <p class="muted" id="note-state"></p>
+      </section>
+
       <section class="card">
         <h2>Spending</h2>
         <div class="stats" id="stats"></div>
