@@ -1,0 +1,17 @@
+{
+  "name": "beagle-clicker-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "beagle.clicker's API: players, the suggestion board and the hourly update's calls (Azure Static Web Apps managed functions).",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure/cosmos": "^4.1.1",
+    "@azure/functions": "^4.5.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

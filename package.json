@@ -1,0 +1,16 @@
+{
+  "name": "beagle-clicker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A clicker game that players change: every hour Claude builds the suggestion with the most bones.",
+  "scripts": {
+    "start": "node dev/serve.mjs --open",
+    "serve": "node dev/serve.mjs",
+    "build": "node dev/build.mjs",
+    "test": "node dev/run-tests.cjs",
+    "guard": "node dev/guard.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

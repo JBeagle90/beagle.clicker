@@ -1,0 +1,71 @@
+# Tests, builds and deploys beagle.clicker to Azure Static Web Apps (https://clicker.beagle.games)
+# on every push to main, by hand from the Actions tab, and from the hourly update once it has
+# pushed (pushes made with GITHUB_TOKEN don't start other workflows, so it calls this one).
+# Needs one repository secret: AZURE_STATIC_WEB_APPS_API_TOKEN (the Static Web App's deployment token).
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        description: The commit to deploy
+        type: string
+        required: true
+      title:
+        description: The update's title, for the "new update" notice
+        type: string
+        default: ""
+    secrets:
+      AZURE_STATIC_WEB_APPS_API_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test
+        run: npm test
+
+  # A fresh checkout, so nothing the tests ran can touch what's deployed.
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: deploy-site
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build the site into dist/
+        run: npm run build
+        env:
+          UPDATE_TITLE: ${{ inputs.title }}
+      - name: Deploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: upload
+          app_location: dist
+          api_location: api
+          output_location: ""
+          skip_app_build: true

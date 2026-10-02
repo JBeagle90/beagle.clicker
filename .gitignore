@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dev/.data.json
+dev/.shots/
+api/local.settings.json
+*.log
+.DS_Store
+.claude/
+
+# The hourly update's working files (.github/workflows/hourly-update.yml)
+.update-task/
