@@ -6,20 +6,29 @@
 //   POST register       { invite, name, ...passkey } → { ok }: the device is added
 //   POST login-start                                → options for navigator.credentials.get
 //   POST login          { ...passkey }              → { session }: kept in the panel's tab only
-//   GET  status         (x-owner-session)           → spending, recent runs, settings, devices
-//   POST forget         { id } (x-owner-session)    → that device can't sign in any more
-//   POST logout         (x-owner-session)
+//   GET  status         (x-owner-session)           → the next update, the board, spending, runs, devices
+//   POST schedule       { hours }                   → hours between updates (schedule.HOURS)
+//   POST run-now                                    → the next update starts now (see dispatch below)
+//   POST note           { text }                    → the owner's requirements for the next update ("" clears)
+//   POST forget         { id }                      → that device can't sign in any more
+//   POST logout
+// (Those after status need x-owner-session too.)
 //
 // Passkeys are checked here with Node's crypto (no packages): the browser's signature over a
 // one-time challenge from this server, made at an allowed address, with the person verified.
 // There's no password to steal, and game code can't use a passkey without the device asking first.
 // Documents are in partition "owner": inv:<hash>, ch:<challenge>, dev:<hash>, ses:<hash>.
-// Setting: OWNER_ORIGIN, the panel's address, or several comma-separated (default https://beagle.games).
+// Settings: OWNER_ORIGIN, the panel's address, or several comma-separated (default https://beagle.games).
+// GH_DISPATCH_TOKEN (optional): a fine-grained GitHub token for this repository with "Actions: read and
+// write", so "run now" starts the workflow at once instead of at its next hourly check. GH_REPO:
+// the repository (default JBeagle90/beagle.clicker).
 "use strict";
 const crypto = require("crypto");
-const { json, fail, sha256, randomId, cleanText, updateHours, HOUR } = require("./util");
+const { json, fail, sha256, randomId, cleanText, HOUR } = require("./util");
 const ratelimit = require("./ratelimit");
 const ops = require("./ops");
+const S = require("./suggestions");
+const schedule = require("./schedule");
 
 const PK = "owner";
 const MIN = 60 * 1000;
@@ -147,13 +156,51 @@ async function login(c) {
 async function status(c, s) {
   const spend = (await c.store.read("sys", "spend")) || {};
   const { budget, perDay } = ops.limits(c.env);
+  const set = await schedule.read(c), min = Math.max(1, +c.env.MIN_SCORE || 1);
+  const open = S.ranked(await c.store.list(S.OPEN));
   return json(200, {
     now: c.now,
+    next: { at: schedule.nextAt(set, c.env, c.now), hours: schedule.hoursOf(set, c.env), choices: schedule.HOURS, lastRunAt: set.lastRunAt || null,
+      runNowAt: set.runNowAt || null, dispatch: !!c.env.GH_DISPATCH_TOKEN, note: set.note || null, noteMax: schedule.NOTE_LEN },
+    board: open.filter(x => !(x.own && x.status === "building")).slice(0, 8).map(x => ({ id: x.id, text: x.text, byName: x.byName, score: x.score || 0,
+      voters: Object.keys(x.votes || {}).length, status: x.status, at: x.at, enough: (x.score || 0) >= min })),
+    building: (b => b ? { text: b.text, own: !!b.own, startedAt: b.startedAt, note: !!b.ownerNote } : null)(open.find(x => x.status === "building")),
     spend: { ...(await ops.spending(c)), budget, perDay, days: spend.days || {}, runs: (spend.runs || []).slice(-50).reverse() },
-    settings: { updateHours: updateHours(c.env), ownIdeas: c.env.OWN_IDEAS !== "0", minScore: Math.max(1, +c.env.MIN_SCORE || 1) },
+    settings: { ownIdeas: c.env.OWN_IDEAS !== "0", minScore: min },
     devices: (await devices(c)).sort((a, b) => a.at - b.at).map(d => ({ id: d.id.slice(4, 16), name: d.name, at: d.at, usedAt: d.usedAt, you: d.id === s.device })),
     sessionEnds: s.exp,
   });
+}
+
+async function setHours(c) {
+  const hours = +c.body.hours;
+  if (!schedule.HOURS.includes(hours)) return fail(400, "bad_input", `Pick one of ${schedule.HOURS.join(", ")} hours.`);
+  await schedule.change(c, cur => ({ ...cur, hours }));
+  return json(200, { ok: true });
+}
+
+// The next update, now: the next check builds it, and with GH_DISPATCH_TOKEN the check is started at once.
+async function runNow(c) {
+  await schedule.change(c, cur => ({ ...cur, runNowAt: c.now }));
+  return json(200, { ok: true, ...(await dispatch(c.env)) });
+}
+
+async function dispatch(env) {
+  if (!env.GH_DISPATCH_TOKEN) return { started: false };
+  const repo = /^[\w.-]+\/[\w.-]+$/.test(env.GH_REPO || "") ? env.GH_REPO : "JBeagle90/beagle.clicker";
+  try {
+    const r = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/scheduled-update.yml/dispatches`, {
+      method: "POST", body: JSON.stringify({ ref: "main" }),
+      headers: { Authorization: `Bearer ${env.GH_DISPATCH_TOKEN}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "beagle.clicker" },
+    });
+    return r.status === 204 ? { started: true } : { started: false, why: `GitHub answered ${r.status}: check GH_DISPATCH_TOKEN.` };
+  } catch (e) { return { started: false, why: "GitHub couldn't be reached." }; }
+}
+
+async function setNote(c) {
+  const text = schedule.noteText(c.body.text);
+  await schedule.change(c, cur => ({ ...cur, note: text ? { text, at: c.now, tries: 0 } : null }));
+  return json(200, { ok: true, note: text || null });
 }
 
 async function forget(c) {
@@ -179,6 +226,9 @@ async function handle(what, c, method) {
   }
   const s = await session(c);
   if (!s) return fail(401, "signed_out", "Sign in again.");
+  if (what === "schedule") return setHours(c);
+  if (what === "run-now") return runNow(c);
+  if (what === "note") return setNote(c);
   if (what === "forget") return forget(c);
   if (what === "logout") { await c.store.remove(PK, s.id); return json(200, { ok: true }); }
   return fail(404, "not_found", "Nothing here.");

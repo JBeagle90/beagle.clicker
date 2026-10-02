@@ -10,9 +10,10 @@
 //     commit?, ratings?: { pid: 1..5 } }
 // status: open | building | shipped | declined. A declined suggestion's votes go back to the voters.
 "use strict";
-const { json, fail, randomId, cleanText, updateHours, nextSlot } = require("./util");
+const { json, fail, randomId, cleanText } = require("./util");
 const ratelimit = require("./ratelimit");
 const moderation = require("./moderation");
+const schedule = require("./schedule");
 const players = require("./players");
 const game = require("../game");
 const { R } = game;
@@ -55,7 +56,7 @@ const ranked = list => list.slice().sort((a, b) => (b.status === "building") - (
 const limits = () => ({ min: MIN_LEN, max: MAX_LEN, cost: R.SUGGEST_COST });
 
 async function board(c, player) {
-  const pid = player && player.pid, hours = updateHours(c.env);
+  const pid = player && player.pid, settings = await schedule.read(c);
   const open = ranked(await c.store.list(OPEN));
   const done = await c.store.list(DONE, { limit: PAGE, orderBy: "doneAt" });
   return json(200, {
@@ -64,8 +65,8 @@ async function board(c, player) {
     done: done.map(s => publicOf(s, pid)),
     moreDone: done.length === PAGE,
     limits: limits(),
-    updateHours: hours,
-    nextPickAt: nextSlot(c.now, hours),
+    updateHours: schedule.hoursOf(settings, c.env),
+    nextPickAt: schedule.nextAt(settings, c.env, c.now),
     serverTime: c.now,
   });
 }

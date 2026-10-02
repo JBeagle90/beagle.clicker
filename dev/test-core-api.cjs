@@ -118,9 +118,9 @@ test("voting moves bones onto a suggestion; the board ranks by bones", async () 
 
 test("ops calls need the key", async () => {
   reset();
-  eq((await api("POST", "/ops/pick", {}, {})).status, 403);
-  eq((await api("POST", "/ops/pick", {}, { ops: "wrong-key-wrong-key-wrong-key" })).status, 403);
-  eq((await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).status, 200);
+  eq((await api("POST", "/ops/pick", { manual: true }, {})).status, 403);
+  eq((await api("POST", "/ops/pick", { manual: true }, { ops: "wrong-key-wrong-key-wrong-key" })).status, 403);
+  eq((await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).status, 200);
 });
 
 test("the pick takes the top suggestion, and nothing else while it's building", async () => {
@@ -129,9 +129,9 @@ test("the pick takes the top suggestion, and nothing else while it's building", 
   await earn(a, 400);
   const s = (await api("POST", "/suggest", { text: "Make the beagle wear sunglasses" }, { save: a })).jsonBody.suggestion;
   await api("POST", "/vote", { id: s.id, amount: 30 }, { save: a });
-  const p = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+  const p = (await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.pick;
   eq(p.id, s.id); eq(p.text, "Make the beagle wear sunglasses"); eq(p.score, 30);
-  eq((await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.reason, "busy");
+  eq((await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.reason, "busy");
   eq((await api("POST", "/vote", { id: s.id, amount: 5 }, { save: a })).status, 409, "no votes once it's building");
 });
 
@@ -141,7 +141,7 @@ test("shipped goes to the patch notes", async () => {
   await earn(a, 400);
   const s = (await api("POST", "/suggest", { text: "Make the beagle wear sunglasses" }, { save: a })).jsonBody.suggestion;
   await api("POST", "/vote", { id: s.id, amount: 30 }, { save: a });
-  await api("POST", "/ops/pick", {}, { ops: OPS_KEY });
+  await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY });
   const r = await api("POST", "/ops/result", { id: s.id, status: "shipped", title: "Cool shades", notes: "Tap the beagle 100 times to see them.", commit: "abc1234" }, { ops: OPS_KEY });
   eq(r.status, 200);
   const board = (await api("GET", "/board", null, { save: a })).jsonBody;
@@ -157,7 +157,7 @@ test("declined gives every bone back", async () => {
   await api("POST", "/vote", { id: s.id, amount: 100 }, { save: a });
   await api("POST", "/vote", { id: s.id, amount: 250 }, { save: b });
   const before = [await bonesOf(a), await bonesOf(b)];
-  await api("POST", "/ops/pick", {}, { ops: OPS_KEY });
+  await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY });
   await api("POST", "/ops/result", { id: s.id, status: "declined", reason: "It isn't about the game." }, { ops: OPS_KEY });
   eq([await bonesOf(a), await bonesOf(b)], [before[0] + 100, before[1] + 250]);
   const d = (await api("GET", "/board")).jsonBody.done[0];
@@ -170,10 +170,10 @@ test("a failed build goes back on the board once, then is declined", async () =>
   await earn(a, 400);
   const s = (await api("POST", "/suggest", { text: "Flaky build please" }, { save: a })).jsonBody.suggestion;
   await api("POST", "/vote", { id: s.id, amount: 40 }, { save: a });
-  await api("POST", "/ops/pick", {}, { ops: OPS_KEY });
+  await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY });
   await api("POST", "/ops/result", { id: s.id, status: "failed" }, { ops: OPS_KEY });
   eq((await api("GET", "/board")).jsonBody.open[0].status, "open");
-  await api("POST", "/ops/pick", {}, { ops: OPS_KEY });
+  await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY });
   await api("POST", "/ops/result", { id: s.id, status: "failed" }, { ops: OPS_KEY });
   const board = (await api("GET", "/board")).jsonBody;
   eq(board.open.length, 0); eq(board.done[0].status, "declined");
@@ -185,9 +185,9 @@ test("a build that never reports back is given up on after 3 hours", async () =>
   await earn(a, 400);
   const s = (await api("POST", "/suggest", { text: "Lost in the mail" }, { save: a })).jsonBody.suggestion;
   await api("POST", "/vote", { id: s.id, amount: 40 }, { save: a });
-  await api("POST", "/ops/pick", {}, { ops: OPS_KEY });
+  await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY });
   clock += 3.5 * 3600 * 1000;
-  const p = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+  const p = (await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.pick;
   eq(p && p.id, s.id, "picked again after the stuck one is reset");
   eq(p.attempts, 1);
 });
@@ -222,7 +222,7 @@ test("game actions: unknown ones are 404, and one can change only its caller", a
 
 test("with no bones on anything, Claude builds its own idea, and it's numbered in the log", async () => {
   reset();
-  const r = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody;
+  const r = (await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody;
   eq(r.reason, "own"); eq(r.pick.own, true);
   const board = (await api("GET", "/board")).jsonBody;
   eq(board.open[0].status, "building"); eq(board.open[0].own, true);
@@ -231,18 +231,18 @@ test("with no bones on anything, Claude builds its own idea, and it's numbered i
   eq([d.n, d.own, d.text, d.byName], [1, true, "The beagle naps when nobody pats it.", "Claude"]);
   eq(d.summary, ["The beagle dozes off after a while.", "- Snores appear above its head", "- A pat wakes it up"]);
   clock += 3 * 3600 * 1000;
-  const r2 = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+  const r2 = (await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.pick;
   await api("POST", "/ops/result", { id: r2.id, status: "shipped", title: "Second", idea: "Another one" }, { ops: OPS_KEY });
   eq((await api("GET", "/board")).jsonBody.done[0].n, 2);
 });
 
 test("Claude's own idea that fails or is declined just goes away", async () => {
   reset();
-  const r = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+  const r = (await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.pick;
   await api("POST", "/ops/result", { id: r.id, status: "failed" }, { ops: OPS_KEY });
   let b = (await api("GET", "/board")).jsonBody;
   eq([b.open.length, b.done.length], [0, 0]);
-  const r2 = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+  const r2 = (await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.pick;
   await api("POST", "/ops/result", { id: r2.id, status: "declined" }, { ops: OPS_KEY });
   b = (await api("GET", "/board")).jsonBody;
   eq([b.open.length, b.done.length], [0, 0]);
@@ -251,28 +251,28 @@ test("Claude's own idea that fails or is declined just goes away", async () => {
 test("OWN_IDEAS=0 skips the run when nothing has bones", async () => {
   reset();
   env.OWN_IDEAS = "0";
-  eq((await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick, null);
+  eq((await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.pick, null);
 });
 
 test("spending limits: no build past the 30-day budget or the daily count", async () => {
   reset();
   env.BUDGET_USD_30D = "5";
-  const r = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+  const r = (await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.pick;
   await api("POST", "/ops/result", { id: r.id, status: "shipped", title: "x", idea: "something small", cost: 5.5 }, { ops: OPS_KEY });
-  const b = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody;
+  const b = (await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody;
   eq([b.pick, b.reason, b.spent.usd], [null, "budget", 5.5]);
   clock += 31 * 24 * 3600 * 1000;
-  ok((await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick, "a month later the budget is free again");
+  ok((await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.pick, "a month later the budget is free again");
 
   reset();
   env.MAX_BUILDS_PER_DAY = "2";
   for (let i = 0; i < 2; i++) {
-    const p = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+    const p = (await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.pick;
     await api("POST", "/ops/result", { id: p.id, status: "shipped", title: "x", idea: "idea " + i }, { ops: OPS_KEY });
   }
-  eq((await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.reason, "daily_limit");
+  eq((await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.reason, "daily_limit");
   clock += 25 * 3600 * 1000;
-  ok((await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick);
+  ok((await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.pick);
 });
 
 test("suggestions: at most 140 characters, and no rude words", async () => {
@@ -290,7 +290,7 @@ test("ratings: players who've played rate a shipped update; it can change", asyn
   reset();
   const a = await player("1.1.1.1"), b = await player("2.2.2.2"), fresh = await player("3.3.3.3");
   await earn(a, 60); await earn(b, 60);
-  const p = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+  const p = (await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.pick;
   await api("POST", "/ops/result", { id: p.id, status: "shipped", title: "Hats", idea: "Hats for the beagle" }, { ops: OPS_KEY });
   eq((await api("POST", "/rate", { id: p.id, rating: "great" }, { save: fresh })).status, 403, "a brand-new save can't rate");
   eq((await api("POST", "/rate", { id: p.id, rating: "amazing" }, { save: a })).status, 400);
@@ -298,7 +298,7 @@ test("ratings: players who've played rate a shipped update; it can change", asyn
   eq((await api("POST", "/rate", { id: p.id, rating: "bad" }, { save: b })).status, 200);
   const u = (await api("POST", "/rate", { id: p.id, rating: "good" }, { save: b })).jsonBody.update;
   eq(u.ratings.counts, [0, 0, 0, 1, 1]); eq(u.ratings.mine, "good"); eq(u.ratings.avg, 4.5);
-  const next = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody;
+  const next = (await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody;
   eq(next.ratings[0].ratings, { terrible: 0, bad: 0, neutral: 0, good: 1, great: 1 }, "the next build hears how it went");
 });
 
@@ -321,7 +321,7 @@ test("the log pages back through older updates", async () => {
   env.MAX_BUILDS_PER_DAY = "100";
   for (let i = 0; i < 25; i++) {
     clock += 3 * 3600 * 1000;
-    const p = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+    const p = (await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.pick;
     await api("POST", "/ops/result", { id: p.id, status: "shipped", title: "Update " + i, idea: "idea number " + i }, { ops: OPS_KEY });
   }
   const b = (await api("GET", "/board")).jsonBody;

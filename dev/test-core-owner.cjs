@@ -176,7 +176,7 @@ test("each run's cost is logged for the panel", async () => {
   reset();
   const pk = passkey();
   await addDevice(pk);
-  const pick = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+  const pick = (await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.pick;
   ok(pick.own);
   await api("POST", "/ops/result", { id: pick.id, status: "shipped", title: "A bouncy ball", idea: "Give the beagle a ball.", cost: 1.25,
     run: { screen: 0, build: 1.25, turns: 41, minutes: 12.34, billing: "plan" } }, { ops: OPS_KEY });
@@ -186,6 +186,126 @@ test("each run's cost is logged for the panel", async () => {
   eq(sp.runs.length, 1);
   const r = sp.runs[0];
   eq([r.status, r.title, r.own, r.cost, r.build, r.turns, r.minutes, r.billing], ["shipped", "A bouncy ball", true, 1.25, 1.25, 41, 12.3, "plan"]);
+});
+
+// --- The schedule, "run now", the owner's requirements ---
+const H = 3600 * 1000, NOON = Date.UTC(2026, 9, 2, 12, 0, 0);
+const pickNow = () => api("POST", "/ops/pick", {}, { ops: OPS_KEY }).then(r => r.jsonBody);
+const report = (id, status) => api("POST", "/ops/result", { id, status, title: "Done", idea: "An idea." }, { ops: OPS_KEY });
+const nextPickAt = async () => (await api("GET", "/board")).jsonBody.nextPickAt;
+// Calls from the owner's panel, signing in afresh each time (the tests move the clock past a session).
+async function owner() {
+  const pk = passkey();
+  await addDevice(pk);
+  return async (method, what, body) => api(method, "/owner/" + what, body, { session: (await signIn(pk)).jsonBody.session });
+}
+
+test("a run is due every few hours from the last one, and the countdown shows when", async () => {
+  reset();
+  let p = await pickNow();
+  ok(p.pick, "the first run is due straight away");
+  await report(p.pick.id, "shipped");
+  clock = NOON + 0.5 * H;
+  p = await pickNow();
+  eq([p.pick, p.reason, p.nextAt], [null, "not_yet", NOON + 3 * H]);
+  eq(await nextPickAt(), NOON + 3 * H);
+  clock = NOON + 3 * H + 7 * 60 * 1000; // GitHub's hourly run, a few minutes late
+  p = await pickNow();
+  ok(p.pick);
+  await report(p.pick.id, "shipped");
+  clock += H;
+  eq(await nextPickAt(), NOON + 6 * H, "counted from the start of the last run's hour, so it doesn't drift");
+});
+
+test("the owner changes the hours between updates", async () => {
+  reset();
+  const o = await owner();
+  const p = await pickNow();
+  await report(p.pick.id, "shipped");
+  eq((await o("POST", "schedule", { hours: 5 })).status, 400);
+  eq((await o("POST", "schedule", { hours: 1 })).status, 200);
+  eq(await nextPickAt(), NOON + H);
+  eq((await api("GET", "/board")).jsonBody.updateHours, 1);
+  eq((await o("GET", "status")).jsonBody.next.hours, 1);
+  clock = NOON + 0.6 * H;
+  eq((await pickNow()).reason, "not_yet");
+  clock = NOON + 0.9 * H;
+  ok((await pickNow()).pick, "within a few minutes of its time counts");
+  eq((await api("POST", "/owner/schedule", { hours: 2 })).status, 401, "only signed in");
+});
+
+test("run now: the countdown goes to 0 and the next check builds", async () => {
+  reset();
+  const o = await owner();
+  const p = await pickNow();
+  await report(p.pick.id, "shipped");
+  clock = NOON + 0.5 * H;
+  eq((await pickNow()).reason, "not_yet");
+  const r = await o("POST", "run-now");
+  eq([r.status, r.jsonBody.started], [200, false], "no GitHub token here, so it waits for the hourly check");
+  eq(await nextPickAt(), clock);
+  ok((await pickNow()).pick);
+  eq((await o("GET", "status")).jsonBody.next.runNowAt, null, "used up");
+  eq((await pickNow()).reason, "busy");
+});
+
+test("the owner's requirements go with the next build, whatever wins", async () => {
+  reset();
+  const o = await owner();
+  eq((await o("POST", "note", { text: "  Make it purple.\r\n\n\n\nAnd round.  " })).jsonBody.note, "Make it purple.\n\nAnd round.");
+  eq((await o("GET", "status")).jsonBody.next.note.text, "Make it purple.\n\nAnd round.");
+  const p = (await pickNow()).pick;
+  eq(p.note, "Make it purple.\n\nAnd round.");
+  eq((await o("GET", "status")).jsonBody.next.note, null, "taken by this build");
+  ok((await o("GET", "status")).jsonBody.building.note);
+  await report(p.id, "shipped");
+  eq((await o("GET", "status")).jsonBody.spend.runs[0].note, true);
+  clock += 4 * H;
+  eq((await pickNow()).pick.note, undefined, "used once");
+});
+
+test("requirements that didn't ship go back, unless the owner wrote new ones", async () => {
+  reset();
+  const o = await owner();
+  await o("POST", "note", { text: "Add a hat." });
+  let p = (await pickNow()).pick;
+  await report(p.id, "failed");
+  const back = (await o("GET", "status")).jsonBody.next.note;
+  eq([back.text, back.tries], ["Add a hat.", 1]);
+  clock += 4 * H;
+  p = (await pickNow()).pick;
+  eq(p.note, "Add a hat.");
+  await o("POST", "note", { text: "Add a scarf instead." });
+  await report(p.id, "declined");
+  eq((await o("GET", "status")).jsonBody.next.note.text, "Add a scarf instead.");
+  await o("POST", "note", { text: "   " });
+  eq((await o("GET", "status")).jsonBody.next.note, null, "blank clears it");
+});
+
+test("with own ideas off and nothing voted, a run still builds the owner's requirements", async () => {
+  reset();
+  env.OWN_IDEAS = "0";
+  const o = await owner();
+  eq((await pickNow()).reason, "nothing");
+  clock += 4 * H;
+  await o("POST", "note", { text: "A rainbow trail." });
+  const p = (await pickNow()).pick;
+  eq([p.own, p.note], [true, "A rainbow trail."]);
+});
+
+test("the panel shows what's winning the next update", async () => {
+  reset();
+  const o = await owner();
+  const save = (await api("POST", "/players")).jsonBody.save;
+  const call = (path, body) => handle({ method: "POST", route: path.slice(1), headers: { get: k => ({ "x-bc-save": save, "x-forwarded-for": "1.2.3.4" })[k.toLowerCase()] }, body, rawLength: 10 }, store, env, clock);
+  for (let i = 0; i < 40; i++) { clock += 1000; await call("/sync", { pats: 20 }); }
+  const a = (await call("/suggest", { text: "Let the beagle wear a party hat" })).jsonBody.suggestion;
+  clock += 11 * 60 * 1000;
+  const b = (await call("/suggest", { text: "A pond for the beagle to splash in" })).jsonBody.suggestion;
+  await call("/vote", { id: b.id, amount: 10 });
+  const st = (await o("GET", "status")).jsonBody;
+  eq(st.board.map(s => [s.text, s.score, s.voters, s.enough]), [[b.text, 10, 1, true], [a.text, 0, 0, false]]);
+  eq(st.building, null);
 });
 
 done();

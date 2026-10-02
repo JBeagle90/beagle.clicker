@@ -1,10 +1,13 @@
 // The scheduled update's calls (.github/workflows/scheduled-update.yml), at POST /api/ops/<what> with
 // the header x-ops-key: <OPS_KEY>. ("admin" routes are kept by Azure Functions, hence "ops".)
 //
-//   pick     → { pick: { id, own, text, ... } | null, reason, ratings }
-//            The suggestion with the most bones becomes "building". When none has enough bones, a
-//            placeholder for Claude's own idea is made instead (own: true), so every scheduled run
-//            builds something. ratings: how players rated the last few updates.
+//   pick     { manual? } → { pick: { id, own, text, note?, ... } | null, reason, ratings }
+//            The workflow asks every hour; only when a run is due (schedule.js; manual: run by hand,
+//            so always) does the suggestion with the most bones become "building". When none has
+//            enough bones, a placeholder for Claude's own idea is made instead (own: true), so every
+//            run builds something. note: the owner's requirements for this update, if any (taken
+//            off the schedule; they go back if it doesn't ship). ratings: how players rated the last
+//            few updates.
 //   result   { id, status: shipped | declined | failed, title, summary, idea, reason, commit, cost, run }
 //            summary: the players' summary (lines; "- " lines are bullets); idea: for Claude's own,
 //            the idea in one sentence, shown as its suggestion. cost: what the run cost in USD.
@@ -13,7 +16,7 @@
 //   invite   a one-time link that adds a device to the owner's panel (owner.js)
 //
 // Settings: OPS_KEY (24+ random characters, also a GitHub secret), MIN_SCORE (bones a suggestion
-// needs to be picked; default 1), UPDATE_HOURS (the schedule, for the countdown; default 3).
+// needs to be picked; default 1), UPDATE_HOURS (hours between updates until the owner sets them; default 3).
 // Limits on spending, checked before every build (the workflow also caps each run, --max-budget-usd):
 //   BUDGET_USD_30D      no build starts once the last 30 days' runs cost this much (default 250)
 //   MAX_BUILDS_PER_DAY  no more builds than this in 24 hours (default 8)
@@ -21,6 +24,7 @@
 "use strict";
 const { json, fail, randomId, safeEqual, cleanText, HOUR } = require("./util");
 const S = require("./suggestions");
+const schedule = require("./schedule");
 
 const STUCK_MS = 3 * HOUR;  // a build that never reported back is given up on after this
 const MAX_TRIES = 2;        // builds that failed (not declined) before it's declined for good
@@ -40,12 +44,19 @@ async function failOnce(c, s, why) {
   if (s.own) { await c.store.remove(S.OPEN, s.id); return null; }
   const attempts = (s.attempts || 0) + 1;
   if (attempts >= MAX_TRIES) return S.close(c, s, "declined", { attempts, reason: why || "It couldn't be built after two tries, so everyone's bones went back." });
-  await c.store.upsert({ ...s, status: "open", attempts, startedAt: null });
+  await c.store.upsert({ ...s, status: "open", attempts, startedAt: null, ownerNote: null });
   return null;
 }
 
+// The owner's requirements go back for the next update when this one didn't ship (unless the owner
+// has written new ones since).
+async function noteBack(c, s) {
+  if (!s || !s.ownerNote) return;
+  await schedule.change(c, cur => cur.note ? null : { ...cur, note: { ...s.ownerNote, tries: (s.ownerNote.tries || 0) + 1 } });
+}
+
 // What the builds have cost: { id: "spend", pk: "sys", days: { "2026-10-02": 1.23 }, picks: [times],
-// runs: [{ at, id, status, title, own, cost, screen, build, turns, minutes, billing }] } (the last 14 days).
+// runs: [{ at, id, status, title, own, cost, screen, build, turns, minutes, billing, note }] } (the last 14 days).
 const DAY = 24 * HOUR, RUN_DAYS = 14, MAX_RUNS = 200;
 const dayOf = t => new Date(t).toISOString().slice(0, 10);
 async function spending(c) {
@@ -83,6 +94,7 @@ function runOf(c, id, status, s) {
   const out = { at: c.now, id, status, title, own: !!(s && s.own), cost: usd(c.body.cost), screen: usd(run.screen), build: usd(run.build),
     turns: Math.round(Math.max(0, Math.min(10000, +run.turns || 0))), minutes: Math.round(Math.max(0, Math.min(1000, +run.minutes || 0)) * 10) / 10 };
   if (run.billing === "api" || run.billing === "plan") out.billing = run.billing;
+  if (s && s.ownerNote) out.note = true;
   return out;
 }
 
@@ -90,27 +102,39 @@ async function pick(c) {
   let open = await c.store.list(S.OPEN);
   const building = open.find(s => s.status === "building");
   if (building && c.now - (building.startedAt || 0) < STUCK_MS) return json(200, { pick: null, reason: "busy", building: building.id });
-  if (building) { await failOnce(c, building); open = await c.store.list(S.OPEN); }
+  const settings = await schedule.read(c);
+  if (!c.body.manual && !schedule.due(settings, c.env, c.now)) return json(200, { pick: null, reason: "not_yet", nextAt: schedule.nextAt(settings, c.env, c.now) });
+  if (building) { await noteBack(c, building); await failOnce(c, building); open = await c.store.list(S.OPEN); }
   for (const s of open) if (s.status === "open" && !(s.score > 0) && c.now - s.at > STALE_MS) await c.store.remove(S.OPEN, s.id);
 
+  // This is the run that was due: the countdown starts again from now, whatever happens next.
+  // build: true takes the owner's requirements for this build.
+  const ran = async build => {
+    let note = null;
+    await schedule.change(c, cur => { note = build && cur.note && cur.note.text ? cur.note : null; return { ...cur, lastRunAt: c.now, runNowAt: null, note: build ? null : cur.note || null }; });
+    return note;
+  };
   const spent = await spending(c);
   const { budget, perDay } = limits(c.env);
-  if (spent.usd >= budget) return json(200, { pick: null, reason: "budget", spent });
-  if (spent.builds >= perDay) return json(200, { pick: null, reason: "daily_limit", spent });
+  if (spent.usd >= budget) { await ran(false); return json(200, { pick: null, reason: "budget", spent }); }
+  if (spent.builds >= perDay) { await ran(false); return json(200, { pick: null, reason: "daily_limit", spent }); }
 
   const ratings = await S.recentRatings(c);
   const min = Math.max(1, +c.env.MIN_SCORE || 1);
   const top = S.ranked(open.filter(s => s.status === "open" && (s.score || 0) >= min))[0];
-  if (!top && c.env.OWN_IDEAS === "0") return json(200, { pick: null, reason: "nothing", spent });
+  // With no suggestion to build, Claude's own idea, unless that's turned off and the owner asked for nothing.
+  if (!top && c.env.OWN_IDEAS === "0" && !(settings.note && settings.note.text)) { await ran(false); return json(200, { pick: null, reason: "nothing", spent }); }
+  const note = await ran(true);
   await record(c, sp => { sp.picks.push(c.now); });
+  const withNote = p => note ? { ...p, note: note.text } : p;
   if (!top) {
-    const s = { id: randomId(8), pk: S.OPEN, own: true, text: "", by: null, byName: "Claude", at: c.now, score: 0, votes: {}, status: "building", startedAt: c.now, attempts: 0 };
+    const s = { id: randomId(8), pk: S.OPEN, own: true, text: "", by: null, byName: "Claude", at: c.now, score: 0, votes: {}, status: "building", startedAt: c.now, attempts: 0, ownerNote: note };
     await c.store.upsert(s);
-    return json(200, { pick: { id: s.id, own: true, text: "", byName: "Claude", score: 0, voters: 0, attempts: 0 }, reason: "own", ratings, spent });
+    return json(200, { pick: withNote({ id: s.id, own: true, text: "", byName: "Claude", score: 0, voters: 0, attempts: 0 }), reason: "own", ratings, spent });
   }
-  const s = await c.store.update(S.OPEN, top.id, cur => cur && cur.status === "open" ? { ...cur, status: "building", startedAt: c.now } : null);
-  if (!s) return json(200, { pick: null, reason: "raced" });
-  return json(200, { pick: { id: s.id, own: false, text: s.text, byName: s.byName, score: s.score, voters: Object.keys(s.votes || {}).length, attempts: s.attempts || 0 }, reason: "top", ratings, spent });
+  const s = await c.store.update(S.OPEN, top.id, cur => cur && cur.status === "open" ? { ...cur, status: "building", startedAt: c.now, ownerNote: note } : null);
+  if (!s) { if (note) await schedule.change(c, cur => cur.note ? null : { ...cur, note }); return json(200, { pick: null, reason: "raced" }); }
+  return json(200, { pick: withNote({ id: s.id, own: false, text: s.text, byName: s.byName, score: s.score, voters: Object.keys(s.votes || {}).length, attempts: s.attempts || 0 }), reason: "top", ratings, spent });
 }
 
 async function result(c) {
@@ -123,6 +147,7 @@ async function result(c) {
     sp.runs.push(runOf(c, id, status, s));
   });
   if (!s || s.status !== "building") return fail(409, "not_building", "That suggestion isn't being built.");
+  if (status !== "shipped") await noteBack(c, s);
   const title = cleanText(c.body.title, 80), summary = summaryOf(c.body.summary), reason = cleanText(c.body.reason, 400);
   const commit = /^[0-9a-f]{7,40}$/.test(String(c.body.commit || "")) ? c.body.commit : null;
   if (s.own) s.text = cleanText(c.body.idea, S.MAX_LEN) || title || "Claude's own idea";
