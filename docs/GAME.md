@@ -14,7 +14,7 @@ The beagle is a scent hound digging for treasure: short, punchy words, a little 
 
 ## Screens
 
-Tabs in the header (the address's #hash, so Back works): **Dig** (the beagle; Your dig, a row of icons for each kind of upgrade you own with what it makes, under a news ticker of short, dry headlines that unlock as you progress; the shop), **Trophies**, **Stats** (bones, pats, rates, upgrades, boosts, trophies, treasures, frenzies, counting since) and **Updates** (the suggestion board and the update log). A dot on the Dig tab means a treasure is up.
+Tabs in the header (the address's #hash, so Back works): **Dig** (the beagle; Your dig, a row of icons for each kind of upgrade you own with what it makes, under a news ticker of short, dry headlines that unlock as you progress; the shop), **Trophies**, **Stats** (bones, pats, rates, upgrades, boosts, trophies, treasures, frenzies, counting since) and **Updates** (the suggestion board and the update log). A dot on the Dig tab means a treasure is up. The header also shows the time to the next update (or that one's being built) on every screen, and your name: click it to change it.
 
 ## Shop
 
@@ -48,7 +48,8 @@ Tabs in the header (the address's #hash, so Back works): **Dig** (the beagle; Yo
 
 - A suggestion costs 100 bones: one small idea, 10 to 140 characters, no links, friendly words, one every 10 minutes.
 - Give bones to any open suggestion (+10, +100, +1,000). You can give to several.
-- Every 3 hours, Claude builds the suggestion with the most bones and puts it live. When none has any bones, Claude builds an idea of its own.
+- On each scheduled update, Claude builds the suggestion with the most bones and puts it live.
+- Each update leaves three of Claude's own ideas on the board ("Claude's idea", 0 bones) for players to back. When nothing has bones at update time, one of them is picked at random (with none on the board, Claude picks an idea of its own). New ones replace Claude's ideas nobody backed; a backed one stays and competes like any suggestion.
 - If a suggestion is declined (or can't be built after two tries), everyone who gave bones to it gets them back.
 - Report a suggestion that doesn't belong. After 3 players report one, it comes down and its bones go back.
 - Suggestions nobody has given bones to are cleared after 3 days.
@@ -62,4 +63,4 @@ Tabs in the header (the address's #hash, so Back works): **Dig** (the beagle; Yo
 ## Saves
 
 - No sign-up: your game is kept on your browser, with a save code you can copy to play elsewhere.
-- You get a random name, like "Sleepy Snoot 123".
+- You get a random name, like "Sleepy Snoot 123". Change it from the header: 3 to 24 letters, numbers and spaces, friendly words, nothing that passes for Claude or the owner, up to 5 times a day. Suggestions you made before keep the old name.

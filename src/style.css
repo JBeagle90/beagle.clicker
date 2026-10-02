@@ -66,7 +66,28 @@ ol { list-style: none; margin: 0; padding: 0; }
 }
 .brand { font-size: 1.5rem; margin: 0; font-weight: 800; letter-spacing: -.01em; }
 .brand span { color: var(--accent); }
-.who { color: var(--muted); font-size: .9rem; text-align: right; margin-left: auto; }
+.who {
+  color: var(--muted); font-size: .9rem; text-align: right; border: 0; background: none; padding: 4px 6px; border-radius: 8px;
+}
+.who:hover { color: var(--ink); background: var(--card); }
+/* The timer to the next update, on every screen */
+.next {
+  margin-left: auto; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card);
+  color: var(--ink); font-weight: 700; font-size: .88rem; text-decoration: none; white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.next:hover { border-color: var(--accent); }
+.next.building { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, var(--card)); }
+.rename {
+  max-width: 1248px; margin: 6px auto 0; padding: 10px 14px; border-radius: 12px; background: var(--card); border: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+}
+.rename label { font-weight: 700; font-size: .9rem; }
+.rename input { flex: 1 1 180px; min-width: 0; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); }
+.rename button { border: 0; border-radius: 999px; padding: 6px 14px; background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.rename button.ghost { background: none; color: var(--muted); border: 1px solid var(--line); }
+.rename .form-msg { flex-basis: 100%; }
+.rename .form-msg:empty { display: none; }
+@media (max-width: 1280px) { .rename { margin-left: 16px; margin-right: 16px; } }
 
 /* --- Tabs: one screen at a time --- */
 .tabs { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); }
@@ -82,6 +103,9 @@ ol { list-style: none; margin: 0; padding: 0; }
 }
 @media (max-width: 640px) {
   .tabs { order: 3; width: 100%; justify-content: space-between; }
+  .brand { font-size: 1.25rem; }
+  .next { font-size: .8rem; padding: 4px 10px; }
+  .who { order: 4; width: 100%; text-align: center; font-size: .82rem; padding: 0; }
   .tabs a { flex: 1; text-align: center; padding: 6px 4px; font-size: .85rem; }
 }
 @media (max-width: 400px) { .tabs a span { display: none; } }
@@ -309,6 +333,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
   padding: 2px 8px; border-radius: 999px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); vertical-align: 2px;
 }
 .tag.ok { background: var(--good-bg); color: var(--good); border-color: transparent; }
+.tag.claude { color: var(--accent); border-color: var(--accent); background: none; }
 
 /* --- Patch notes --- */
 .done { display: grid; gap: 12px; }

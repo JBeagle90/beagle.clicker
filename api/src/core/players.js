@@ -4,8 +4,9 @@
 // Only a hash of the token is stored. A player is one document: { id: "player", pk: "p:<pid>", ... }.
 // The game fields on it (bones, owned, game, ...) belong to api/src/game; the ones here don't.
 "use strict";
-const { json, fail, sha256, randomId, safeEqual } = require("./util");
+const { json, fail, sha256, randomId, safeEqual, cleanText } = require("./util");
 const ratelimit = require("./ratelimit");
+const moderation = require("./moderation");
 const game = require("../game");
 
 const PID = /^[A-Za-z0-9_-]{8,32}$/, TOKEN = /^[A-Za-z0-9_-]{20,64}$/;
@@ -34,6 +35,23 @@ async function create(c) {
     bones: 0, earned: 0, pats: 0, owned: {}, game: {}, syncedAt: c.now };
   await c.store.upsert(p);
   return json(200, { save: `${pid}.${token}`, player: view(p, c.now) });
+}
+
+// POST /name { name }: a new display name. It shows on the player's suggestions from now on, so it's
+// checked like one: friendly words, no links, and not a name that would pass for Claude or the owner.
+const NAME_MIN = 3, NAME_MAX = 24, RENAMES_PER_DAY = 5;
+const NAME_OK = /^[\p{L}\p{N}][\p{L}\p{N} '._-]*$/u;
+const RESERVED = /claude|anthropic|admin|owner|moderator|beagle\s*\.?\s*clicker|official/i;
+async function rename(c, player) {
+  const name = cleanText(c.body.name, NAME_MAX + 1);
+  if (name.length < NAME_MIN || name.length > NAME_MAX) return fail(400, "bad_name", `A name is ${NAME_MIN} to ${NAME_MAX} characters.`);
+  if (!NAME_OK.test(name)) return fail(400, "bad_name", "Letters, numbers and spaces, please.");
+  if (RESERVED.test(name) || /https?:|www\.|\.(com|net|org|io|gg)\b/i.test(name)) return fail(400, "taken", "That name isn't available. Try another.");
+  if (moderation.blocked(name, c.env)) return fail(400, "not_ok", "Let's keep it friendly: beagle.clicker is for everyone. Try another name.");
+  if (name === player.name) return json(200, { player: view(player, c.now) });
+  if (!(await ratelimit.allow(c.store, "rename", player.pid, RENAMES_PER_DAY, 86400, c.now))) return fail(429, "slow_down", "That's a lot of new names for one day. Try again tomorrow.");
+  const p = await c.store.update(pk(player.pid), "player", cur => cur ? { ...cur, name } : null);
+  return p ? json(200, { player: view(p, c.now) }) : fail(404, "no_save", "That save isn't there any more.");
 }
 
 // Change the player's saved game with fn(copy) → the new game (or null to leave it), keeping the
@@ -95,4 +113,4 @@ async function gameAction(c, player, name) {
   return json(200, { ...(out.body && typeof out.body === "object" ? out.body : {}), player: view(out.player, c.now) });
 }
 
-module.exports = { who, create, sync, spend, refund, gameAction, view, pk };
+module.exports = { who, create, sync, spend, refund, rename, gameAction, view, pk };

@@ -80,6 +80,12 @@ export async function grabTreasure() {
   return { found: r.found || 0, frenzy: !!r.frenzy };
 }
 
+// A new display name (the server checks it). Throws with why not.
+export async function rename(name) {
+  const r = await call("POST", "/name", { name });
+  if (r.player) applyServer(r.player);
+}
+
 let inflight = null, lastSync = 0;
 export function sync() {
   if (inflight) return inflight;

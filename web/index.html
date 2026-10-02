@@ -20,8 +20,17 @@
       <a href="#stats" data-view="stats"><span aria-hidden="true">📊</span> Stats</a>
       <a href="#updates" data-view="updates"><span aria-hidden="true">🗳️</span> Updates</a>
     </nav>
-    <div class="who" id="who"></div>
+    <a class="next" id="next" href="#updates" aria-label="Time to the next update"><span aria-hidden="true" id="next-icon">⏳</span> <span id="next-text">Next update</span></a>
+    <button class="who" id="who" type="button" aria-label="Change your name" aria-expanded="false" aria-controls="rename"></button>
   </header>
+
+  <form class="rename" id="rename" hidden>
+    <label for="rename-input">Your name</label>
+    <input id="rename-input" maxlength="24" autocomplete="off" required>
+    <button type="submit">Save</button>
+    <button type="button" class="ghost" id="rename-cancel">Cancel</button>
+    <p class="form-msg" id="rename-msg" role="status"></p>
+  </form>
 
   <div class="notice" id="notice" role="status" hidden></div>
 
@@ -138,7 +147,7 @@
   <p class="toast" id="toast" role="status"></p>
 
   <footer class="foot">
-    <p>Claude makes an update <span id="every">every few hours</span>: the suggestion with the most bones, or an idea of its own when none has any. If a suggestion can't be built, its bones go back to whoever gave them. Rate each update in the log so the next ones get better.</p>
+    <p>Claude makes an update <span id="every">every few hours</span>: the suggestion with the most bones, or, when none has any, one of the three ideas it left on the board. If a suggestion can't be built, its bones go back to whoever gave them. Rate each update in the log so the next ones get better.</p>
     <details class="save" id="save">
       <summary>Your save</summary>
       <p>Your game is kept on this browser. To play it somewhere else, copy this code and load it there. Keep it to yourself: anyone with it can spend your bones.</p>

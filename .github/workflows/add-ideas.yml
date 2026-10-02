@@ -1,0 +1,46 @@
+# Puts Claude's ideas on the suggestion board by hand, with 0 bones (the same as each update does
+# with the three ideas its build leaves for the next one). Players can back them; when nothing has
+# bones at update time, one of them is picked at random. Replaces Claude's ideas nobody has backed.
+# Run it from the Actions tab: 10 to 140 characters each.
+name: Add Claude's ideas
+
+on:
+  workflow_dispatch:
+    inputs:
+      idea1:
+        description: "An idea"
+        required: true
+        type: string
+      idea2:
+        description: "Another (optional)"
+        required: false
+        type: string
+      idea3:
+        description: "Another (optional)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Put them on the board
+        env:
+          OPS_URL: ${{ vars.SITE_URL }}
+          OPS_KEY: ${{ secrets.OPS_KEY }}
+          IDEA1: ${{ inputs.idea1 }}
+          IDEA2: ${{ inputs.idea2 }}
+          IDEA3: ${{ inputs.idea3 }}
+        run: |
+          set -euo pipefail
+          jq -n --arg a "$IDEA1" --arg b "$IDEA2" --arg c "$IDEA3" '{ ideas: ([$a, $b, $c] | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))) }' | node dev/ops.mjs seed

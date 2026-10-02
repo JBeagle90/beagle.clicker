@@ -57,6 +57,20 @@ test("syncing counts pats and buys", async () => {
   ok(me.perClick > R.perClick({}, me.game));
 });
 
+test("a player can change their name, within limits", async () => {
+  reset();
+  const save = await player();
+  const r = await api("POST", "/name", { name: "  Digger   Dan  " }, { save });
+  eq(r.status, 200); eq(r.jsonBody.player.name, "Digger Dan");
+  eq((await api("POST", "/sync", {}, { save })).jsonBody.player.name, "Digger Dan");
+  for (const bad of ["ab", "x".repeat(25), "<b>hi</b>", "Claude", "the real claude", "Site Admin", "go to www.x.com", "big poop shit"])
+    eq((await api("POST", "/name", { name: bad }, { save })).status, 400, bad);
+  eq((await api("POST", "/name", { name: "Digger Dan" }, { save })).status, 200, "the same name is free");
+  for (let i = 0; i < 4; i++) eq((await api("POST", "/name", { name: "Name " + i }, { save })).status, 200);
+  eq((await api("POST", "/name", { name: "One Too Many" }, { save })).status, 429);
+  eq((await api("POST", "/name", { name: "Nobody" })).status, 401);
+});
+
 test("game code can't change who a player is", async () => {
   reset();
   const save = await player();
@@ -234,6 +248,43 @@ test("with no bones on anything, Claude builds its own idea, and it's numbered i
   const r2 = (await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.pick;
   await api("POST", "/ops/result", { id: r2.id, status: "shipped", title: "Second", idea: "Another one" }, { ops: OPS_KEY });
   eq((await api("GET", "/board")).jsonBody.done[0].n, 2);
+});
+
+test("each update leaves Claude's three ideas on the board, and one is picked when nothing has bones", async () => {
+  reset();
+  const ops = (what, body) => api("POST", "/ops/" + what, body, { ops: OPS_KEY });
+  eq((await api("POST", "/ops/seed", { ideas: ["A rare gold chest"] })).status, 403, "needs the key");
+  const seeded = (await ops("seed", { ideas: ["A rare gold chest that gives three times the bones", "x", "Visit www.example.com for fun", "Goggles for the beagle with a Bone Digger", "A dig sound with an on/off button", "One too many ideas here"] })).jsonBody.ideas;
+  eq(seeded.map(i => i.text), ["A rare gold chest that gives three times the bones", "Goggles for the beagle with a Bone Digger", "A dig sound with an on/off button"]);
+  let board = (await api("GET", "/board")).jsonBody;
+  eq(board.open.length, 3);
+  ok(board.open.every(s => s.own && s.byName === "Claude" && s.score === 0 && s.status === "open"));
+  // Nothing has bones: one of Claude's ideas, at random, keeping its text
+  const r = (await ops("pick", { manual: true })).jsonBody;
+  eq(r.reason, "own_idea"); eq(r.pick.own, true);
+  ok(seeded.some(i => i.id === r.pick.id && i.text === r.pick.text));
+  // It ships with three new ideas: the other two (nobody backed them) make way for the new ones
+  const res = (await ops("result", { id: r.pick.id, status: "shipped", title: "Done", idea: "ignored", ideas: ["Ten more ticker headlines for later", "A trophy for owning every boost", "Sparkles when a chest opens"] })).jsonBody;
+  eq(res.done.text, r.pick.text);
+  eq(res.ideas.length, 3);
+  board = (await api("GET", "/board")).jsonBody;
+  eq(board.open.map(s => s.text).sort(), ["A trophy for owning every boost", "Sparkles when a chest opens", "Ten more ticker headlines for later"]);
+  // A player backs one of Claude's ideas: it competes like any suggestion and stays when new ideas come
+  const save = await player();
+  await earn(save, 200);
+  const backedId = board.open.find(s => s.text === "Sparkles when a chest opens").id;
+  eq((await api("POST", "/vote", { id: backedId, amount: 50 }, { save })).status, 200);
+  await ops("seed", { ideas: ["A brand new idea for the board"] });
+  board = (await api("GET", "/board")).jsonBody;
+  eq(board.open.map(s => s.text).sort(), ["A brand new idea for the board", "Sparkles when a chest opens"]);
+  clock += 3600 * 1000;
+  const r2 = (await ops("pick", { manual: true })).jsonBody;
+  eq([r2.reason, r2.pick.id, r2.pick.own, r2.pick.score], ["top", backedId, true, 50]);
+  // Declined: its backers get their bones back, like any suggestion
+  const before = await bonesOf(save);
+  await ops("result", { id: backedId, status: "declined", reason: "Not this time." });
+  ok(Math.abs((await bonesOf(save)) - before - 50) < 1e-6);
+  eq((await api("GET", "/board")).jsonBody.done[0].status, "declined");
 });
 
 test("Claude's own idea that fails or is declined just goes away", async () => {

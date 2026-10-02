@@ -1,7 +1,7 @@
 // beagle.clicker in the browser: the beagle, the bones, the treasure, the shop, and the parts in other
 // files (game.js: the player's game and syncing; screens.js: the tabs, your dig, trophies, stats and
 // the ticker; board.js: suggestions and patch notes; news.js; api.js; ui.js).
-import { game, start, pat, buy, tick, onChange, serverNow, grabTreasure, frenzy } from "./game.js";
+import { game, start, pat, buy, tick, onChange, serverNow, grabTreasure, frenzy, rename } from "./game.js";
 import { startBoard, refresh as refreshBoard } from "./board.js";
 import { setupTabs, ping, view, renderScene, startTicker, renderTrophies, renderStats } from "./screens.js";
 import { getSave, setSave, SAVE } from "./api.js";
@@ -164,6 +164,26 @@ function setupSave() {
   });
 }
 
+// --- Your name: the button in the header opens a small form to change it ---
+function setupRename() {
+  const form = $("rename"), input = $("rename-input"), msg = $("rename-msg"), who = $("who");
+  const open = on => {
+    form.hidden = !on; who.setAttribute("aria-expanded", String(on)); msg.textContent = "";
+    if (on) { input.value = game.me ? game.me.name : ""; input.focus(); input.select(); } else who.focus();
+  };
+  who.addEventListener("click", () => open(form.hidden));
+  $("rename-cancel").addEventListener("click", () => open(false));
+  form.addEventListener("keydown", e => { if (e.key === "Escape") open(false); });
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const btn = form.querySelector("button[type=submit]");
+    btn.disabled = true;
+    try { await rename(input.value); open(false); toast("Name changed. New suggestions show it."); }
+    catch (err) { msg.textContent = err.message; msg.className = "form-msg bad"; }
+    finally { btn.disabled = false; }
+  });
+}
+
 // --- Start ---
 onChange(what => {
   if (what.startsWith("trophy:")) {
@@ -177,7 +197,7 @@ onChange(what => {
     beagle.classList.toggle("has-helmet", !!(game.me && game.me.owned["dog-park"]));
   } else refreshShop();
   renderBank();
-  if (game.me) $("who").textContent = game.me.name;
+  if (game.me) $("who").textContent = game.me.name + " ✏️";
   if (what === "online") notice(null);
   else if (what.startsWith("offline:")) notice(h("span", { text: "Can't reach the dog house right now. Keep patting: it all counts once it's back." }), "bad");
 });
@@ -199,6 +219,7 @@ renderScene(game.me);
 renderTrophies(game.me);
 renderBank();
 setupSave();
+setupRename();
 startTicker(() => game.me);
 Promise.all([start(), startBoard()]).finally(() => {
   window.BC.ready = true;

@@ -4,15 +4,19 @@
 //   pick     { manual? } → { pick: { id, own, text, note?, ... } | null, reason, ratings }
 //            The workflow asks every hour; only when a run is due (schedule.js; manual: run by hand,
 //            so always) does the suggestion with the most bones become "building". When none has
-//            enough bones, a placeholder for Claude's own idea is made instead (own: true), so every
+//            enough bones, one of Claude's ideas on the board (below) is picked at random; with none of
+//            those, a placeholder for Claude's own idea is made instead (own: true, text ""), so every
 //            run builds something. note: the owner's requirements for this update, if any (taken
 //            off the schedule; they go back if it doesn't ship). ratings: how players rated the last
 //            few updates.
 //   result   { id, status: shipped | declined | failed, title, summary, idea, reason, commit, cost, run }
 //            summary: the players' summary (lines; "- " lines are bullets); idea: for Claude's own,
 //            the idea in one sentence, shown as its suggestion. cost: what the run cost in USD.
+//            ideas: up to 3 small ideas the build leaves for the next update; they go on the board as
+//            Claude's (own: true, 0 bones), replacing Claude's earlier ones that nobody backed.
 //            run: { screen, build, turns, minutes, billing: api | plan }, for the owner's panel.
 //   hide     { id, reason? } take one off the board (the owner, by hand), giving its votes back
+//   seed     { ideas: [text] } Claude's ideas on the board by hand, as result does with its ideas
 //   invite   a one-time link that adds a device to the owner's panel (owner.js)
 //
 // Settings: OPS_KEY (24+ random characters, also a GitHub secret), MIN_SCORE (bones a suggestion
@@ -24,6 +28,7 @@
 "use strict";
 const { json, fail, randomId, safeEqual, cleanText, HOUR } = require("./util");
 const S = require("./suggestions");
+const moderation = require("./moderation");
 const schedule = require("./schedule");
 
 const STUCK_MS = 3 * HOUR;  // a build that never reported back is given up on after this
@@ -40,8 +45,9 @@ const summaryOf = v => String(v == null ? "" : v).split(/\r?\n/).map(l => cleanT
 
 // A build that didn't finish: a player's suggestion goes back on the board (once); Claude's own idea
 // is simply dropped, as there's nothing for anyone to get back.
+const backed = s => Object.keys(s.votes || {}).length > 0;
 async function failOnce(c, s, why) {
-  if (s.own) { await c.store.remove(S.OPEN, s.id); return null; }
+  if (s.own && !backed(s)) { await c.store.remove(S.OPEN, s.id); return null; }
   const attempts = (s.attempts || 0) + 1;
   if (attempts >= MAX_TRIES) return S.close(c, s, "declined", { attempts, reason: why || "It couldn't be built after two tries, so everyone's bones went back." });
   await c.store.upsert({ ...s, status: "open", attempts, startedAt: null, ownerNote: null });
@@ -98,6 +104,29 @@ function runOf(c, id, status, s) {
   return out;
 }
 
+// Claude's ideas for the next update, on the board with 0 bones. Checked like a player's suggestion
+// (length, no links, the word filter, not already there). Claude's earlier ideas that nobody backed
+// come off first, so the board has the latest three. → the ones added.
+const MAX_IDEAS = 3, IDEA_MIN = 10;
+async function seedIdeas(c, ideas) {
+  const list = (Array.isArray(ideas) ? ideas : String(ideas || "").split(/\r?\n/)).map(t => cleanText(t, S.MAX_LEN + 1))
+    .filter(t => t.length >= IDEA_MIN && t.length <= S.MAX_LEN && !/https?:|www\./i.test(t) && !moderation.blocked(t, c.env)).slice(0, MAX_IDEAS);
+  if (!list.length) return [];
+  let open = await c.store.list(S.OPEN);
+  for (const s of open) if (s.own && s.status === "open" && !backed(s)) await c.store.remove(S.OPEN, s.id);
+  open = await c.store.list(S.OPEN);
+  const norm = t => t.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(), seen = new Set(open.map(s => norm(s.text || "")));
+  const added = [];
+  for (const text of list) {
+    if (seen.has(norm(text))) continue;
+    seen.add(norm(text));
+    const s = { id: randomId(8), pk: S.OPEN, own: true, text, by: null, byName: "Claude", at: c.now + added.length, score: 0, votes: {}, status: "open", attempts: 0 };
+    await c.store.upsert(s);
+    added.push(S.publicOf(s));
+  }
+  return added;
+}
+
 async function pick(c) {
   let open = await c.store.list(S.OPEN);
   const building = open.find(s => s.status === "building");
@@ -127,6 +156,12 @@ async function pick(c) {
   const note = await ran(true);
   await record(c, sp => { sp.picks.push(c.now); });
   const withNote = p => note ? { ...p, note: note.text } : p;
+  const mine = open.filter(s => s.own && s.status === "open" && s.text);
+  if (!top && mine.length) {
+    const one = mine[Math.floor(Math.random() * mine.length)];
+    const s = await c.store.update(S.OPEN, one.id, cur => cur && cur.status === "open" ? { ...cur, status: "building", startedAt: c.now, ownerNote: note } : null);
+    if (s) return json(200, { pick: withNote({ id: s.id, own: true, text: s.text, byName: "Claude", score: 0, voters: 0, attempts: s.attempts || 0 }), reason: "own_idea", ratings, spent });
+  }
   if (!top) {
     const s = { id: randomId(8), pk: S.OPEN, own: true, text: "", by: null, byName: "Claude", at: c.now, score: 0, votes: {}, status: "building", startedAt: c.now, attempts: 0, ownerNote: note };
     await c.store.upsert(s);
@@ -134,7 +169,7 @@ async function pick(c) {
   }
   const s = await c.store.update(S.OPEN, top.id, cur => cur && cur.status === "open" ? { ...cur, status: "building", startedAt: c.now, ownerNote: note } : null);
   if (!s) { if (note) await schedule.change(c, cur => cur.note ? null : { ...cur, note }); return json(200, { pick: null, reason: "raced" }); }
-  return json(200, { pick: withNote({ id: s.id, own: false, text: s.text, byName: s.byName, score: s.score, voters: Object.keys(s.votes || {}).length, attempts: s.attempts || 0 }), reason: "top", ratings, spent });
+  return json(200, { pick: withNote({ id: s.id, own: !!s.own, text: s.text, byName: s.byName, score: s.score, voters: Object.keys(s.votes || {}).length, attempts: s.attempts || 0 }), reason: "top", ratings, spent });
 }
 
 async function result(c) {
@@ -150,10 +185,11 @@ async function result(c) {
   if (status !== "shipped") await noteBack(c, s);
   const title = cleanText(c.body.title, 80), summary = summaryOf(c.body.summary), reason = cleanText(c.body.reason, 400);
   const commit = /^[0-9a-f]{7,40}$/.test(String(c.body.commit || "")) ? c.body.commit : null;
-  if (s.own) s.text = cleanText(c.body.idea, S.MAX_LEN) || title || "Claude's own idea";
-  if (status === "shipped") return json(200, { done: await S.close(c, s, "shipped", { title: title || s.text.slice(0, 60), summary, commit }) });
-  if (status === "declined" && !s.own) return json(200, { done: await S.close(c, s, "declined", { title, reason: reason || "Claude decided not to build this one, so everyone's bones went back." }) });
-  return json(200, { done: await failOnce(c, s, status === "failed" ? reason || null : null) });
+  if (s.own && !s.text) s.text = cleanText(c.body.idea, S.MAX_LEN) || title || "Claude's own idea";
+  const ideas = status === "failed" ? [] : await seedIdeas(c, c.body.ideas);
+  if (status === "shipped") return json(200, { done: await S.close(c, s, "shipped", { title: title || s.text.slice(0, 60), summary, commit }), ideas });
+  if (status === "declined" && (!s.own || backed(s))) return json(200, { done: await S.close(c, s, "declined", { title, reason: reason || "Claude decided not to build this one, so everyone's bones went back." }), ideas });
+  return json(200, { done: await failOnce(c, s, status === "failed" ? reason || null : null), ideas });
 }
 
 async function hide(c) {
@@ -168,6 +204,7 @@ async function handle(what, c) {
   if (what === "pick") return pick(c);
   if (what === "result") return result(c);
   if (what === "hide") return hide(c);
+  if (what === "seed") return json(200, { ideas: await seedIdeas(c, c.body.ideas) });
   if (what === "invite") return require("./owner").invite(c); // here, not at the top: owner.js uses this file
   return fail(404, "not_found", "Nothing here.");
 }

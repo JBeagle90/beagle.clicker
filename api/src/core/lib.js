@@ -8,6 +8,7 @@
 //   POST /vote             { id, amount } → { suggestion, player }
 //   POST /rate             { id, rating: terrible|bad|neutral|good|great } → { update }
 //   POST /report           { id } a suggestion that doesn't belong; enough reports take it down
+//   POST /name             { name } → { player }  a new display name (players.js)
 //   POST /game/<name>      the game's own actions (api/src/game/index.js)
 //   POST /ops/<what>       the scheduled update's calls (ops.js), with x-ops-key
 //   GET|POST /owner/<what> the owner's panel (owner.js), signed in with a passkey
@@ -48,8 +49,9 @@ async function handle(req, store, env = process.env, now = Date.now()) {
   if (route === "vote") return suggestions.vote(c, player);
   if (route === "rate") return suggestions.rate(c, player);
   if (route === "report") return suggestions.report(c, player);
+  if (route === "name") return players.rename(c, player);
   if (route === "game") return players.gameAction(c, player, req.sub);
   return fail(404, "not_found", "Nothing here.");
 }
 
-module.exports = { handle, ROUTES: ["players", "board", "log", "sync", "suggest", "vote", "rate", "report", "game", "ops", "owner"] };
+module.exports = { handle, ROUTES: ["players", "board", "log", "sync", "suggest", "vote", "rate", "report", "name", "game", "ops", "owner"] };
