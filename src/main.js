@@ -1,7 +1,9 @@
-// beagle.clicker in the browser: the beagle, the bones, the shop, and the parts in other files
-// (game.js: the player's game and syncing; board.js: suggestions and patch notes; api.js; ui.js).
-import { game, start, pat, buy, tick, onChange, serverNow, grabTreasure } from "./game.js";
+// beagle.clicker in the browser: the beagle, the bones, the treasure, the shop, and the parts in other
+// files (game.js: the player's game and syncing; screens.js: the tabs, your dig, trophies, stats and
+// the ticker; board.js: suggestions and patch notes; news.js; api.js; ui.js).
+import { game, start, pat, buy, tick, onChange, serverNow, grabTreasure, frenzy } from "./game.js";
 import { startBoard, refresh as refreshBoard } from "./board.js";
+import { setupTabs, ping, view, renderScene, startTicker, renderTrophies, renderStats } from "./screens.js";
 import { getSave, setSave, SAVE } from "./api.js";
 import { h, fmt, fmtRate } from "./ui.js";
 
@@ -9,19 +11,33 @@ const R = window.RULES;
 const $ = id => document.getElementById(id);
 window.BC = { ready: false, game };
 
-// --- The beagle ---
-const beagle = $("beagle"), area = $("pat-area");
+// --- The beagle: pat it for bones; chips of bone fly out. It wears a miner's helmet once you own a Dig Site ---
+const beagle = $("beagle"), area = $("pat-area"), calm = matchMedia("(prefers-reduced-motion: reduce)");
 beagle.addEventListener("click", e => {
   const n = pat();
   if (!n) return;
-  wag.joy = Math.min(1, wag.joy + 0.15);
   beagle.classList.remove("boop"); void beagle.offsetWidth; beagle.classList.add("boop");
   clearTimeout(beagle.boopTimer); beagle.boopTimer = setTimeout(() => beagle.classList.remove("boop"), 350);
   const r = area.getBoundingClientRect();
   const x = e.clientX ? e.clientX - r.left : r.width / 2, y = e.clientY ? e.clientY - r.top : r.height / 3;
   floater("+" + fmtRate(n), x, y);
+  if (!calm.matches) chips(x, y);
   renderBank();
 });
+
+// Three little bones that burst out from (x, y) and fall.
+function chips(x, y) {
+  for (let i = 0; i < 3; i++) {
+    const c = h("span", { class: "chip", text: "🦴", "aria-hidden": "true" });
+    const a = -Math.random() * Math.PI; // upwards, left to right
+    c.style.left = x + "px"; c.style.top = y + "px";
+    c.style.setProperty("--dx", Math.round(Math.cos(a) * (40 + Math.random() * 40)) + "px");
+    c.style.setProperty("--dy", Math.round(Math.sin(a) * (30 + Math.random() * 30)) + "px");
+    c.style.setProperty("--spin", Math.round(Math.random() * 360 - 180) + "deg");
+    area.append(c);
+    setTimeout(() => c.remove(), 700);
+  }
+}
 
 // A "+N" that floats up from (x, y) in the pat area.
 function floater(text, x, y, kind) {
@@ -31,7 +47,7 @@ function floater(text, x, y, kind) {
   setTimeout(() => f.remove(), kind ? 1600 : 900);
 }
 
-// A short message under the beagle (trophies, treasure), gone after a few seconds.
+// A short message at the bottom of the screen (trophies, treasure), gone after a few seconds.
 function toast(text, kind) {
   const el = $("toast");
   el.textContent = text;
@@ -52,40 +68,46 @@ function checkTreasure() {
     chest.style.left = s[0] + "%"; chest.style.top = s[1] + "%";
   }
   if (chest.hidden === up) chest.hidden = !up;
+  ping(up);
 }
 chest.addEventListener("click", async () => {
   const x = chest.offsetLeft, y = chest.offsetTop;
   grabbed = chestAt; chest.hidden = true;
   try {
-    const found = await grabTreasure();
-    floater("+" + fmt(found), x, y, "big");
-    toast(`Treasure! +${fmt(found)} bones.`, "good");
+    const r = await grabTreasure();
+    if (r.frenzy) { floater("FRENZY!", x, y, "big"); toast(`🔥 Dig Frenzy! Everything gives ×${R.FRENZY.x} for ${R.FRENZY.seconds} seconds.`, "good"); }
+    else { floater("+" + fmt(r.found), x, y, "big"); toast(`Treasure! +${fmt(r.found)} bones.`, "good"); }
   } catch (e) { toast(e.message || "The treasure got away.", "bad"); }
 });
 
-// --- The wagging tail: a slow happy wag, faster and wider the more you pat ---
-const tail = $("tail"), calm = matchMedia("(prefers-reduced-motion: reduce)");
-const wag = { joy: 0, phase: 0 };
-function wagTail(dt) {
-  wag.joy = Math.max(0, wag.joy - dt * 0.35);
-  if (calm.matches) { tail.setAttribute("transform", ""); return; }
-  wag.phase += dt * Math.PI * 2 * (0.7 + wag.joy * 4.3);
-  const angle = Math.sin(wag.phase) * (10 + wag.joy * 12);
-  tail.setAttribute("transform", `rotate(${angle.toFixed(1)} 130 160)`);
-}
-
-// --- Bones and rates ---
+// --- Bones and rates, and the Dig Frenzy bar while one is on ---
 function renderBank() {
-  const me = game.me;
+  const me = game.me, x = frenzy();
   $("bones").textContent = fmt(me ? me.bones : 0);
-  $("rate").textContent = me ? `${fmtRate(me.perClick)} per pat · ${fmtRate(me.perSecond)} per second` : "";
+  $("rate").textContent = me ? `${fmtRate(me.perClick * x)} per pat · ${fmtRate(me.perSecond * x)} per second` : "";
+  const left = me ? Math.ceil(((me.game.frenzyUntil || 0) - serverNow()) / 1000) : 0;
+  const bar = $("frenzy");
+  if (left > 0) bar.textContent = `🔥 Dig Frenzy ×${R.FRENZY.x} · ${left}s`;
+  if (bar.hidden === left > 0) { bar.hidden = !(left > 0); document.body.classList.toggle("in-frenzy", left > 0); }
 }
 
-// --- The shop: upgrades a few at a time (the next one shows once you own the one before), and
-// boosts once you've unlocked them ---
+// --- The shop: upgrades a few at a time (the next one shows once you own the one before), boosts once
+// you've unlocked them, and how many to buy at once (×1, ×10, ×100; remembered on this browser) ---
+let amount = 1;
+try { const n = +localStorage.getItem("bc.buy"); if ([1, 10, 100].includes(n)) amount = n; } catch (e) { /* private mode */ }
+const howMany = id => R.isBoost(id) ? 1 : Math.min(amount, R.MAX_BUY);
+const price = (id, owned) => R.costN(id, owned, howMany(id));
+function setupAmounts() {
+  const mark = () => { for (const b of $("amounts").children) b.setAttribute("aria-pressed", String(+b.dataset.n === amount)); };
+  for (const b of $("amounts").children) b.addEventListener("click", () => {
+    amount = +b.dataset.n; mark(); renderShop();
+    try { localStorage.setItem("bc.buy", String(amount)); } catch (e) { /* private mode */ }
+  });
+  mark();
+}
 function shopItem(u, desc, side, me) {
-  const c = R.cost(u.id, me ? me.owned : {});
-  return h("button", { type: "button", class: "item", "data-id": u.id, disabled: !me || me.bones < c, on: { click: () => buy(u.id) } },
+  const c = price(u.id, me ? me.owned : {});
+  return h("button", { type: "button", class: "item", "data-id": u.id, disabled: !me || me.bones < c, on: { click: () => buy(u.id, howMany(u.id)) } },
     h("span", { class: "item-icon", "aria-hidden": "true", text: u.icon }),
     h("span", { class: "item-main" }, h("span", { class: "item-name", text: u.name }), h("span", { class: "item-desc", text: desc })),
     h("span", { class: "item-side" }, h("span", { class: "item-cost", text: fmt(c) + " 🦴" }), h("span", { class: "item-owned", text: side })));
@@ -100,26 +122,7 @@ function renderShop() {
 }
 function refreshShop() {
   const me = game.me;
-  for (const b of [...$("boosts").children, ...$("shop").children]) b.disabled = !me || me.bones < R.cost(b.dataset.id, me.owned);
-}
-
-// --- Trophies: the ones you have and the next few to go for (or every one, after "Show all") ---
-let allTrophies = false;
-function renderTrophies() {
-  const have = (game.me && game.me.game.trophies) || [];
-  const n = R.TROPHIES.filter(t => have.includes(t.id)).length;
-  $("trophy-sum").textContent = `${n} / ${R.TROPHIES.length}` + (n ? ` · +${Math.round(n * R.TROPHY_BONUS * 100)}% bones` : "");
-  let next = 0;
-  const shown = R.TROPHIES.filter(t => allTrophies || have.includes(t.id) || next++ < 4);
-  const more = shown.length < R.TROPHIES.length
-    ? h("li", { class: "trophy-more" }, h("button", { type: "button", class: "more-btn", text: "Show all", on: { click: () => { allTrophies = true; renderTrophies(); } } }))
-    : null;
-  $("trophies").replaceChildren(...shown.map(t => {
-    const got = have.includes(t.id);
-    return h("li", { class: "trophy" + (got ? " got" : ""), title: got ? "Earned" : "Not yet" },
-      h("span", { class: "trophy-icon", "aria-hidden": "true", text: t.icon }),
-      h("span", { class: "trophy-main" }, h("span", { class: "trophy-name", text: t.name }), h("span", { class: "trophy-desc", text: (got ? "✓ " : "") + t.desc })));
-  }), ...(more ? [more] : []));
+  for (const b of [...$("boosts").children, ...$("shop").children]) b.disabled = !me || me.bones < price(b.dataset.id, me.owned);
 }
 
 // --- Notices: can't reach the server; a new update is live ---
@@ -166,31 +169,37 @@ onChange(what => {
   if (what.startsWith("trophy:")) {
     const t = R.TROPHIES.find(x => x.id === what.slice(7));
     if (t) toast(`${t.icon} Trophy: ${t.name}! +${Math.round(R.TROPHY_BONUS * 100)}% bones.`, "good");
-    renderTrophies();
+    renderTrophies(game.me);
     return;
   }
-  if (what === "owned") renderShop(); else refreshShop();
-  if (what === "online" || what === "owned") renderTrophies();
+  if (what === "owned") {
+    renderShop(); renderScene(game.me); renderTrophies(game.me);
+    beagle.classList.toggle("has-helmet", !!(game.me && game.me.owned["dog-park"]));
+  } else refreshShop();
   renderBank();
   if (game.me) $("who").textContent = game.me.name;
   if (what === "online") notice(null);
   else if (what.startsWith("offline:")) notice(h("span", { text: "Can't reach the dog house right now. Keep patting: it all counts once it's back." }), "bad");
 });
 
-let last = performance.now(), drawn = 0;
+let last = performance.now(), drawn = 0, statted = 0;
 function frame(t) {
   const dt = Math.min(1, (t - last) / 1000);
   tick(dt);
-  wagTail(dt);
   last = t;
   if (t - drawn > 100) { drawn = t; renderBank(); refreshShop(); checkTreasure(); }
+  if (view === "stats" && t - statted > 1000) { statted = t; renderStats(game.me); }
   requestAnimationFrame(frame);
 }
 
+setupTabs(v => { if (v === "stats") renderStats(game.me); });
+setupAmounts();
 renderShop();
-renderTrophies();
+renderScene(game.me);
+renderTrophies(game.me);
 renderBank();
 setupSave();
+startTicker(() => game.me);
 Promise.all([start(), startBoard()]).finally(() => {
   window.BC.ready = true;
   requestAnimationFrame(frame);

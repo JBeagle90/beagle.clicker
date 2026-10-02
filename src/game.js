@@ -16,6 +16,8 @@ export const game = {
 
 // The time on the server's clock, for things the server times (the buried treasure).
 export const serverNow = () => Date.now() + game.skew;
+// ×7 during a Dig Frenzy (the server times it: game.frenzyUntil), else 1.
+export const frenzy = () => game.me && serverNow() < (game.me.game.frenzyUntil || 0) ? R.FRENZY.x : 1;
 
 const emit = what => { for (const fn of game.listeners) fn(what); };
 export const onChange = fn => game.listeners.add(fn);
@@ -24,7 +26,8 @@ export const onChange = fn => game.listeners.add(fn);
 export function applyServer(player) {
   const me = { ...player, owned: { ...player.owned }, game: { ...(player.game || {}) } };
   if (typeof player.serverTime === "number") game.skew = player.serverTime - Date.now();
-  me.bones += game.queue.pats * R.perClick(me.owned, me.game);
+  const hot = serverNow() < (me.game.frenzyUntil || 0) ? R.FRENZY.x : 1;
+  me.bones += game.queue.pats * R.perClick(me.owned, me.game) * hot;
   const kept = [];
   for (const id of game.queue.buy) {
     const c = R.cost(id, me.owned);
@@ -44,32 +47,37 @@ export function applyServer(player) {
 
 export function pat() {
   if (!game.me) return 0;
-  const n = game.me.perClick;
+  const n = game.me.perClick * frenzy();
   game.me.bones += n; game.me.earned += n; game.me.pats++;
   game.queue.pats++;
   emit("bones");
   return n;
 }
 
-export function buy(id) {
-  const me = game.me, c = me && R.cost(id, me.owned);
+// Buys n of an upgrade (all or none).
+export function buy(id, n = 1) {
+  const me = game.me, c = me && R.costN(id, me.owned, n);
   if (!me || !(me.bones >= c)) return false;
   me.bones -= c;
-  me.owned = { ...me.owned, [id]: (me.owned[id] || 0) + 1 };
+  me.owned = { ...me.owned, [id]: (me.owned[id] || 0) + n };
   me.perClick = R.perClick(me.owned, me.game); me.perSecond = R.perSecond(me.owned, me.game);
-  game.queue.buy.push(id);
+  for (let i = 0; i < n; i++) game.queue.buy.push(id);
   emit("owned");
   sync();
   return true;
 }
 
 // Bones dug up by the pups, every frame.
-export function tick(dt) { if (game.me && game.me.perSecond) { game.me.bones += game.me.perSecond * dt; game.me.earned += game.me.perSecond * dt; } }
+export function tick(dt) {
+  if (!game.me || !game.me.perSecond) return;
+  const n = game.me.perSecond * frenzy() * dt;
+  game.me.bones += n; game.me.earned += n;
+}
 
-// Grab the buried treasure. Answers how many bones it gave (or throws with why not).
+// Grab the buried treasure. Answers { found: bones, frenzy: true if it started one } (or throws with why not).
 export async function grabTreasure() {
   const r = await spend("POST", "/game/treasure");
-  return r.found || 0;
+  return { found: r.found || 0, frenzy: !!r.frenzy };
 }
 
 let inflight = null, lastSync = 0;

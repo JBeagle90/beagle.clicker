@@ -50,6 +50,7 @@
     { id: "full-toolkit", name: "Full Toolkit", icon: "🧰", desc: "Own one of every upgrade.", when: p => UPGRADES.every(u => count(p.owned, u.id) > 0) },
     { id: "trained-nose", name: "Trained Nose", icon: "🎓", desc: "Buy a boost.", when: p => BOOSTS.some(b => count(p.owned, b.id) > 0) },
     { id: "treasure-hunter", name: "Treasure Hunter", icon: "🧭", desc: "Grab a buried treasure.", when: p => ((p.game && p.game.treasures) || 0) >= 1 },
+    { id: "dig-frenzy", name: "Dig Frenzy", icon: "🔥", desc: "Find a frenzy chest.", when: p => ((p.game && p.game.frenzies) || 0) >= 1 },
     { id: "treasure-legend", name: "Treasure Legend", icon: "🏆", desc: "Grab 25 buried treasures.", when: p => ((p.game && p.game.treasures) || 0) >= 25 },
   ];
 
@@ -69,6 +70,9 @@
     TROPHY_BONUS: 0.01,      // each trophy: +1% bones from pats and digging
     // Buried treasure pops up now and then; grab it in time for a burst of bones. Seconds.
     TREASURE: { first: [60, 120], gap: [180, 360], window: 15, show: 12, minBones: 50, digSeconds: 60, pats: 30 },
+    // Some chests start a Dig Frenzy instead: everything gives `x` times as much for `seconds`.
+    FRENZY: { chance: 0.2, x: 7, seconds: 30 },
+    MAX_BUY: 100,            // the most of one upgrade bought in one go (the shop's ×100)
     byId,
     isBoost,
     // A boost can be bought once you own enough of what it boosts, and only once.
@@ -82,6 +86,14 @@
       if (isBoost(id)) return R.available(id, owned) ? u.cost : Infinity;
       return Math.ceil(u.cost * Math.pow(u.growth, count(owned, id)));
     },
+    // The price of the next n of an upgrade, bought one after another.
+    costN(id, owned, n) {
+      if (isBoost(id)) return n === 1 ? R.cost(id, owned) : Infinity;
+      let sum = 0;
+      const o = { ...owned };
+      for (let i = 0; i < n; i++) { sum += R.cost(id, o); o[id] = count(o, id) + 1; }
+      return sum;
+    },
     // How much more you get from everything, from trophies.
     bonus(game) {
       const t = game && Array.isArray(game.trophies) ? game.trophies : [];
@@ -92,6 +104,11 @@
     },
     perSecond(owned, game) {
       return UPGRADES.reduce((n, u) => n + (u.perSecond || 0) * count(owned, u.id) * mult(owned, u.id), 0) * R.bonus(game);
+    },
+    // What all you own of one upgrade makes: { perClick, perSecond }, with boosts and trophies.
+    output(id, owned, game) {
+      const u = UPGRADES.find(x => x.id === id), k = u ? count(owned, id) * mult(owned, id) * R.bonus(game) : 0;
+      return { perClick: ((u && u.perClick) || 0) * k, perSecond: ((u && u.perSecond) || 0) * k };
     },
     // What a buried treasure gives: a minute of digging and 30 pats' worth, at least 50.
     treasure(owned, game) {

@@ -102,6 +102,20 @@ test("a treasure gives a minute of digging and 30 pats, at least 50", () => {
   eq(R.treasure({ "puppy-pal": 2, "chew-toy": 1 }), 60 * 2 + 30 * 2);
 });
 
+test("buying ten at once costs the next ten prices, and the server takes them all", () => {
+  const ten = Array.from({ length: 10 }, (_, i) => R.cost("chew-toy", { "chew-toy": i })).reduce((a, b) => a + b, 0);
+  eq(R.costN("chew-toy", {}, 10), ten);
+  eq(R.costN("bloodhound-training", { "chew-toy": 10 }, 10), Infinity);
+  const p = sync(fresh({ bones: ten }), { buy: Array(10).fill("chew-toy") }, 0);
+  eq(p.owned["chew-toy"], 10); ok(Math.abs(p.bones) < 1e-9);
+  eq(sync(fresh({ bones: 1e12 }), { buy: Array(R.MAX_BUY).fill("puppy-pal") }, 0).owned["puppy-pal"], R.MAX_BUY);
+});
+
+test("what one upgrade makes, with boosts and trophies", () => {
+  eq(R.output("dog-park", { "dog-park": 10, "treasure-maps": 1 }, {}), { perClick: 0, perSecond: 160 });
+  eq(R.output("chew-toy", { "chew-toy": 2 }, { trophies: ["first-pat"] }), { perClick: 2.02, perSecond: 0 });
+});
+
 test("the view has what the page needs", () => {
   const v = view(fresh({ bones: 7, owned: { "chew-toy": 1 } }));
   eq(v.bones, 7); eq(v.perClick, 2); eq(v.perSecond, 0);

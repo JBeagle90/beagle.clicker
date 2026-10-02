@@ -14,23 +14,30 @@
 <body>
   <header class="top">
     <h1 class="brand">beagle<span>.clicker</span></h1>
+    <nav class="tabs" aria-label="Screens">
+      <a href="#dig" data-view="dig"><span aria-hidden="true">⛏️</span> Dig</a>
+      <a href="#trophies" data-view="trophies"><span aria-hidden="true">🏆</span> Trophies</a>
+      <a href="#stats" data-view="stats"><span aria-hidden="true">📊</span> Stats</a>
+      <a href="#updates" data-view="updates"><span aria-hidden="true">🗳️</span> Updates</a>
+    </nav>
     <div class="who" id="who"></div>
   </header>
 
   <div class="notice" id="notice" role="status" hidden></div>
 
-  <main class="layout">
-    <div class="col">
+  <main>
+    <!-- Dig: the beagle, your dig, the shop -->
+    <div class="view view-dig" id="view-dig">
       <section class="card play" aria-label="Your bones">
         <div class="bank">
           <div class="bones" id="bones">0</div>
           <div class="unit">bones</div>
           <div class="rate" id="rate"></div>
+          <div class="frenzy-bar" id="frenzy" hidden></div>
         </div>
         <div class="pat-area" id="pat-area">
           <button class="beagle" id="beagle" type="button" aria-label="Pat the beagle">
             <svg viewBox="0 0 200 200" aria-hidden="true">
-              <g class="tail" id="tail"><path d="M130 160 Q190 186 204 146"/><path class="tail-tip" d="M202.6 153 Q203.6 149.5 204 146"/></g>
               <g transform="rotate(14 44 108)"><ellipse class="ear" cx="44" cy="108" rx="27" ry="56"/></g>
               <g transform="rotate(-14 156 108)"><ellipse class="ear ear-r" cx="156" cy="108" rx="27" ry="56"/></g>
               <ellipse class="head" cx="100" cy="96" rx="60" ry="63"/>
@@ -43,6 +50,14 @@
               <circle class="eye" cx="126" cy="88" r="8.5"/>
               <circle class="shine" cx="77" cy="85" r="2.6"/>
               <circle class="shine" cx="129" cy="85" r="2.6"/>
+              <g class="helmet" id="helmet">
+                <path class="lamp-beam" d="M93 26 L72 -14 L128 -14 L107 26 Z"/>
+                <path class="hat" d="M50 54 Q50 12 100 12 Q150 12 150 54 Z"/>
+                <path class="hat-ridge" d="M100 13 V52"/>
+                <rect class="hat-brim" x="40" y="49" width="120" height="10" rx="5"/>
+                <circle class="lamp" cx="100" cy="30" r="10"/>
+                <circle class="lamp-glass" cx="100" cy="30" r="6"/>
+              </g>
             </svg>
           </button>
           <button class="treasure" id="treasure" type="button" aria-label="Grab the buried treasure!" hidden>
@@ -56,23 +71,48 @@
             </svg>
           </button>
         </div>
-        <p class="hint">Pat the beagle to dig up bones. Watch for buried treasure.</p>
-        <p class="toast" id="toast" role="status"></p>
+        <p class="hint">Pat the beagle to dig up bones. Grab any treasure that pops up.</p>
+      </section>
+
+      <section class="card dig" aria-labelledby="dig-h">
+        <p class="ticker" id="ticker"></p>
+        <h2 id="dig-h">Your dig</h2>
+        <ol class="scene" id="scene"></ol>
+        <p class="nudge">Bones also decide what gets built next. <a href="#updates">Suggest and vote</a>.</p>
       </section>
 
       <section class="card shop" aria-labelledby="shop-h">
-        <h2 id="shop-h">Shop</h2>
+        <div class="shop-head">
+          <h2 id="shop-h">Shop</h2>
+          <div class="amounts" id="amounts" role="group" aria-label="How many to buy">
+            <button type="button" data-n="1">×1</button>
+            <button type="button" data-n="10">×10</button>
+            <button type="button" data-n="100">×100</button>
+          </div>
+        </div>
         <div class="shop-list boosts" id="boosts"></div>
         <div class="shop-list" id="shop"></div>
       </section>
+    </div>
 
+    <!-- Trophies -->
+    <div class="view" id="view-trophies" hidden>
       <section class="card trophies" aria-labelledby="trophies-h">
         <h2 id="trophies-h">Trophies <span class="trophy-sum" id="trophy-sum"></span></h2>
         <ol class="trophy-list" id="trophies"></ol>
       </section>
     </div>
 
-    <div class="col">
+    <!-- Stats -->
+    <div class="view" id="view-stats" hidden>
+      <section class="card stats" aria-labelledby="stats-h">
+        <h2 id="stats-h">Stats</h2>
+        <dl class="stat-list" id="stats"></dl>
+      </section>
+    </div>
+
+    <!-- Updates: the board and the log -->
+    <div class="view view-updates" id="view-updates" hidden>
       <section class="card board" aria-labelledby="board-h">
         <h2 id="board-h">Next update</h2>
         <div class="status" id="status"></div>
@@ -94,6 +134,8 @@
       </section>
     </div>
   </main>
+
+  <p class="toast" id="toast" role="status"></p>
 
   <footer class="foot">
     <p>Claude makes an update <span id="every">every few hours</span>: the suggestion with the most bones, or an idea of its own when none has any. If a suggestion can't be built, its bones go back to whoever gave them. Rate each update in the log so the next ones get better.</p>

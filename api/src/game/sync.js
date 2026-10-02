@@ -21,13 +21,20 @@ function sync(player, input, now, rand = Math.random) {
   const maxPats = Math.floor(R.MAX_PATS_PER_SECOND * (Math.min(since, MAX_BATCH_SEC) + 1)); // +1 s of slack
   const pats = Math.min(maxPats, Math.max(0, Math.floor(+(input && input.pats) || 0)));
 
-  const gain = pats * R.perClick(p.owned, p.game) + away * R.perSecond(p.owned, p.game);
+  // A Dig Frenzy multiplies the part of this batch that fell inside it (syncs come every couple of
+  // seconds, so that's close enough for pats too).
+  const last = typeof p.syncedAt === "number" ? p.syncedAt : now;
+  const hot = Math.max(0, Math.min(now, +p.game.frenzyUntil || 0) - last) / 1000;
+  const frenzy = since > 0 ? 1 + (R.FRENZY.x - 1) * Math.min(1, hot / since) : 1;
+  const gain = (pats * R.perClick(p.owned, p.game) + away * R.perSecond(p.owned, p.game)) * frenzy;
   p.bones += gain;
   p.earned += gain;
   p.pats += pats;
   p.syncedAt = now;
 
-  const buys = Array.isArray(input && input.buy) ? input.buy.slice(0, 100) : [];
+  if (typeof p.game.startedAt !== "number") p.game.startedAt = now; // for Stats ("playing since")
+
+  const buys = Array.isArray(input && input.buy) ? input.buy.slice(0, 2 * R.MAX_BUY) : [];
   for (const id of buys) {
     if (typeof id !== "string" || !R.byId(id)) continue;
     const c = R.cost(id, p.owned);

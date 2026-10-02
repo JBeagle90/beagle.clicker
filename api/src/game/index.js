@@ -14,19 +14,27 @@ const { sync, view, nextTreasure, award } = require("./sync");
 const actions = {};
 
 // Grab the buried treasure: only while it's up (the server's clock decides, with 2 s of slack for a
-// browser whose clock runs a little ahead). Gives R.treasure() bones and sets the next one.
-actions.treasure = async ({ player, now }) => {
+// browser whose clock runs a little ahead). Gives R.treasure() bones, or (one in five) starts a Dig
+// Frenzy, and sets the next one. `rand` is for tests.
+actions.treasure = async ({ player, now, rand = Math.random }) => {
   const p = sync(player, {}, now);
   const at = p.game.treasureAt;
   if (!(now >= at - 2000)) return { error: "No treasure here yet. Keep digging!" };
   if (!(now <= at + R.TREASURE.window * 1000)) return { error: "Too slow! The treasure sank back into the dirt." };
-  const found = R.treasure(p.owned, p.game);
-  p.bones += found;
-  p.earned += found;
   p.game.treasures = (p.game.treasures || 0) + 1;
+  let found = 0, frenzy = false;
+  if (rand() < R.FRENZY.chance) {
+    frenzy = true;
+    p.game.frenzyUntil = now + R.FRENZY.seconds * 1000;
+    p.game.frenzies = (p.game.frenzies || 0) + 1;
+  } else {
+    found = R.treasure(p.owned, p.game);
+    p.bones += found;
+    p.earned += found;
+  }
   nextTreasure(p, now);
   award(p);
-  return { player: p, body: { found } };
+  return { player: p, body: { found, frenzy } };
 };
 
 module.exports = { R, sync, view, actions };

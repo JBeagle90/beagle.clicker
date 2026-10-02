@@ -10,7 +10,11 @@ The beagle is a scent hound digging for treasure: short, punchy words, a little 
 - Pat the beagle: 1 bone a pat, plus what Sharp Noses and Steel Shovels add.
 - Bones keep coming from upgrades every second, including while you're away (up to 8 hours).
 - At most 20 pats a second count.
-- The beagle has a white-tipped tail that wags slowly all the time, and faster and wider the more you pat (it calms down when you stop). It stays still with reduced motion.
+- Each pat sends three little bones flying (not with reduced motion). Once you own a Dig Site, the beagle wears a yellow miner's helmet with a headlamp.
+
+## Screens
+
+Tabs in the header (the address's #hash, so Back works): **Dig** (the beagle; Your dig, a row of icons for each kind of upgrade you own with what it makes, under a news ticker of short, dry headlines that unlock as you progress; the shop), **Trophies**, **Stats** (bones, pats, rates, upgrades, boosts, trophies, treasures, frenzies, counting since) and **Updates** (the suggestion board and the update log). A dot on the Dig tab means a treasure is up.
 
 ## Shop
 
@@ -25,7 +29,7 @@ The beagle is a scent hound digging for treasure: short, punchy words, a little 
 | Bone Mine | 1,000,000 | 2,000 bones a second |
 | Moon Base | 12,000,000 | 12,000 bones a second |
 
-- Each one you own makes the next 15% dearer.
+- Each one you own makes the next 15% dearer. Buy ×1, ×10 or ×100 at once (all or none; remembered on the browser).
 - The shop shows the first three, then one more past the last kind you own.
 - **Boosts** appear at the top of the shop once you own 10 of an upgrade. Each is bought once and makes that upgrade give twice as much: Bloodhound Training (Sharp Nose, 1,000), Turbo Buddies (Dig Buddy, 2,500), Treasure Maps (Dig Site, 30,000), Diamond Shovel (Steel Shovel, 60,000), Night Shift (Bone Digger, 400,000), Express Tracks (Bone Train, 4.5 M).
 
@@ -33,11 +37,12 @@ The beagle is a scent hound digging for treasure: short, punchy words, a little 
 
 - A treasure chest pops up beside the beagle now and then: the first 1 to 2 minutes after you start, then every 3 to 6 minutes. It stays 12 seconds.
 - Grab it for a minute's worth of digging plus 30 pats' worth (at least 50 bones). Miss it and it sinks back.
+- One chest in five is a **Dig Frenzy** instead: everything gives ×7 for 30 seconds (a gold bar counts down, the beagle glows).
 
 ## Trophies
 
-- 13 trophies for pats (1, 100, 1,000, 10,000), bones dug up (1,000, 100,000, 10 M), 10 Dig Buddies, 50 upgrades, one of every upgrade, a first boost, and treasures (1, 25).
-- Each one is kept for good and gives +1% bones from pats and digging. The card shows the ones you have and the next four ("Show all" for the rest).
+- 14 trophies for pats (1, 100, 1,000, 10,000), bones dug up (1,000, 100,000, 10 M), 10 Dig Buddies, 50 upgrades, one of every upgrade, a first boost, treasures (1, 25) and a Dig Frenzy.
+- Each one is kept for good and gives +1% bones from pats and digging. The Trophies screen shows every one; a message pops up at the bottom when you earn one.
 
 ## Suggestions and updates
 
