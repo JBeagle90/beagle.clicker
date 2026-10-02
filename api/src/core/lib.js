@@ -11,7 +11,7 @@
 //   POST /game/<name>      the game's own actions (api/src/game/index.js)
 //   POST /ops/<what>       the scheduled update's calls (ops.js), with x-ops-key
 //
-// Everything but /players, /board, /log and /ops needs `Authorization: Bearer <save code>` (players.js).
+// Everything but /players, /board, /log and /ops needs the header `x-bc-save: <save code>` (players.js).
 // The store (Cosmos DB in functions/index.js, in memory in dev/memstore.cjs) has:
 //   read(pk, id), upsert(doc), update(pk, id, fn), remove(pk, id),
 //   list(pk, { limit, orderBy, before }) (newest first by orderBy; before: only those below it)

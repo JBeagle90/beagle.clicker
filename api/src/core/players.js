@@ -1,5 +1,6 @@
 // Players: no sign-up. The first visit makes a player with a random name and a secret token; the
-// browser keeps "<pid>.<token>" (the save code) and sends it as `Authorization: Bearer <save code>`.
+// browser keeps "<pid>.<token>" (the save code) and sends it in the header `x-bc-save`. (Not
+// Authorization: Azure Static Web Apps keeps that header for its own sign-in and doesn't pass it on.)
 // Only a hash of the token is stored. A player is one document: { id: "player", pk: "p:<pid>", ... }.
 // The game fields on it (bones, owned, game, ...) belong to api/src/game; the ones here don't.
 "use strict";
@@ -18,7 +19,7 @@ const newName = () => `${pickOf(ADJ)} ${pickOf(NOUN)} ${Math.floor(100 + Math.ra
 
 // The player this request's save code belongs to, or null.
 async function who(c) {
-  const m = /^Bearer ([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/.exec(String(c.headers.get("authorization") || ""));
+  const m = /^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/.exec(String(c.headers.get("x-bc-save") || "").trim());
   if (!m || !PID.test(m[1]) || !TOKEN.test(m[2])) return null;
   const p = await c.store.read(pk(m[1]), "player");
   return p && safeEqual(p.tokenHash, sha256(m[2])) ? p : null;

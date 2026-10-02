@@ -67,7 +67,7 @@ export function sync() {
     .then(r => { lastSync = Date.now(); setOnline(true); applyServer(r.player); })
     .catch(e => {
       game.queue = { pats: game.queue.pats + sent.pats, buy: sent.buy.concat(game.queue.buy) };
-      if (e.code === "no_save") return newPlayer();
+      if (e.code === "no_save" && !madeNew) return newPlayer();
       setOnline(false, e.message);
     })
     .finally(() => { inflight = null; });
@@ -88,7 +88,9 @@ function setOnline(on, why) {
   emit(on ? "online" : "offline:" + (why || ""));
 }
 
+let madeNew = false; // at most one new player per visit, even if the server keeps refusing saves
 async function newPlayer() {
+  madeNew = true;
   const r = await call("POST", "/players");
   setSave(r.save);
   game.queue = { pats: 0, buy: [] };

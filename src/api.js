@@ -8,7 +8,7 @@ export function setSave(code) { try { if (code) localStorage.setItem(KEY, code);
 export async function call(method, path, body) {
   const headers = { "Content-Type": "application/json" };
   const save = getSave();
-  if (save) headers.Authorization = "Bearer " + save;
+  if (save) headers["x-bc-save"] = save; // not Authorization: Azure Static Web Apps doesn't pass that on
   let r;
   try { r = await fetch("/api" + path, { method, headers, body: body ? JSON.stringify(body) : undefined }); }
   catch (e) { throw Object.assign(new Error("Can't reach the dog house right now."), { offline: true }); }

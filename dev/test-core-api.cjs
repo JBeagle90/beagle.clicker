@@ -13,7 +13,7 @@ function api(method, path, body, { save, ops, ip = "1.2.3.4" } = {}) {
   const [p, qs] = path.replace(/^\//, "").split("?");
   const [route, sub] = p.split("/");
   const h = { "x-forwarded-for": ip + ":5555" };
-  if (save) h.authorization = "Bearer " + save;
+  if (save) h["x-bc-save"] = save;
   if (ops) h["x-ops-key"] = ops;
   return handle({ method, route, sub, query: new URLSearchParams(qs || ""), headers: { get: k => h[k.toLowerCase()] }, body, rawLength: body ? JSON.stringify(body).length : 0 }, store, env, clock);
 }
