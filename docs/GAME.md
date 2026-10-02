@@ -8,6 +8,7 @@ feature, with the numbers from `api/src/game/rules.js`.
 - Pat the beagle: 1 bone a pat, plus 1 for each Chew Toy.
 - Bones keep coming from upgrades every second, including while you're away (up to 8 hours).
 - At most 20 pats a second count.
+- The beagle has a white-tipped tail that wags slowly all the time, and faster and wider the more you pat (it calms down when you stop). It stays still with reduced motion.
 
 ## Shop
 

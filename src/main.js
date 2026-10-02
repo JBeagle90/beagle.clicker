@@ -14,6 +14,7 @@ const beagle = $("beagle"), area = $("pat-area");
 beagle.addEventListener("click", e => {
   const n = pat();
   if (!n) return;
+  wag.joy = Math.min(1, wag.joy + 0.15);
   beagle.classList.remove("boop"); void beagle.offsetWidth; beagle.classList.add("boop");
   clearTimeout(beagle.boopTimer); beagle.boopTimer = setTimeout(() => beagle.classList.remove("boop"), 350);
   const r = area.getBoundingClientRect();
@@ -24,6 +25,17 @@ beagle.addEventListener("click", e => {
   setTimeout(() => f.remove(), 900);
   renderBank();
 });
+
+// --- The wagging tail: a slow happy wag, faster and wider the more you pat ---
+const tail = $("tail"), calm = matchMedia("(prefers-reduced-motion: reduce)");
+const wag = { joy: 0, phase: 0 };
+function wagTail(dt) {
+  wag.joy = Math.max(0, wag.joy - dt * 0.35);
+  if (calm.matches) { tail.setAttribute("transform", ""); return; }
+  wag.phase += dt * Math.PI * 2 * (0.7 + wag.joy * 4.3);
+  const angle = Math.sin(wag.phase) * (10 + wag.joy * 12);
+  tail.setAttribute("transform", `rotate(${angle.toFixed(1)} 130 160)`);
+}
 
 // --- Bones and rates ---
 function renderBank() {
@@ -98,7 +110,9 @@ onChange(what => {
 
 let last = performance.now(), drawn = 0;
 function frame(t) {
-  tick(Math.min(1, (t - last) / 1000));
+  const dt = Math.min(1, (t - last) / 1000);
+  tick(dt);
+  wagTail(dt);
   last = t;
   if (t - drawn > 100) { drawn = t; renderBank(); refreshShop(); }
   requestAnimationFrame(frame);

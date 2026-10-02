@@ -10,13 +10,13 @@ add what you wish you'd known, and cut what no longer helps. The rules are in CL
 | `api/src/game/rules.js` | **The game's numbers**: `UPGRADES` (id, name, icon, desc, cost, growth, perClick, perSecond), `MAX_PATS_PER_SECOND`, `OFFLINE_HOURS`, `SUGGEST_COST`, `VOTE_AMOUNTS`; `cost(id, owned)`, `perClick(owned)`, `perSecond(owned)`. One file for the server and the browser (served as `/rules.js`, `window.RULES`), written so both can load it: plain JS, no imports. |
 | `api/src/game/sync.js` | `sync(player, { pats, buy }, now)` → the new saved game: caps pats, adds pats × perClick and time × perSecond, makes purchases in order. `view(player)` → what the browser is told. |
 | `api/src/game/index.js` | Exports `R`, `sync`, `view` and `actions` (none yet): `POST /api/game/<name>` calls (see the comment there). |
-| `src/main.js` | The beagle button (pats, the "+N" floaters, the boop animation), the bones counter and rates, the shop (built from `UPGRADES`), notices (offline, "a new update landed"), the save panel. The frame loop (`frame`) redraws the bank every 100 ms. |
+| `src/main.js` | The beagle button (pats, the "+N" floaters, the boop animation), the bones counter and rates, the shop (built from `UPGRADES`), notices (offline, "a new update landed"), the save panel. The wagging tail (`wag.joy` 0–1, raised by each pat, fades over time; `wagTail(dt)` sets the `#tail` group's `transform` every frame; it stays still under reduced motion). The frame loop (`frame`) wags the tail every frame and redraws the bank every 100 ms. |
 | `src/game.js` | The player in the browser: `game.me` (the saved game, counting between syncs), `pat()`, `buy(id)`, `tick(dt)`, `sync()` (every 2 s when something happened, 15 s otherwise), `spend(method, path, body)` (sync first, then a call that spends; takes the new player from the answer), `onChange(fn)` (fires `"owned"`, `"bones"`, `"online"`, `"offline:…"`). |
 | `src/board.js` | The suggestion board, the countdown, voting, reporting, and the update log (summaries, ratings, "Show older"). |
 | `src/ui.js` | `h(tag, attrs, ...children)` builds elements (attrs: `class`, `text`, `on: { click }`, others as attributes); `fmt(n)` (1,234 / 2.50 M), `fmtRate`, `ago(ms)`, `clock(ms)`. |
 | `src/api.js` | `call(method, path, body)` to `/api`, with the save code; `getSave`, `setSave`. |
 | `src/style.css` | Colour tokens at the top (`--bg`, `--card`, `--ink`, `--muted`, `--line`, `--accent`, `--tan`, `--brown`, `--cream`, `--good`, `--bad`), dark mode under them, then one section per part of the page. |
-| `web/index.html` | The page: header, the play card (`#bones`, `#rate`, `#beagle` with its inline SVG: `.ear`, `.head`, `.blaze`, `.muzzle`, `.nose`, `.eye`, `.tongue`), `#shop`, the board (`#status`, `#suggest`, `#open`), the log (`#done`), the footer with the save panel. |
+| `web/index.html` | The page: header, the play card (`#bones`, `#rate`, `#beagle` with its inline SVG: `#tail` (drawn first so it's behind, pivot at 130,160), `.ear`, `.head`, `.blaze`, `.muzzle`, `.nose`, `.eye`, `.tongue`), `#shop`, the board (`#status`, `#suggest`, `#open`), the log (`#done`), the footer with the save panel. |
 
 ## How to…
 
@@ -32,3 +32,4 @@ add what you wish you'd known, and cut what no longer helps. The rules are in CL
 
 - The server caps pats at 20 a second (plus a second of slack), so `look.mjs --pats` waits between batches. Don't expect more bones than that in a screenshot.
 - The CSP blocks inline styles in HTML, but setting `el.style.x` from JS is fine.
+- For smooth animation whose speed changes (like the tail), drive it from `frame` with a phase and `setAttribute("transform", …)` on SVG: changing a CSS `animation-duration` mid-way makes it jump. The beagle's ears cover x 17–183, so anything added beside the head must stick out past them to be seen. Check motion with `look.mjs --eval` sampling an attribute over time.
