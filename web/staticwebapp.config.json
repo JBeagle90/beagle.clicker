@@ -8,7 +8,6 @@
     { "route": "/rules.js", "headers": { "Cache-Control": "no-cache" } },
     { "route": "/version.json", "headers": { "Cache-Control": "no-store" } },
     { "route": "/admin", "rewrite": "/admin/index.html", "headers": { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } },
-    { "route": "/admin/", "rewrite": "/admin/index.html", "headers": { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } },
     { "route": "/admin/*", "headers": { "Cache-Control": "no-cache", "X-Robots-Tag": "noindex" } }
   ],
   "responseOverrides": {
