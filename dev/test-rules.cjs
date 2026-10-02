@@ -56,6 +56,52 @@ test("bad input doesn't break anything", () => {
   }
 });
 
+test("upgrades are in price order, and boosts point at real upgrades", () => {
+  for (let i = 1; i < R.UPGRADES.length; i++) ok(R.UPGRADES[i].cost > R.UPGRADES[i - 1].cost, R.UPGRADES[i].id);
+  const ids = R.UPGRADES.map(u => u.id).concat(R.BOOSTS.map(b => b.id));
+  eq(new Set(ids).size, ids.length);
+  for (const b of R.BOOSTS) ok(R.UPGRADES.some(u => u.id === b.boosts) && b.needs > 0 && b.cost > 0, b.id);
+});
+
+test("a boost unlocks at 10, is bought once, and doubles its upgrade", () => {
+  eq(R.cost("bloodhound-training", { "chew-toy": 9 }), Infinity);
+  eq(R.cost("bloodhound-training", { "chew-toy": 10 }), 1000);
+  eq(R.perClick({ "chew-toy": 10, "bloodhound-training": 1 }), 21);
+  eq(R.cost("bloodhound-training", { "chew-toy": 10, "bloodhound-training": 1 }), Infinity);
+  const p = sync(fresh({ bones: 5000, owned: { "chew-toy": 10 } }), { buy: ["bloodhound-training", "bloodhound-training", "chew-toy"] }, 0);
+  eq(p.owned["bloodhound-training"], 1);
+  eq(p.owned["chew-toy"], 11); // the second boost is skipped, not the end of the list
+  eq(sync(fresh({ bones: 5000 }), { buy: ["turbo-buddies"] }, 0).bones, 5000);
+});
+
+test("trophies are earned once, kept, and give 1% each", () => {
+  const p = sync(fresh(), { pats: 40 }, 2000);
+  eq(p.game.trophies, ["first-pat"]);
+  eq(R.bonus(p.game), 1.01);
+  eq(R.perClick({}, p.game), 1.01);
+  const q = sync(p, { pats: 40 }, 4000);
+  eq(q.game.trophies, ["first-pat"]);
+  ok(Math.abs(q.bones - (40 + 40 * 1.01)) < 1e-9);
+  eq(R.bonus({ trophies: ["first-pat", "made-up"] }), 1.01);
+  eq(R.newTrophies(fresh({ pats: 100, earned: 1000 })).sort(), ["bone-pile", "first-pat", "quick-paws"]);
+});
+
+test("a treasure is set soon for new players, then every few minutes, and sinks back when missed", () => {
+  const p = sync(fresh(), {}, 0, () => 0);
+  eq(p.game.treasureAt, 60 * 1000);
+  const q = sync(p, {}, 70 * 1000, () => 0);
+  eq(q.game.treasureAt, 60 * 1000); // still up
+  const r = sync(q, {}, 80 * 1000, () => 1);
+  eq(r.game.treasureAt, 80 * 1000 + 120 * 1000); // missed: the next one
+  const s = sync({ ...r, game: { ...r.game, treasures: 3 } }, {}, 1e6, () => 0.5);
+  eq(s.game.treasureAt, 1e6 + 270 * 1000);
+});
+
+test("a treasure gives a minute of digging and 30 pats, at least 50", () => {
+  eq(R.treasure({}), 50);
+  eq(R.treasure({ "puppy-pal": 2, "chew-toy": 1 }), 60 * 2 + 30 * 2);
+});
+
 test("the view has what the page needs", () => {
   const v = view(fresh({ bones: 7, owned: { "chew-toy": 1 } }));
   eq(v.bones, 7); eq(v.perClick, 2); eq(v.perSecond, 0);

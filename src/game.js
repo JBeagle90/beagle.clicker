@@ -10,16 +10,21 @@ export const game = {
   me: null,                    // the player, as the server last said plus what happened here since
   queue: { pats: 0, buy: [] }, // not sent yet
   online: true,
+  skew: 0,                     // the server's clock minus this browser's (ms)
   listeners: new Set(),
 };
+
+// The time on the server's clock, for things the server times (the buried treasure).
+export const serverNow = () => Date.now() + game.skew;
 
 const emit = what => { for (const fn of game.listeners) fn(what); };
 export const onChange = fn => game.listeners.add(fn);
 
 // Takes the server's word for the player, then adds back whatever happened here that it hasn't heard yet.
 export function applyServer(player) {
-  const me = { ...player, owned: { ...player.owned } };
-  me.bones += game.queue.pats * R.perClick(me.owned);
+  const me = { ...player, owned: { ...player.owned }, game: { ...(player.game || {}) } };
+  if (typeof player.serverTime === "number") game.skew = player.serverTime - Date.now();
+  me.bones += game.queue.pats * R.perClick(me.owned, me.game);
   const kept = [];
   for (const id of game.queue.buy) {
     const c = R.cost(id, me.owned);
@@ -28,10 +33,13 @@ export function applyServer(player) {
   }
   game.queue.buy = kept;
   const ownedChanged = !game.me || JSON.stringify(game.me.owned) !== JSON.stringify(me.owned);
-  me.perClick = R.perClick(me.owned);
-  me.perSecond = R.perSecond(me.owned);
+  me.perClick = R.perClick(me.owned, me.game);
+  me.perSecond = R.perSecond(me.owned, me.game);
+  const had = game.me ? game.me.game.trophies || [] : null;
   game.me = me;
   emit(ownedChanged ? "owned" : "bones");
+  // New trophies (not the ones you had when the page opened).
+  if (had) for (const id of me.game.trophies || []) if (!had.includes(id)) emit("trophy:" + id);
 }
 
 export function pat() {
@@ -48,7 +56,7 @@ export function buy(id) {
   if (!me || !(me.bones >= c)) return false;
   me.bones -= c;
   me.owned = { ...me.owned, [id]: (me.owned[id] || 0) + 1 };
-  me.perClick = R.perClick(me.owned); me.perSecond = R.perSecond(me.owned);
+  me.perClick = R.perClick(me.owned, me.game); me.perSecond = R.perSecond(me.owned, me.game);
   game.queue.buy.push(id);
   emit("owned");
   sync();
@@ -57,6 +65,12 @@ export function buy(id) {
 
 // Bones dug up by the pups, every frame.
 export function tick(dt) { if (game.me && game.me.perSecond) { game.me.bones += game.me.perSecond * dt; game.me.earned += game.me.perSecond * dt; } }
+
+// Grab the buried treasure. Answers how many bones it gave (or throws with why not).
+export async function grabTreasure() {
+  const r = await spend("POST", "/game/treasure");
+  return r.found || 0;
+}
 
 let inflight = null, lastSync = 0;
 export function sync() {

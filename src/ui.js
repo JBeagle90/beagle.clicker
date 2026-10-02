@@ -23,8 +23,8 @@ export function fmt(n) {
   for (const [v, s] of BIG) if (n >= v) return (n / v).toFixed(2) + " " + s;
   return n.toLocaleString("en-US");
 }
-// Smaller numbers for rates: "0.5", "12", "1,234"
-export const fmtRate = n => n < 10 && n % 1 ? n.toFixed(1) : fmt(n);
+// Smaller numbers for rates: "0.5", "1" (not "1.0"), "12", "1,234"
+export const fmtRate = n => n < 10 && n % 1 ? String(+n.toFixed(1)) : fmt(n);
 
 export function ago(ms, now = Date.now()) {
   const s = Math.max(0, (now - ms) / 1000);

@@ -15,6 +15,8 @@
   --good-bg: #e6f4ea;
   --bad: #a33a2a;
   --bad-bg: #fbe9e5;
+  --gold: #e3a92b;
+  --gold-ink: #7a5208;
   --shadow: 0 1px 2px rgb(60 30 10 / 6%), 0 6px 20px rgb(60 30 10 / 6%);
   --radius: 18px;
   color-scheme: light;
@@ -32,6 +34,8 @@
     --good-bg: #1d3325;
     --bad: #f19a8a;
     --bad-bg: #3b1f1a;
+    --gold: #f0bf4c;
+    --gold-ink: #f6d68a;
     --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 24px rgb(0 0 0 / 25%);
     color-scheme: dark;
   }
@@ -118,10 +122,31 @@ ol { list-style: none; margin: 0; padding: 0; }
   transform: translate(-50%, -50%); animation: float .9s ease-out forwards; text-shadow: 0 1px 0 var(--card);
 }
 @keyframes float { to { transform: translate(-50%, -160%); opacity: 0; } }
+.floater.big { font-size: 1.7rem; color: var(--gold-ink); animation-duration: 1.6s; }
 .hint { color: var(--muted); font-size: .9rem; margin-top: 6px; }
+.toast { min-height: 1.4em; margin-top: 4px; font-weight: 700; font-size: .92rem; opacity: 0; transition: opacity .2s; }
+.toast.show { opacity: 1; }
+.toast.good { color: var(--good); }
+.toast.bad { color: var(--bad); }
+
+/* Buried treasure: a chest that pops out beside the beagle for a few seconds */
+.treasure {
+  position: absolute; width: 68px; aspect-ratio: 64 / 60; padding: 0; border: 0; background: none; border-radius: 12px;
+  transform: translate(-50%, -50%); animation: dig-up .35s ease-out, bob 1.2s ease-in-out .35s infinite; z-index: 1;
+}
+.treasure svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.treasure .dirt { fill: color-mix(in srgb, var(--brown) 70%, var(--card)); }
+.treasure .chest-lid, .treasure .chest-box { fill: var(--tan-dark); stroke: var(--brown); stroke-width: 2.5; }
+.treasure .chest-band { fill: none; stroke: var(--gold); stroke-width: 4; }
+.treasure .chest-lock { fill: var(--gold); stroke: var(--brown); stroke-width: 2; }
+.treasure .chest-glint { fill: var(--gold); }
+.treasure:hover { filter: brightness(1.08); }
+@keyframes dig-up { from { transform: translate(-50%, 0) scale(.4); opacity: 0; } }
+@keyframes bob { 50% { transform: translate(-50%, -58%); } }
 @media (prefers-reduced-motion: reduce) {
   .beagle.boop svg, .beagle.boop .ear { animation: none; }
   .floater { animation-duration: .5s; }
+  .treasure { animation: none; }
 }
 
 /* --- Shop --- */
@@ -140,6 +165,23 @@ ol { list-style: none; margin: 0; padding: 0; }
 .item-desc, .item-owned { color: var(--muted); font-size: .85rem; }
 .item-side { text-align: right; }
 .item-cost { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.boosts:not(:empty) { margin-bottom: 8px; }
+.boosts .item { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--card)); }
+
+/* --- Trophies --- */
+.trophy-sum { color: var(--muted); font-weight: 700; font-size: .85rem; margin-left: 4px; }
+.trophy-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.trophy {
+  display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 12px;
+  border: 1px dashed var(--line); color: var(--muted);
+}
+.trophy .trophy-icon { font-size: 1.4rem; filter: grayscale(1); opacity: .45; }
+.trophy.got { border-style: solid; border-color: var(--gold); color: var(--ink); background: color-mix(in srgb, var(--gold) 10%, var(--card)); }
+.trophy.got .trophy-icon { filter: none; opacity: 1; }
+.trophy-main { display: grid; min-width: 0; }
+.trophy-name { font-weight: 700; font-size: .9rem; }
+.trophy-desc { font-size: .78rem; color: var(--muted); }
+.trophy-more { grid-column: 1 / -1; text-align: center; }
 
 /* --- Next update --- */
 .status-box { display: flex; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--bg); margin-bottom: 14px; }

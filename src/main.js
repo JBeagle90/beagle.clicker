@@ -1,6 +1,6 @@
 // beagle.clicker in the browser: the beagle, the bones, the shop, and the parts in other files
 // (game.js: the player's game and syncing; board.js: suggestions and patch notes; api.js; ui.js).
-import { game, start, pat, buy, tick, onChange } from "./game.js";
+import { game, start, pat, buy, tick, onChange, serverNow, grabTreasure } from "./game.js";
 import { startBoard, refresh as refreshBoard } from "./board.js";
 import { getSave, setSave, SAVE } from "./api.js";
 import { h, fmt, fmtRate } from "./ui.js";
@@ -19,11 +19,48 @@ beagle.addEventListener("click", e => {
   clearTimeout(beagle.boopTimer); beagle.boopTimer = setTimeout(() => beagle.classList.remove("boop"), 350);
   const r = area.getBoundingClientRect();
   const x = e.clientX ? e.clientX - r.left : r.width / 2, y = e.clientY ? e.clientY - r.top : r.height / 3;
-  const f = h("span", { class: "floater", text: "+" + fmtRate(n), "aria-hidden": "true" });
+  floater("+" + fmtRate(n), x, y);
+  renderBank();
+});
+
+// A "+N" that floats up from (x, y) in the pat area.
+function floater(text, x, y, kind) {
+  const f = h("span", { class: "floater " + (kind || ""), text, "aria-hidden": "true" });
   f.style.left = x + "px"; f.style.top = y + "px";
   area.append(f);
-  setTimeout(() => f.remove(), 900);
-  renderBank();
+  setTimeout(() => f.remove(), kind ? 1600 : 900);
+}
+
+// A short message under the beagle (trophies, treasure), gone after a few seconds.
+function toast(text, kind) {
+  const el = $("toast");
+  el.textContent = text;
+  el.className = "toast show " + (kind || "");
+  clearTimeout(el.timer); el.timer = setTimeout(() => { el.className = "toast"; }, 3500);
+}
+
+// --- Buried treasure: the server says when it's up (game.treasureAt); grab it in time ---
+const chest = $("treasure"), T = R.TREASURE;
+let chestAt = 0, grabbed = 0;
+function checkTreasure() {
+  const at = game.me && game.me.game.treasureAt, now = serverNow();
+  const up = typeof at === "number" && at !== grabbed && now >= at && now < at + T.show * 1000;
+  if (up && chestAt !== at) {
+    chestAt = at;
+    // A spot beside the beagle, a different one each time.
+    const spots = [[12, 70], [88, 70], [14, 20], [86, 22]], s = spots[Math.floor(at / 1000) % spots.length];
+    chest.style.left = s[0] + "%"; chest.style.top = s[1] + "%";
+  }
+  if (chest.hidden === up) chest.hidden = !up;
+}
+chest.addEventListener("click", async () => {
+  const x = chest.offsetLeft, y = chest.offsetTop;
+  grabbed = chestAt; chest.hidden = true;
+  try {
+    const found = await grabTreasure();
+    floater("+" + fmt(found), x, y, "big");
+    toast(`Treasure! +${fmt(found)} bones.`, "good");
+  } catch (e) { toast(e.message || "The treasure got away.", "bad"); }
 });
 
 // --- The wagging tail: a slow happy wag, faster and wider the more you pat ---
@@ -44,20 +81,45 @@ function renderBank() {
   $("rate").textContent = me ? `${fmtRate(me.perClick)} per pat · ${fmtRate(me.perSecond)} per second` : "";
 }
 
-// --- The shop ---
+// --- The shop: upgrades a few at a time (the next one shows once you own the one before), and
+// boosts once you've unlocked them ---
+function shopItem(u, desc, side, me) {
+  const c = R.cost(u.id, me ? me.owned : {});
+  return h("button", { type: "button", class: "item", "data-id": u.id, disabled: !me || me.bones < c, on: { click: () => buy(u.id) } },
+    h("span", { class: "item-icon", "aria-hidden": "true", text: u.icon }),
+    h("span", { class: "item-main" }, h("span", { class: "item-name", text: u.name }), h("span", { class: "item-desc", text: desc })),
+    h("span", { class: "item-side" }, h("span", { class: "item-cost", text: fmt(c) + " 🦴" }), h("span", { class: "item-owned", text: side })));
+}
 function renderShop() {
-  const me = game.me;
-  $("shop").replaceChildren(...R.UPGRADES.map(u => {
-    const n = (me && me.owned[u.id]) || 0, c = R.cost(u.id, me ? me.owned : {});
-    return h("button", { type: "button", class: "item", "data-id": u.id, disabled: !me || me.bones < c, on: { click: () => buy(u.id) } },
-      h("span", { class: "item-icon", "aria-hidden": "true", text: u.icon }),
-      h("span", { class: "item-main" }, h("span", { class: "item-name", text: u.name }), h("span", { class: "item-desc", text: u.desc })),
-      h("span", { class: "item-side" }, h("span", { class: "item-cost", text: fmt(c) + " 🦴" }), h("span", { class: "item-owned", text: n ? `owned ${n}` : "" })));
-  }));
+  const me = game.me, owned = me ? me.owned : {};
+  const last = R.UPGRADES.reduce((i, u, k) => owned[u.id] ? k : i, -1);
+  const shown = R.UPGRADES.slice(0, Math.max(3, last + 2));
+  $("shop").replaceChildren(...shown.map(u => shopItem(u, u.desc, owned[u.id] ? `owned ${owned[u.id]}` : "", me)));
+  $("boosts").replaceChildren(...R.BOOSTS.filter(b => R.available(b.id, owned))
+    .map(b => shopItem(b, `Boost: ${R.byId(b.boosts).name} gives twice as much.`, "once", me)));
 }
 function refreshShop() {
   const me = game.me;
-  for (const b of $("shop").children) b.disabled = !me || me.bones < R.cost(b.dataset.id, me.owned);
+  for (const b of [...$("boosts").children, ...$("shop").children]) b.disabled = !me || me.bones < R.cost(b.dataset.id, me.owned);
+}
+
+// --- Trophies: the ones you have and the next few to go for (or every one, after "Show all") ---
+let allTrophies = false;
+function renderTrophies() {
+  const have = (game.me && game.me.game.trophies) || [];
+  const n = R.TROPHIES.filter(t => have.includes(t.id)).length;
+  $("trophy-sum").textContent = `${n} / ${R.TROPHIES.length}` + (n ? ` · +${Math.round(n * R.TROPHY_BONUS * 100)}% bones` : "");
+  let next = 0;
+  const shown = R.TROPHIES.filter(t => allTrophies || have.includes(t.id) || next++ < 4);
+  const more = shown.length < R.TROPHIES.length
+    ? h("li", { class: "trophy-more" }, h("button", { type: "button", class: "more-btn", text: "Show all", on: { click: () => { allTrophies = true; renderTrophies(); } } }))
+    : null;
+  $("trophies").replaceChildren(...shown.map(t => {
+    const got = have.includes(t.id);
+    return h("li", { class: "trophy" + (got ? " got" : ""), title: got ? "Earned" : "Not yet" },
+      h("span", { class: "trophy-icon", "aria-hidden": "true", text: t.icon }),
+      h("span", { class: "trophy-main" }, h("span", { class: "trophy-name", text: t.name }), h("span", { class: "trophy-desc", text: (got ? "✓ " : "") + t.desc })));
+  }), ...(more ? [more] : []));
 }
 
 // --- Notices: can't reach the server; a new update is live ---
@@ -101,7 +163,14 @@ function setupSave() {
 
 // --- Start ---
 onChange(what => {
+  if (what.startsWith("trophy:")) {
+    const t = R.TROPHIES.find(x => x.id === what.slice(7));
+    if (t) toast(`${t.icon} Trophy: ${t.name}! +${Math.round(R.TROPHY_BONUS * 100)}% bones.`, "good");
+    renderTrophies();
+    return;
+  }
   if (what === "owned") renderShop(); else refreshShop();
+  if (what === "online" || what === "owned") renderTrophies();
   renderBank();
   if (game.me) $("who").textContent = game.me.name;
   if (what === "online") notice(null);
@@ -114,11 +183,12 @@ function frame(t) {
   tick(dt);
   wagTail(dt);
   last = t;
-  if (t - drawn > 100) { drawn = t; renderBank(); refreshShop(); }
+  if (t - drawn > 100) { drawn = t; renderBank(); refreshShop(); checkTreasure(); }
   requestAnimationFrame(frame);
 }
 
 renderShop();
+renderTrophies();
 renderBank();
 setupSave();
 Promise.all([start(), startBoard()]).finally(() => {

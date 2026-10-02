@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>beagle.clicker</title>
-  <meta name="description" content="Pat the beagle, earn bones, and spend them on the next update. Every few hours Claude builds the suggestion with the most bones.">
+  <meta name="description" content="Pat the beagle, dig up bones, hunt treasure, and spend bones on the next update. Every few hours Claude builds the suggestion with the most bones.">
   <meta name="theme-color" content="#c8843f">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/src/style.css">
@@ -45,13 +45,30 @@
               <circle class="shine" cx="129" cy="85" r="2.6"/>
             </svg>
           </button>
+          <button class="treasure" id="treasure" type="button" aria-label="Grab the buried treasure!" hidden>
+            <svg viewBox="0 0 64 60" aria-hidden="true">
+              <ellipse class="dirt" cx="32" cy="54" rx="31" ry="6"/>
+              <path class="chest-lid" d="M8 26 Q8 8 32 8 Q56 8 56 26 Z"/>
+              <rect class="chest-box" x="8" y="26" width="48" height="26" rx="3"/>
+              <path class="chest-band" d="M8 26 H56 M20 9.5 V52 M44 9.5 V52"/>
+              <rect class="chest-lock" x="27" y="22" width="10" height="12" rx="2"/>
+              <path class="chest-glint" d="M52 4 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2 Z"/>
+            </svg>
+          </button>
         </div>
-        <p class="hint">Pat the beagle!</p>
+        <p class="hint">Pat the beagle to dig up bones. Watch for buried treasure.</p>
+        <p class="toast" id="toast" role="status"></p>
       </section>
 
       <section class="card shop" aria-labelledby="shop-h">
         <h2 id="shop-h">Shop</h2>
+        <div class="shop-list boosts" id="boosts"></div>
         <div class="shop-list" id="shop"></div>
+      </section>
+
+      <section class="card trophies" aria-labelledby="trophies-h">
+        <h2 id="trophies-h">Trophies <span class="trophy-sum" id="trophy-sum"></span></h2>
+        <ol class="trophy-list" id="trophies"></ol>
       </section>
     </div>
 
@@ -61,7 +78,7 @@
         <div class="status" id="status"></div>
         <form class="suggest" id="suggest">
           <label for="suggest-text">Suggest an update</label>
-          <textarea id="suggest-text" maxlength="140" rows="2" placeholder="One small idea, like a golden bone that shows up now and then…" required></textarea>
+          <textarea id="suggest-text" maxlength="140" rows="2" placeholder="One small idea, like a new dig site, or a trophy to hunt for…" required></textarea>
           <div class="suggest-row">
             <span class="count" id="suggest-count">0 / 140</span>
             <button type="submit" id="suggest-go">Suggest · <span id="suggest-cost">100</span> 🦴</button>

@@ -8,8 +8,9 @@ const R = require("./rules");
 
 const MAX_BATCH_SEC = 60; // pats in one sync count for at most a minute's worth
 
-// The new game state after `input` ({ pats, buy: [upgrade ids] }) at time `now` (ms).
-function sync(player, input, now) {
+// The new game state after `input` ({ pats, buy: [upgrade or boost ids] }) at time `now` (ms).
+// `rand` (0–1) picks when the next treasure turns up; tests pass their own.
+function sync(player, input, now, rand = Math.random) {
   const p = { ...player, owned: { ...(player.owned || {}) }, game: { ...(player.game || {}) } };
   p.bones = +p.bones || 0;
   p.earned = +p.earned || 0;
@@ -20,7 +21,7 @@ function sync(player, input, now) {
   const maxPats = Math.floor(R.MAX_PATS_PER_SECOND * (Math.min(since, MAX_BATCH_SEC) + 1)); // +1 s of slack
   const pats = Math.min(maxPats, Math.max(0, Math.floor(+(input && input.pats) || 0)));
 
-  const gain = pats * R.perClick(p.owned) + away * R.perSecond(p.owned);
+  const gain = pats * R.perClick(p.owned, p.game) + away * R.perSecond(p.owned, p.game);
   p.bones += gain;
   p.earned += gain;
   p.pats += pats;
@@ -30,11 +31,29 @@ function sync(player, input, now) {
   for (const id of buys) {
     if (typeof id !== "string" || !R.byId(id)) continue;
     const c = R.cost(id, p.owned);
+    if (!(c < Infinity)) continue; // a boost not unlocked yet, or already owned
     if (p.bones < c) break;
     p.bones -= c;
     p.owned[id] = (p.owned[id] || 0) + 1;
   }
+
+  // A treasure that was missed sinks back; the next one is set.
+  const at = p.game.treasureAt;
+  if (typeof at !== "number" || now > at + R.TREASURE.window * 1000) nextTreasure(p, now, rand);
+  award(p);
   return p;
+}
+
+// Sets when the next buried treasure turns up: soon for a first one, then every few minutes.
+function nextTreasure(p, now, rand = Math.random) {
+  const [lo, hi] = p.game.treasures ? R.TREASURE.gap : R.TREASURE.first;
+  p.game.treasureAt = Math.round(now + (lo + (hi - lo) * rand()) * 1000);
+}
+
+// Adds any trophies the player has just earned (they're kept for good).
+function award(p) {
+  const add = R.newTrophies(p);
+  if (add.length) p.game.trophies = (Array.isArray(p.game.trophies) ? p.game.trophies : []).concat(add);
 }
 
 // What the browser is told about its own game.
@@ -44,10 +63,10 @@ function view(p) {
     earned: p.earned || 0,
     pats: p.pats || 0,
     owned: p.owned || {},
-    perClick: R.perClick(p.owned),
-    perSecond: R.perSecond(p.owned),
+    perClick: R.perClick(p.owned, p.game),
+    perSecond: R.perSecond(p.owned, p.game),
     game: p.game || {},
   };
 }
 
-module.exports = { sync, view };
+module.exports = { sync, view, nextTreasure, award };

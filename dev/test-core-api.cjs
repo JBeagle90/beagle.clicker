@@ -47,11 +47,14 @@ test("syncing counts pats and buys", async () => {
   reset();
   const save = await player();
   await earn(save, 40);
-  clock += 1000;
+  const had = await bonesOf(save), R = require("../api/src/game/rules.js");
+  ok(had >= 40);
   const r = await api("POST", "/sync", { pats: 0, buy: ["chew-toy"] }, { save });
-  eq(r.jsonBody.player.owned["chew-toy"], 1);
-  eq(r.jsonBody.player.bones, 25);
-  eq(r.jsonBody.player.perClick, 2);
+  const me = r.jsonBody.player;
+  eq(me.owned["chew-toy"], 1);
+  eq(me.bones, had - R.cost("chew-toy", {}));
+  eq(me.perClick, R.perClick(me.owned, me.game));
+  ok(me.perClick > R.perClick({}, me.game));
 });
 
 test("game code can't change who a player is", async () => {
@@ -80,10 +83,11 @@ test("suggesting costs bones and checks the words", async () => {
   await earn(save, 300);
   eq((await api("POST", "/suggest", { text: "hi" }, { save })).status, 400);
   eq((await api("POST", "/suggest", { text: "go to https://example.com for ideas" }, { save })).status, 400);
+  const had = await bonesOf(save);
   const r = await api("POST", "/suggest", { text: "  Add a   golden bone\u0000 that appears sometimes " }, { save });
   eq(r.status, 200);
   eq(r.jsonBody.suggestion.text, "Add a golden bone that appears sometimes");
-  eq(r.jsonBody.player.bones, 200);
+  eq(r.jsonBody.player.bones, had - 100);
   eq((await api("POST", "/suggest", { text: "Another idea entirely, please" }, { save })).status, 429, "one per 10 minutes");
   clock += 11 * 60 * 1000;
   eq((await api("POST", "/suggest", { text: "add a GOLDEN bone that appears sometimes!" }, { save })).status, 409, "duplicate");
@@ -211,7 +215,7 @@ test("game actions: unknown ones are 404, and one can change only its caller", a
   try {
     const r = await api("POST", "/game/wave", {}, { save: a });
     eq(r.status, 200); eq(r.jsonBody.ok, true); eq(r.jsonBody.player.game.waves, 1);
-    eq((await api("POST", "/sync", {}, { save: b })).jsonBody.player.game, {});
+    eq((await api("POST", "/sync", {}, { save: b })).jsonBody.player.game.waves, undefined);
     eq((await api("POST", "/game/greedy", {}, { save: a })).status, 400);
   } finally { delete game.actions.wave; delete game.actions.greedy; }
 });
