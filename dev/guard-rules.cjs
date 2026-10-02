@@ -8,10 +8,10 @@ const path = require("path");
 const { blocked } = require(path.join(__dirname, "..", "api", "src", "core", "moderation.js"));
 
 // Only these paths. Everything else (the workflows, the core API, the build, CLAUDE.md, the site's
-// security headers, the packages) is the owner's.
+// security headers, the owner's panel in web/admin/, the packages) is the owner's.
 const ALLOWED = [
   /^src\/[A-Za-z0-9_\/-]+\.(js|css)$/,
-  /^web\/(?!staticwebapp\.config\.json$)[A-Za-z0-9_\/-]+\.(html|svg|png|webp|txt|css|webmanifest)$/,
+  /^web\/(?!staticwebapp\.config\.json$|admin\/)[A-Za-z0-9_\/-]+\.(html|svg|png|webp|txt|css|webmanifest)$/,
   /^api\/src\/game\/[A-Za-z0-9_-]+\.js$/,
   /^dev\/test-(?!core-)[a-z0-9-]+\.cjs$/,
   /^docs\/(?:GAME|CODE|IDEAS|CHANGELOG)\.md$/,
@@ -44,6 +44,8 @@ const BANNED = [
     [/\bdocument\.cookie\b/, "cookies"],
     [/\b(?:WebSocket|EventSource|sendBeacon)\b/, "other connections"],
     [OUTSIDE, "outside addresses (everything comes from this site)"],
+    // Only the owner's panel signs in, and the game never needs to: no passkeys, no owner calls.
+    [/\bcredentials\s*\.\s*(?:get|create)\b|\bPublicKeyCredential\b|\/api\/owner\b|\bx-owner-session\b|\bbc\.owner\b/, "the owner's sign-in"],
   ]],
   [/^web\/.*\.(?:html|svg)$/, [
     [/<script\b(?![^>]*\bsrc=["']\/)/i, "inline scripts"],

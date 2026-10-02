@@ -2,6 +2,8 @@
 // Serves web/ at the site root, src/ at /src/, the game rules at /rules.js (as the build does), and
 // the real API (api/src/core/lib.js) on a store kept in dev/.data.json. BC_DATA=none keeps it in
 // memory only (dev/look.mjs). The scheduled update's key here is OPS_KEY, or the one printed at start.
+// The owner's panel is at http://localhost:<port>/admin (passkeys need "localhost", not 127.0.0.1):
+// add this computer with the link from `node dev/ops.mjs invite`.
 // For trying the game on one computer: it isn't a secure server.
 import http from "node:http";
 import fs from "node:fs/promises";
@@ -16,11 +18,12 @@ const { handle } = require("../api/src/core/lib.js");
 const { memoryStore } = require("./memstore.cjs");
 const store = memoryStore(process.env.BC_DATA === "none" ? undefined : path.join(ROOT, "dev", ".data.json"));
 const PORT = Number(process.env.PORT) || 5190;
-const env = { ...process.env, OPS_KEY: process.env.OPS_KEY || "dev-ops-key-for-this-computer-only" };
+const env = { ...process.env, OPS_KEY: process.env.OPS_KEY || "dev-ops-key-for-this-computer-only", OWNER_ORIGIN: process.env.OWNER_ORIGIN || `http://localhost:${PORT}` };
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png", ".txt": "text/plain", ".webmanifest": "application/manifest+json" };
 
 function fileFor(rel) {
-  if (rel === "/" ) return path.join(ROOT, "web", "index.html");
+  if (rel === "/") return path.join(ROOT, "web", "index.html");
+  if (rel === "/admin" || rel === "/admin/") return path.join(ROOT, "web", "admin", "index.html");
   if (rel === "/rules.js") return path.join(ROOT, "api", "src", "game", "rules.js");
   if (rel.startsWith("/src/")) return path.join(ROOT, rel);
   return path.join(ROOT, "web", rel);

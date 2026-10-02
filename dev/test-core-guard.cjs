@@ -13,9 +13,19 @@ test("game, page and test files may change", () => {
 test("the owner's files may not", () => {
   for (const p of [".github/workflows/scheduled-update.yml", "CLAUDE.md", "package.json", "api/package.json", "api/host.json", "api/src/core/lib.js",
     "api/src/functions/index.js", "web/staticwebapp.config.json", "dev/guard-rules.cjs", "dev/guard.mjs", "dev/build.mjs", "dev/test-core-api.cjs",
-    "docs/OPERATIONS.md", "README.md", ".gitignore", "api/src/game/../core/lib.js", "src/x.mjs"])
+    "docs/OPERATIONS.md", "README.md", ".gitignore", "api/src/game/../core/lib.js", "src/x.mjs",
+    "web/admin/index.html", "web/admin/admin.css", "web/admin/admin.js", "web/admin/new.html", "api/src/core/owner.js", "dev/test-core-owner.cjs"])
     ok(one(p, "x").length, p);
   ok(one("api/src/core/ops.js", "", true).length, "deleting counts too");
+});
+
+test("game code can't use the owner's sign-in", () => {
+  ok(one("src/x.js", "navigator.credentials.get({ publicKey })").length);
+  ok(one("src/x.js", "if (window.PublicKeyCredential) {}").length);
+  ok(one("src/x.js", "fetch('/api/owner/status')").length);
+  ok(one("src/x.js", "headers['x-owner-session'] = s").length);
+  ok(one("src/x.js", "sessionStorage.getItem('bc.owner')").length);
+  eq(one("src/x.js", "const owner = 'Claude'; // the beagle's owner"), []);
 });
 
 test("game code stays plain", () => {

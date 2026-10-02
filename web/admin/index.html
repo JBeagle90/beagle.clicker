@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>beagle.clicker owner</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/admin/admin.css">
+  <script type="module" src="/admin/admin.js"></script>
+</head>
+<body>
+  <header class="top">
+    <h1 class="brand">beagle<span>.clicker</span> owner</h1>
+    <button type="button" class="quiet" id="logout" hidden>Sign out</button>
+  </header>
+
+  <main class="page">
+    <p class="msg" id="msg" role="status" aria-live="polite"></p>
+
+    <section class="card" id="add" hidden>
+      <h2>Add this device</h2>
+      <p class="muted">This device gets a passkey for the owner's panel: you'll sign in with its fingerprint, face, PIN or security key.</p>
+      <form id="add-form" class="row">
+        <label for="add-name">Name for this device</label>
+        <input id="add-name" maxlength="40" placeholder="My phone" autocomplete="off">
+        <button type="submit">Add a passkey</button>
+      </form>
+    </section>
+
+    <section class="card" id="signin" hidden>
+      <h2>Owner sign-in</h2>
+      <p class="muted">Use the passkey on one of your devices.</p>
+      <button type="button" id="signin-btn">Sign in with a passkey</button>
+    </section>
+
+    <div id="panel" hidden>
+      <section class="card">
+        <h2>Spending</h2>
+        <div class="stats" id="stats"></div>
+        <p class="muted" id="billing"></p>
+      </section>
+
+      <section class="card">
+        <h2>Recent runs</h2>
+        <div class="table-wrap">
+          <table id="runs">
+            <thead><tr><th scope="col">When</th><th scope="col">Update</th><th scope="col">Result</th><th scope="col" class="num">Cost</th><th scope="col" class="num">Turns</th><th scope="col" class="num">Minutes</th></tr></thead>
+            <tbody id="runs-body"></tbody>
+          </table>
+        </div>
+        <p class="muted" id="runs-empty" hidden>No runs logged yet. Each scheduled update adds one here.</p>
+      </section>
+
+      <section class="card">
+        <h2>Your devices</h2>
+        <ul class="devices" id="devices"></ul>
+        <p class="muted">To add another, run <code>node dev/ops.mjs invite</code> and open its link on that device.</p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

@@ -44,6 +44,7 @@ To go back, put the apex A record back to `20.37.130.90`.
 | Azure | `OWN_IDEAS` | 1 | `0`: when no suggestion has bones, skip the run instead of building Claude's own idea. |
 | Azure | `MIN_SCORE` | 1 | Bones a suggestion needs before it can be picked. |
 | Azure | `BLOCKED_WORDS` | (none) | More words to refuse in suggestions and in updates, comma-separated. `word*` matches words starting with it. |
+| Azure | `OWNER_ORIGIN` | `https://beagle.games` | Where the owner's panel is opened, for passkeys. Before the domain moves, set it to the `azurestaticapps.net` address (or list both, comma-separated). |
 | GitHub variable | `UPDATES_PAUSED` | | `1` stops the scheduled updates until it's removed. |
 | GitHub variable | `MAX_RUN_USD` | 2 | The most one build may spend (`--max-budget-usd`). |
 | GitHub variable | `CLAUDE_MODEL` | `claude-opus-5-5` | The building model. `claude-sonnet-5-5` costs less. |
@@ -61,7 +62,7 @@ These limits stack, so one runaway build can't use much:
 5. **Short docs**: the docs every build reads have size limits, and builds never read the long changelog.
 6. **The hard stop**: with `ANTHROPIC_API_KEY`, the workspace's monthly spend limit in the Anthropic Console caps everything, whatever happens here.
 
-For scale: beagle.fit's Claude builds (Opus, high effort) have cost $0.40 to $1.16 each at API prices, in 29 to 50 turns. Expect about $0.50 to $1.50 a build here, so the full schedule (8 a day) is roughly $120 to $360 in 30 days. The $2 cap stops a run that goes wrong, and the 30-day budget is a backstop. The run log shows each one's cost ("Cost and refusals"), and the pick step prints the 30-day total.
+For scale: beagle.fit's Claude builds (Opus, high effort) have cost $0.40 to $1.16 each at API prices, in 29 to 50 turns. Expect about $0.50 to $1.50 a build here, so the full schedule (8 a day) is roughly $120 to $360 in 30 days. The $2 cap stops a run that goes wrong, and the 30-day budget is a backstop. The run log shows each one's cost ("Cost and refusals"), and the pick step prints the 30-day total. The owner's panel (below) shows it all in one place.
 
 **On your subscription** (`CLAUDE_CODE_OAUTH_TOKEN`), the dollars are API-equivalent estimates, not charges: builds use your plan's usage limits, alongside your own Claude Code use. To use less, run every 6 hours (`0 */6 * * *` and `UPDATE_HOURS=6`), set `MAX_BUILDS_PER_DAY=4` or `OWN_IDEAS=0`, or set `CLAUDE_MODEL=claude-sonnet-5-5`. With `ANTHROPIC_API_KEY` they're real charges, and the Console spend limit is the hard cap.
 
@@ -75,6 +76,19 @@ beagle.clicker is meant for everyone, children included. The layers:
 4. **The build's prompt** has the same rules for everything Claude adds (words, pictures, sounds), including its own ideas, and tells it to decline.
 5. **The guard** runs the word filter over every file an update changes.
 6. **You**: take a suggestion off the board with `hide` (below), revert an update, or pause.
+
+## The owner's panel
+
+`https://beagle.games/admin` shows what the scheduled updates cost: the last 24 hours, this week (from Monday, on your device's clock), the last 30 days against the budget, builds today, and the recent runs (what each one built, how it went, its cost, turns and minutes). Per-run details start with the first run after this was added.
+
+Only you can sign in, with a **passkey**: your device's fingerprint, face, PIN or a security key. There's no password.
+
+- **Add a device**: on your computer, run `OPS_URL=https://beagle.games OPS_KEY=… node dev/ops.mjs invite`. It prints a link that works once, for 10 minutes. Open it on the device, name it, and follow its prompt. Add your phone and your computer, so losing one doesn't lock you out (you can always make a new invite with `OPS_KEY`).
+- **Sign in**: open `/admin` and choose "Sign in with a passkey". A sign-in lasts an hour, in that browser tab only.
+- **A lost device**: sign in on another and choose Forget next to it.
+- **Locally**: `npm start`, then `node dev/ops.mjs invite` and open its link. It's `http://localhost:5190/admin` (passkeys need `localhost`, not `127.0.0.1`).
+
+Why scheduled updates can't get in: the panel's page (`web/admin/`) loads none of the game's code and keeps its sign-in in its own tab; its API (`api/src/core/owner.js`) checks each passkey's signature on the server; the guard refuses any update that touches either, or game code that uses passkeys or the owner's calls.
 
 ## Day to day
 

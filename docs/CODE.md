@@ -19,6 +19,7 @@ add what you wish you'd known, and cut what no longer helps. The rules are in CL
 | `src/api.js` | `call(method, path, body)` to `/api`, with the save code; `getSave`, `setSave`. |
 | `src/style.css` | Colour tokens at the top (`--bg`, `--card`, `--ink`, `--muted`, `--line`, `--accent`, `--tan`, `--brown`, `--cream`, `--good`, `--bad`), dark mode under them, then one section per part of the page. |
 | `web/index.html` | The page: the header with `.tabs`, then one `.view` per screen. `#view-dig` (3 columns, 2 then 1 on narrower screens): the play card (`#bones`, `#rate`, `#frenzy`, `#beagle` with its inline SVG: `.ear`, `.head`, `.blaze`, `.muzzle`, `.nose`, `.eye`, `.tongue`, and `#helmet` drawn last; `#treasure`, the chest), the dig card (`#ticker`, `#scene`), the shop (`#amounts`, `#boosts`, `#shop`). `#view-trophies` (`#trophies`), `#view-stats` (`#stats`), `#view-updates` (the board: `#status`, `#suggest`, `#open`; the log: `#done`). Then `#toast` and the footer with the save panel. |
+| `web/admin/`, `api/src/core/owner.js` | The owner's panel (`/admin`, passkey sign-in). Not the game's: updates may not change them, and game code may not use passkeys or `/api/owner`. Leave it alone. |
 
 ## How to…
 

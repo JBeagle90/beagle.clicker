@@ -13,6 +13,7 @@
 //   MAX_BUILDS_PER_DAY  default 8
 //   OWN_IDEAS         0 = Claude doesn't build its own ideas when no suggestion has bones (default 1)
 //   BLOCKED_WORDS     more words to refuse in suggestions and updates, comma-separated (../core/moderation.js)
+//   OWNER_ORIGIN      the owner's panel's address(es) for passkeys, comma-separated (default https://beagle.games)
 "use strict";
 const { app } = require("@azure/functions");
 const { CosmosClient } = require("@azure/cosmos");
@@ -92,6 +93,6 @@ async function run(request, route) {
 }
 
 for (const route of ROUTES) {
-  const sub = route === "game" || route === "ops";
+  const sub = route === "game" || route === "ops" || route === "owner";
   app.http(route, { methods: ["GET", "POST"], authLevel: "anonymous", route: sub ? `${route}/{sub}` : route, handler: req => run(req, route) });
 }

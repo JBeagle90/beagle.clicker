@@ -5,10 +5,12 @@
 //            The suggestion with the most bones becomes "building". When none has enough bones, a
 //            placeholder for Claude's own idea is made instead (own: true), so every scheduled run
 //            builds something. ratings: how players rated the last few updates.
-//   result   { id, status: shipped | declined | failed, title, summary, idea, reason, commit, cost }
+//   result   { id, status: shipped | declined | failed, title, summary, idea, reason, commit, cost, run }
 //            summary: the players' summary (lines; "- " lines are bullets); idea: for Claude's own,
 //            the idea in one sentence, shown as its suggestion. cost: what the run cost in USD.
+//            run: { screen, build, turns, minutes, billing: api | plan }, for the owner's panel.
 //   hide     { id, reason? } take one off the board (the owner, by hand), giving its votes back
+//   invite   a one-time link that adds a device to the owner's panel (owner.js)
 //
 // Settings: OPS_KEY (24+ random characters, also a GitHub secret), MIN_SCORE (bones a suggestion
 // needs to be picked; default 1), UPDATE_HOURS (the schedule, for the countdown; default 3).
@@ -42,8 +44,9 @@ async function failOnce(c, s, why) {
   return null;
 }
 
-// What the builds have cost: { id: "spend", pk: "sys", days: { "2026-10-02": 1.23 }, picks: [times] }.
-const DAY = 24 * HOUR;
+// What the builds have cost: { id: "spend", pk: "sys", days: { "2026-10-02": 1.23 }, picks: [times],
+// runs: [{ at, id, status, title, own, cost, screen, build, turns, minutes, billing }] } (the last 14 days).
+const DAY = 24 * HOUR, RUN_DAYS = 14, MAX_RUNS = 200;
 const dayOf = t => new Date(t).toISOString().slice(0, 10);
 async function spending(c) {
   const s = (await c.store.read("sys", "spend")) || {};
@@ -55,12 +58,32 @@ async function spending(c) {
 async function record(c, change) {
   const from = dayOf(c.now - 40 * DAY);
   await c.store.update("sys", "spend", cur => {
-    const s = cur ? { ...cur, days: { ...(cur.days || {}) }, picks: [...(cur.picks || [])] } : { id: "spend", pk: "sys", days: {}, picks: [] };
+    const s = cur ? { ...cur, days: { ...(cur.days || {}) }, picks: [...(cur.picks || [])], runs: [...(cur.runs || [])] } : { id: "spend", pk: "sys", days: {}, picks: [], runs: [] };
     change(s);
     for (const d of Object.keys(s.days)) if (d < from) delete s.days[d];
     s.picks = s.picks.filter(t => c.now - t < 2 * DAY).slice(-100);
+    s.runs = s.runs.filter(r => c.now - r.at < RUN_DAYS * DAY).slice(-MAX_RUNS);
     return s;
   });
+}
+
+// The spending limits: the 30-day budget (USD) and the most builds in 24 hours.
+function limits(env) {
+  return {
+    budget: env.BUDGET_USD_30D != null && env.BUDGET_USD_30D !== "" ? +env.BUDGET_USD_30D : 250,
+    perDay: Math.max(0, Math.floor(+(env.MAX_BUILDS_PER_DAY || 8))),
+  };
+}
+
+// One line in the run log, from what the workflow reported.
+function runOf(c, id, status, s) {
+  const run = c.body.run && typeof c.body.run === "object" ? c.body.run : {};
+  const usd = v => Math.round(Math.max(0, Math.min(1000, +v || 0)) * 10000) / 10000;
+  const title = cleanText(c.body.title, 80) || cleanText(c.body.idea, 80) || (s && cleanText(s.text, 80)) || "";
+  const out = { at: c.now, id, status, title, own: !!(s && s.own), cost: usd(c.body.cost), screen: usd(run.screen), build: usd(run.build),
+    turns: Math.round(Math.max(0, Math.min(10000, +run.turns || 0))), minutes: Math.round(Math.max(0, Math.min(1000, +run.minutes || 0)) * 10) / 10 };
+  if (run.billing === "api" || run.billing === "plan") out.billing = run.billing;
+  return out;
 }
 
 async function pick(c) {
@@ -71,8 +94,7 @@ async function pick(c) {
   for (const s of open) if (s.status === "open" && !(s.score > 0) && c.now - s.at > STALE_MS) await c.store.remove(S.OPEN, s.id);
 
   const spent = await spending(c);
-  const budget = c.env.BUDGET_USD_30D != null && c.env.BUDGET_USD_30D !== "" ? +c.env.BUDGET_USD_30D : 250;
-  const perDay = Math.max(0, Math.floor(+(c.env.MAX_BUILDS_PER_DAY || 8)));
+  const { budget, perDay } = limits(c.env);
   if (spent.usd >= budget) return json(200, { pick: null, reason: "budget", spent });
   if (spent.builds >= perDay) return json(200, { pick: null, reason: "daily_limit", spent });
 
@@ -96,7 +118,10 @@ async function result(c) {
   if (!S.SID.test(id) || !["shipped", "declined", "failed"].includes(status)) return fail(400, "bad_input", "id and status, please.");
   const s = await c.store.read(S.OPEN, id);
   const cost = Math.max(0, Math.min(1000, +c.body.cost || 0));
-  if (cost) await record(c, sp => { sp.days[dayOf(c.now)] = Math.round(((+sp.days[dayOf(c.now)] || 0) + cost) * 10000) / 10000; });
+  await record(c, sp => {
+    if (cost) sp.days[dayOf(c.now)] = Math.round(((+sp.days[dayOf(c.now)] || 0) + cost) * 10000) / 10000;
+    sp.runs.push(runOf(c, id, status, s));
+  });
   if (!s || s.status !== "building") return fail(409, "not_building", "That suggestion isn't being built.");
   const title = cleanText(c.body.title, 80), summary = summaryOf(c.body.summary), reason = cleanText(c.body.reason, 400);
   const commit = /^[0-9a-f]{7,40}$/.test(String(c.body.commit || "")) ? c.body.commit : null;
@@ -118,7 +143,8 @@ async function handle(what, c) {
   if (what === "pick") return pick(c);
   if (what === "result") return result(c);
   if (what === "hide") return hide(c);
+  if (what === "invite") return require("./owner").invite(c); // here, not at the top: owner.js uses this file
   return fail(404, "not_found", "Nothing here.");
 }
 
-module.exports = { handle };
+module.exports = { handle, spending, limits };

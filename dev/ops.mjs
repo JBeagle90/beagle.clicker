@@ -1,11 +1,12 @@
-// The scheduled update's calls to the API (api/src/core/ops.js): `node dev/ops.mjs <pick|result|hide> [json]`.
+// The scheduled update's calls to the API (api/src/core/ops.js): `node dev/ops.mjs <pick|result|hide|invite> [json]`.
 // The JSON body is the argument, or read from stdin when there's none (and not a terminal). Prints
 // the answer as JSON; exits 1 if the API refused. Settings: OPS_URL (default the local server,
 // http://127.0.0.1:5190) and OPS_KEY (default the local server's key).
 //   node dev/ops.mjs pick
 //   node dev/ops.mjs hide '{"id":"abc123xy","reason":"Not for this game."}'
+//   node dev/ops.mjs invite    (a one-time link that adds a device to the owner's panel, /admin)
 const [what, arg] = process.argv.slice(2);
-if (!["pick", "result", "hide"].includes(what)) { console.error("Usage: node dev/ops.mjs <pick|result|hide> [json]"); process.exit(2); }
+if (!["pick", "result", "hide", "invite"].includes(what)) { console.error("Usage: node dev/ops.mjs <pick|result|hide|invite> [json]"); process.exit(2); }
 
 let body = arg;
 if (body == null && !process.stdin.isTTY) { const chunks = []; for await (const c of process.stdin) chunks.push(c); body = Buffer.concat(chunks).toString("utf8").trim(); }

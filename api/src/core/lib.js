@@ -10,8 +10,9 @@
 //   POST /report           { id } a suggestion that doesn't belong; enough reports take it down
 //   POST /game/<name>      the game's own actions (api/src/game/index.js)
 //   POST /ops/<what>       the scheduled update's calls (ops.js), with x-ops-key
+//   GET|POST /owner/<what> the owner's panel (owner.js), signed in with a passkey
 //
-// Everything but /players, /board, /log and /ops needs the header `x-bc-save: <save code>` (players.js).
+// Everything but /players, /board, /log, /ops and /owner needs the header `x-bc-save: <save code>` (players.js).
 // The store (Cosmos DB in functions/index.js, in memory in dev/memstore.cjs) has:
 //   read(pk, id), upsert(doc), update(pk, id, fn), remove(pk, id),
 //   list(pk, { limit, orderBy, before }) (newest first by orderBy; before: only those below it)
@@ -22,6 +23,7 @@ const { fail, clientIp } = require("./util");
 const players = require("./players");
 const suggestions = require("./suggestions");
 const ops = require("./ops");
+const owner = require("./owner");
 
 const MAX_BODY = 8 * 1024;
 
@@ -33,6 +35,7 @@ async function handle(req, store, env = process.env, now = Date.now()) {
   const c = { store, env, now, headers: req.headers, query: req.query || new URLSearchParams(), body, ip: clientIp(req.headers) };
 
   if (route === "ops") return m === "POST" ? ops.handle(req.sub, c) : fail(405, "method", "POST only.");
+  if (route === "owner") return owner.handle(req.sub, c, m);
   if (route === "players") return m === "POST" ? players.create(c) : fail(405, "method", "POST only.");
   if (route === "board") return m === "GET" ? suggestions.board(c, await players.who(c)) : fail(405, "method", "GET only.");
   if (route === "log") return m === "GET" ? suggestions.log(c, await players.who(c)) : fail(405, "method", "GET only.");
@@ -49,4 +52,4 @@ async function handle(req, store, env = process.env, now = Date.now()) {
   return fail(404, "not_found", "Nothing here.");
 }
 
-module.exports = { handle, ROUTES: ["players", "board", "log", "sync", "suggest", "vote", "rate", "report", "game", "ops"] };
+module.exports = { handle, ROUTES: ["players", "board", "log", "sync", "suggest", "vote", "rate", "report", "game", "ops", "owner"] };

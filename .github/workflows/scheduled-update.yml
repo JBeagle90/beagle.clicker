@@ -238,13 +238,16 @@ jobs:
             --allowedTools "Read,Edit,MultiEdit,Write,Glob,Grep,LS,Bash(npm test),Bash(npm run build),Bash(node dev/look.mjs:*),Bash(node dev/run-tests.cjs:*),Bash(node dev/guard.mjs),Bash(git status),Bash(git diff:*),Bash(git log:*),Bash(git show:*)"
 
       # What both Claude steps cost, and what the build was refused (tools outside its list).
+      # cost.txt is the total; run.json the details for the owner's panel (/admin).
       - name: Cost and refusals
         if: always()
         env:
           BUILD_OUT: ${{ steps.claude.outputs.execution_file }}
           BUILT: ${{ steps.claude.outcome }}
+          # With an API key the dollars are charges; on a Claude plan (OAuth token), estimates.
+          BILLING: ${{ secrets.ANTHROPIC_API_KEY != '' && 'api' || 'plan' }}
         run: |
-          screen=0; build=0
+          screen=0; build=0; turns=0; ms=0
           if [ -f .update-task/screen-run.json ]; then
             screen=$(jq -r '.cost // 0' .update-task/screen-run.json)
             echo "Screen: $(jq -r '"\(.turns) turns, $\(.cost)"' .update-task/screen-run.json)"
@@ -253,12 +256,17 @@ jobs:
           [ -n "$f" ] || f="$RUNNER_TEMP/claude-execution-output.json" # older action versions
           if [ "$BUILT" != skipped ] && [ -f "$f" ]; then
             build=$(jq -r '[.. | objects | select(.type? == "result")] | last | (.total_cost_usd // 0)' "$f" 2>/dev/null || echo 0)
+            turns=$(jq -r '[.. | objects | select(.type? == "result")] | last | (.num_turns // 0)' "$f" 2>/dev/null || echo 0)
+            ms=$(jq -r '[.. | objects | select(.type? == "result")] | last | (.duration_ms // 0)' "$f" 2>/dev/null || echo 0)
             jq -r '[.. | objects | select(.type? == "result")] | last | "Build: \(.num_turns) turns, \((.duration_ms // 0) / 60000 | floor) min, $\(.total_cost_usd // 0)"' "$f" 2>/dev/null || true
             jq -r '[.. | objects | select(.type? == "result")] | last | (.permission_denials // [])[] | "Refused \(.tool_name): \(.tool_input.command // .tool_input.file_path // (.tool_input | tostring))" | .[0:300]' "$f" 2>/dev/null || true
           fi
           total=$(node -e "console.log((+process.argv[1] + +process.argv[2]).toFixed(4))" "${screen:-0}" "${build:-0}")
           echo "This run cost \$total."
           echo "$total" > .update-task/cost.txt
+          jq -n --arg s "$screen" --arg b "$build" --arg t "$turns" --arg ms "$ms" --arg billing "$BILLING" \
+            '{ screen: ($s | tonumber? // 0), build: ($b | tonumber? // 0), turns: ($t | tonumber? // 0), minutes: ((($ms | tonumber? // 0) / 6000 | round) / 10), billing: $billing }' \
+            > .update-task/run.json || true
 
       - name: What Claude says
         id: result
@@ -423,6 +431,7 @@ jobs:
             text=$(awk 'f; /^$/ && !f { f = 1 }' "$f" | head -c 1500)
           fi
           [ -f "$T/cost.txt" ] && cost=$(cat "$T/cost.txt")
+          run=$(jq -c 'if type == "object" then . else {} end' "$T/run.json" 2>/dev/null || echo '{}')
           status=failed; reason=""
           if [ "$OUTCOME" = pushed ]; then
             status=shipped
@@ -433,6 +442,6 @@ jobs:
           elif [ "$TESTS" = failure ]; then reason="The tests didn't pass."
           fi
           echo "Reporting: $status (cost \$$cost)"
-          jq -n --arg id "$ID" --arg status "$status" --arg title "$title" --arg idea "$idea" --arg summary "$text" --arg reason "$reason" --arg commit "$COMMIT" --arg cost "$cost" \
-            '{ id: $id, status: $status, title: $title, idea: $idea, summary: (if $status == "shipped" then $summary else "" end), reason: $reason, commit: $commit, cost: ($cost | tonumber? // 0) }' \
+          jq -n --arg id "$ID" --arg status "$status" --arg title "$title" --arg idea "$idea" --arg summary "$text" --arg reason "$reason" --arg commit "$COMMIT" --arg cost "$cost" --argjson run "$run" \
+            '{ id: $id, status: $status, title: $title, idea: $idea, summary: (if $status == "shipped" then $summary else "" end), reason: $reason, commit: $commit, cost: ($cost | tonumber? // 0), run: $run }' \
             | node dev/ops.mjs result
