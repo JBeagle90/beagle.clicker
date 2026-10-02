@@ -1,4 +1,4 @@
-// What an hourly update may change (dev/guard-rules.cjs). The owner's test: updates may not change it.
+// What a scheduled update may change (dev/guard-rules.cjs). The owner's test: updates may not change it.
 "use strict";
 const { test, eq, ok, done } = require("./t.cjs");
 const { check } = require("./guard-rules.cjs");
@@ -11,7 +11,7 @@ test("game, page and test files may change", () => {
 });
 
 test("the owner's files may not", () => {
-  for (const p of [".github/workflows/hourly-update.yml", "CLAUDE.md", "package.json", "api/package.json", "api/host.json", "api/src/core/lib.js",
+  for (const p of [".github/workflows/scheduled-update.yml", "CLAUDE.md", "package.json", "api/package.json", "api/host.json", "api/src/core/lib.js",
     "api/src/functions/index.js", "web/staticwebapp.config.json", "dev/guard-rules.cjs", "dev/guard.mjs", "dev/build.mjs", "dev/test-core-api.cjs",
     "docs/OPERATIONS.md", "README.md", ".gitignore", "api/src/game/../core/lib.js", "src/x.mjs"])
     ok(one(p, "x").length, p);
@@ -50,8 +50,25 @@ test("tests can't reach out", () => {
   eq(one("dev/test-x.cjs", "const { test } = require('./t.cjs'); const R = require('../api/src/game/rules.js');"), []);
 });
 
-test("too many files at once is refused", () => {
-  ok(check(Array.from({ length: 41 }, (_, i) => ({ path: `src/f${i}.js`, content: "" }))).length);
+test("updates stay small: files and lines of code", () => {
+  ok(check(Array.from({ length: 15 }, (_, i) => ({ path: `src/f${i}.js`, content: "", lines: 1 }))).length);
+  eq(check([{ path: "src/a.js", content: "", lines: 300 }, { path: "api/src/game/b.js", content: "", lines: 200 }]), []);
+  ok(check([{ path: "src/a.js", content: "", lines: 300 }, { path: "api/src/game/b.js", content: "", lines: 201 }]).length);
+  eq(check([{ path: "src/a.js", content: "", lines: 400 }, { path: "docs/CODE.md", content: "notes", lines: 900 }]), [], "docs lines don't count");
+});
+
+test("the docs a build keeps may change, within their size", () => {
+  for (const p of ["docs/CODE.md", "docs/IDEAS.md", "docs/GAME.md", "docs/CHANGELOG.md"]) eq(one(p, "# notes"), [], p);
+  ok(one("docs/CODE.md", "x".repeat(17 * 1024)).length);
+  eq(one("docs/CHANGELOG.md", "x".repeat(100 * 1024)), []);
+});
+
+test("words that don't belong in a game for everyone are refused anywhere", () => {
+  ok(one("src/x.js", "const msg = 'so sexy';").length);
+  ok(one("web/index.html", "<p>gore mode</p>").length);
+  ok(one("docs/IDEAS.md", "- a f*ck button").length);
+  ok(check([{ path: "src/x.js", content: "const squirrel = 1;" }], { BLOCKED_WORDS: "squirrel" }).length);
+  eq(one("src/x.js", "const therapist = 1; // Sussex cocktail"), []);
 });
 
 done();

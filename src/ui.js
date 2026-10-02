@@ -34,4 +34,8 @@ export function ago(ms, now = Date.now()) {
   return `${Math.floor(s / 86400)} d ago`;
 }
 
-export const clock = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+// 754000 → "12:34"; 9000000 → "2:30:00"
+export const clock = ms => {
+  const s = Math.max(0, Math.ceil(ms / 1000)), hh = Math.floor(s / 3600), mm = Math.floor(s / 60) % 60, ss = String(s % 60).padStart(2, "0");
+  return hh ? `${hh}:${String(mm).padStart(2, "0")}:${ss}` : `${mm}:${ss}`;
+};

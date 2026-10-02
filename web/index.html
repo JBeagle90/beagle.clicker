@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>beagle.clicker</title>
-  <meta name="description" content="Pat the beagle, earn bones, and spend them on the next update. Every hour Claude builds the suggestion with the most bones.">
+  <meta name="description" content="Pat the beagle, earn bones, and spend them on the next update. Every few hours Claude builds the suggestion with the most bones.">
   <meta name="theme-color" content="#c8843f">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/src/style.css">
@@ -60,9 +60,9 @@
         <div class="status" id="status"></div>
         <form class="suggest" id="suggest">
           <label for="suggest-text">Suggest an update</label>
-          <textarea id="suggest-text" maxlength="200" rows="2" placeholder="A golden bone that shows up now and then…" required></textarea>
+          <textarea id="suggest-text" maxlength="140" rows="2" placeholder="One small idea, like a golden bone that shows up now and then…" required></textarea>
           <div class="suggest-row">
-            <span class="count" id="suggest-count">0 / 200</span>
+            <span class="count" id="suggest-count">0 / 140</span>
             <button type="submit" id="suggest-go">Suggest · <span id="suggest-cost">100</span> 🦴</button>
           </div>
           <p class="form-msg" id="suggest-msg" role="status"></p>
@@ -71,14 +71,14 @@
       </section>
 
       <section class="card notes" aria-labelledby="notes-h">
-        <h2 id="notes-h">Patch notes</h2>
+        <h2 id="notes-h">Update log</h2>
         <ol class="done" id="done"></ol>
       </section>
     </div>
   </main>
 
   <footer class="foot">
-    <p>Every hour, Claude builds the suggestion with the most bones and puts it live. If a suggestion can't be built, its bones go back to whoever gave them.</p>
+    <p>Claude makes an update <span id="every">every few hours</span>: the suggestion with the most bones, or an idea of its own when none has any. If a suggestion can't be built, its bones go back to whoever gave them. Rate each update in the log so the next ones get better.</p>
     <details class="save" id="save">
       <summary>Your save</summary>
       <p>Your game is kept on this browser. To play it somewhere else, copy this code and load it there. Keep it to yourself: anyone with it can spend your bones.</p>

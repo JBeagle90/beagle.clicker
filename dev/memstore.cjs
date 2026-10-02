@@ -41,9 +41,9 @@ function memoryStore(file) {
       }
       throw Object.assign(new Error("Too many writes to one document at once"), { code: 412 });
     },
-    async list(pk, { limit = 1000, orderBy } = {}) {
+    async list(pk, { limit = 1000, orderBy, before } = {}) {
       await tick();
-      let all = [...docs.keys()].map(alive).filter(d => d && d.pk === pk);
+      let all = [...docs.keys()].map(alive).filter(d => d && d.pk === pk && (!orderBy || before == null || (d[orderBy] || 0) < before));
       if (orderBy) all.sort((a, b) => (b[orderBy] || 0) - (a[orderBy] || 0));
       return all.slice(0, limit).map(out);
     },

@@ -1,5 +1,5 @@
 # Tests, builds and deploys beagle.clicker to Azure Static Web Apps (https://clicker.beagle.games)
-# on every push to main, by hand from the Actions tab, and from the hourly update once it has
+# on every push to main, by hand from the Actions tab, and from the scheduled update once it has
 # pushed (pushes made with GITHUB_TOKEN don't start other workflows, so it calls this one).
 # Needs one repository secret: AZURE_STATIC_WEB_APPS_API_TOKEN (the Static Web App's deployment token).
 name: Deploy

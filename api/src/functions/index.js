@@ -7,7 +7,12 @@
 //   COSMOS_DATABASE   default "beagleclicker"
 //   COSMOS_CONTAINER  default "docs" (partition key /pk, Time to Live: On, no default)
 //   OPS_KEY           24+ random characters; the same value is the OPS_KEY secret on GitHub
+//   UPDATE_HOURS      the schedule in hours, matching the workflow's cron (default 3), for the countdown
 //   MIN_SCORE         optional: bones a suggestion needs before it can be picked (default 1)
+//   BUDGET_USD_30D    the most Claude may spend in 30 days; no build starts past it (default 60)
+//   MAX_BUILDS_PER_DAY  default 8
+//   OWN_IDEAS         0 = Claude doesn't build its own ideas when no suggestion has bones (default 1)
+//   BLOCKED_WORDS     more words to refuse in suggestions and updates, comma-separated (../core/moderation.js)
 "use strict";
 const { app } = require("@azure/functions");
 const { CosmosClient } = require("@azure/cosmos");
@@ -57,11 +62,14 @@ const store = {
     }
     throw Object.assign(new Error("Too many writes to one document at once"), { code: 412 });
   },
-  // Every document in a partition (or the newest `limit` by orderBy).
-  async list(pk, { limit = 1000, orderBy } = {}) {
-    const order = orderBy && /^[A-Za-z]+$/.test(orderBy) ? ` ORDER BY c.${orderBy} DESC` : "";
+  // Every document in a partition (or the newest `limit` by orderBy, below `before` if given).
+  async list(pk, { limit = 1000, orderBy, before } = {}) {
+    const field = orderBy && /^[A-Za-z]+$/.test(orderBy) ? orderBy : null;
     const n = Math.max(1, Math.min(1000, limit | 0));
-    const q = { query: `SELECT TOP ${n} * FROM c WHERE c.pk = @pk${order}`, parameters: [{ name: "@pk", value: pk }] };
+    const parameters = [{ name: "@pk", value: pk }];
+    let where = "c.pk = @pk";
+    if (field && before != null) { where += ` AND c.${field} < @before`; parameters.push({ name: "@before", value: before }); }
+    const q = { query: `SELECT TOP ${n} * FROM c WHERE ${where}${field ? ` ORDER BY c.${field} DESC` : ""}`, parameters };
     const { resources } = await cosmos().items.query(q, { partitionKey: pk }).fetchAll();
     return (resources || []).map(bare);
   },
@@ -75,7 +83,7 @@ async function run(request, route) {
     try { body = JSON.parse(text); } catch (e) { body = undefined; }
   }
   try {
-    return await handle({ method: request.method, route, sub: request.params.sub, headers: request.headers, body, rawLength }, store);
+    return await handle({ method: request.method, route, sub: request.params.sub, query: request.query, headers: request.headers, body, rawLength }, store);
   } catch (e) {
     console.error("[api]", route, request.method, e && e.code, e && e.message);
     const why = e && e.code === "config" ? "settings" : e && (e.code === 401 || e.code === 403) ? "database_key" : "server";

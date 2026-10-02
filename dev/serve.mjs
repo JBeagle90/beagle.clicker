@@ -1,7 +1,7 @@
 // The game on this computer, with its API: `npm start` (http://127.0.0.1:5190).
 // Serves web/ at the site root, src/ at /src/, the game rules at /rules.js (as the build does), and
 // the real API (api/src/core/lib.js) on a store kept in dev/.data.json. BC_DATA=none keeps it in
-// memory only (dev/look.mjs). The hourly update's key here is OPS_KEY, or the one printed at start.
+// memory only (dev/look.mjs). The scheduled update's key here is OPS_KEY, or the one printed at start.
 // For trying the game on one computer: it isn't a secure server.
 import http from "node:http";
 import fs from "node:fs/promises";
@@ -35,10 +35,11 @@ http.createServer(async (req, res) => {
       const text = Buffer.concat(chunks).toString("utf8");
       let body; try { body = text ? JSON.parse(text) : undefined; } catch (e) { body = undefined; }
       const headers = { ...req.headers, "x-forwarded-for": req.socket.remoteAddress };
-      const r = await handle({ method: req.method, route, sub, headers: { get: k => headers[k.toLowerCase()] }, body, rawLength: Buffer.byteLength(text) }, store, env);
+      const r = await handle({ method: req.method, route, sub, query: url.searchParams, headers: { get: k => headers[k.toLowerCase()] }, body, rawLength: Buffer.byteLength(text) }, store, env);
       res.writeHead(r.status, { "Content-Type": "application/json; charset=utf-8", ...(r.headers || {}) });
       return res.end(JSON.stringify(r.jsonBody));
     }
+    if (rel === "/version.json") { res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" }); return res.end('{"commit":"dev","title":""}'); }
     const file = fileFor(rel);
     if (rel.includes("..") || !file.startsWith(ROOT) || /staticwebapp\.config\.json$/.test(file)) { res.writeHead(403).end(); return; }
     const buf = await fs.readFile(file);
@@ -55,6 +56,6 @@ http.createServer(async (req, res) => {
 }).listen(PORT, "127.0.0.1", () => {
   const url = `http://127.0.0.1:${PORT}`;
   console.log(`beagle.clicker is running at ${url}  (Ctrl+C to stop)`);
-  if (!process.env.OPS_KEY) console.log(`Hourly-update key here: ${env.OPS_KEY}  (node dev/ops.mjs pick)`);
+  if (!process.env.OPS_KEY) console.log(`Scheduled-update key here: ${env.OPS_KEY}  (node dev/ops.mjs pick)`);
   if (process.argv.includes("--open")) exec(process.platform === "win32" ? `start "" "${url}"` : `open "${url}" || xdg-open "${url}"`);
 });

@@ -198,6 +198,27 @@ ol { list-style: none; margin: 0; padding: 0; }
 .note-title { font-weight: 700; overflow-wrap: anywhere; }
 .note-body { margin-top: 4px; overflow-wrap: anywhere; }
 .note.declined .note-title { color: var(--muted); }
+.note-from { margin-top: 4px; color: var(--muted); font-size: .9rem; overflow-wrap: anywhere; }
+.note-from q { font-style: italic; color: var(--ink); }
+.note-list { margin: 6px 0 0; padding-left: 1.2em; }
+.note-list li { margin: 2px 0; overflow-wrap: anywhere; }
+.rating { margin-top: 10px; display: grid; gap: 6px; }
+.rating-label, .rating .rate-label { font-size: .8rem; font-weight: 700; color: var(--muted); }
+.rate-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+.rate-btn {
+  display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--bg); font-size: .82rem; font-weight: 700;
+}
+.rate-btn:hover { border-color: var(--accent); }
+.rate-btn[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 20%, var(--card)); border-color: var(--accent); }
+.rate-n { color: var(--muted); font-variant-numeric: tabular-nums; }
+@media (max-width: 420px) { .rate-name { display: none; } .rate-btn { padding: 5px 11px; font-size: 1rem; } }
+.report {
+  border: 0; background: none; padding: 0 0 0 6px; color: var(--muted); font-size: .78rem; text-decoration: underline;
+}
+.report:hover { color: var(--bad); }
+.more { text-align: center; }
+.more-btn { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 6px 16px; font-weight: 700; }
 
 /* --- Footer and save --- */
 .foot { max-width: 1120px; margin: 0 auto; padding: 0 16px 32px; color: var(--muted); font-size: .88rem; display: grid; gap: 10px; }

@@ -1,4 +1,4 @@
-// The game's side of the API, which the hourly updates are free to grow (CLAUDE.md).
+// The game's side of the API, which the scheduled updates are free to grow (CLAUDE.md).
 //
 // sync and view: see sync.js.
 // actions: extra things a player can do, at POST /api/game/<name>. Each is

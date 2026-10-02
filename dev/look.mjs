@@ -9,7 +9,7 @@
 //   --wait <ms>                  wait longer before the shot (default 1200)
 //   --full                       the whole page, not just the first screen
 //   --out <name>                 the file name
-// Shots go in .update-task/shots/ during an hourly update, otherwise dev/.shots/.
+// Shots go in .update-task/shots/ during a scheduled update, otherwise dev/.shots/.
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";

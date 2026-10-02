@@ -1,4 +1,4 @@
-// The hourly update's calls to the API (api/src/core/ops.js): `node dev/ops.mjs <pick|result|hide> [json]`.
+// The scheduled update's calls to the API (api/src/core/ops.js): `node dev/ops.mjs <pick|result|hide> [json]`.
 // The JSON body is the argument, or read from stdin when there's none (and not a terminal). Prints
 // the answer as JSON; exits 1 if the API refused. Settings: OPS_URL (default the local server,
 // http://127.0.0.1:5190) and OPS_KEY (default the local server's key).

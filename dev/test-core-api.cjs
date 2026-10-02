@@ -1,22 +1,23 @@
-// The API end to end on the in-memory store: players, syncing, suggestions, votes, the hourly pick
-// and its result, refunds. (The owner's test: hourly updates may not change test-core-* files.)
+// The API end to end on the in-memory store: players, syncing, suggestions, votes, the scheduled pick
+// and its result, refunds, own ideas, ratings, reports, limits. (The owner's test: scheduled updates may not change test-core-* files.)
 "use strict";
 const { test, eq, ok, done } = require("./t.cjs");
 const { handle } = require("../api/src/core/lib.js");
 const { memoryStore } = require("./memstore.cjs");
 
 const OPS_KEY = "test-ops-key-0123456789abcdef";
-const env = { OPS_KEY };
+let env;
 let store, clock;
 
 function api(method, path, body, { save, ops, ip = "1.2.3.4" } = {}) {
-  const [route, sub] = path.replace(/^\//, "").split("/");
+  const [p, qs] = path.replace(/^\//, "").split("?");
+  const [route, sub] = p.split("/");
   const h = { "x-forwarded-for": ip + ":5555" };
   if (save) h.authorization = "Bearer " + save;
   if (ops) h["x-ops-key"] = ops;
-  return handle({ method, route, sub, headers: { get: k => h[k.toLowerCase()] }, body, rawLength: body ? JSON.stringify(body).length : 0 }, store, env, clock);
+  return handle({ method, route, sub, query: new URLSearchParams(qs || ""), headers: { get: k => h[k.toLowerCase()] }, body, rawLength: body ? JSON.stringify(body).length : 0 }, store, env, clock);
 }
-const reset = () => { store = memoryStore(); clock = Date.UTC(2026, 9, 2, 12, 0, 0); };
+const reset = () => { store = memoryStore(); clock = Date.UTC(2026, 9, 2, 12, 0, 0); env = { OPS_KEY }; };
 async function player(ip) { const r = await api("POST", "/players", null, { ip }); eq(r.status, 200); return r.jsonBody.save; }
 // Gives a player bones the honest way: by patting, a batch every second.
 async function earn(save, bones) {
@@ -106,7 +107,9 @@ test("voting moves bones onto a suggestion; the board ranks by bones", async () 
   eq(board.open[0].mine, 50);
   eq(board.open[0].voters, 2);
   ok(!("votes" in board.open[0]), "who gave what isn't public");
-  ok(board.nextPickAt > clock && board.nextPickAt - clock <= 3600 * 1000);
+  ok(board.nextPickAt > clock && board.nextPickAt - clock <= 3 * 3600 * 1000, "every 3 hours by default");
+  eq(board.updateHours, 3);
+  eq(board.limits.max, 140);
 });
 
 test("ops calls need the key", async () => {
@@ -116,12 +119,11 @@ test("ops calls need the key", async () => {
   eq((await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).status, 200);
 });
 
-test("the hourly pick takes the top suggestion, and nothing else while it's building", async () => {
+test("the pick takes the top suggestion, and nothing else while it's building", async () => {
   reset();
   const a = await player();
   await earn(a, 400);
   const s = (await api("POST", "/suggest", { text: "Make the beagle wear sunglasses" }, { save: a })).jsonBody.suggestion;
-  eq((await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.reason, "nothing", "no bones on it yet");
   await api("POST", "/vote", { id: s.id, amount: 30 }, { save: a });
   const p = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
   eq(p.id, s.id); eq(p.text, "Make the beagle wear sunglasses"); eq(p.score, 30);
@@ -212,6 +214,116 @@ test("game actions: unknown ones are 404, and one can change only its caller", a
     eq((await api("POST", "/sync", {}, { save: b })).jsonBody.player.game, {});
     eq((await api("POST", "/game/greedy", {}, { save: a })).status, 400);
   } finally { delete game.actions.wave; delete game.actions.greedy; }
+});
+
+test("with no bones on anything, Claude builds its own idea, and it's numbered in the log", async () => {
+  reset();
+  const r = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody;
+  eq(r.reason, "own"); eq(r.pick.own, true);
+  const board = (await api("GET", "/board")).jsonBody;
+  eq(board.open[0].status, "building"); eq(board.open[0].own, true);
+  await api("POST", "/ops/result", { id: r.pick.id, status: "shipped", title: "Sleepy beagle", idea: "The beagle naps when nobody pats it.", summary: "The beagle dozes off after a while.\n- Snores appear above its head\n- A pat wakes it up" }, { ops: OPS_KEY });
+  const d = (await api("GET", "/board")).jsonBody.done[0];
+  eq([d.n, d.own, d.text, d.byName], [1, true, "The beagle naps when nobody pats it.", "Claude"]);
+  eq(d.summary, ["The beagle dozes off after a while.", "- Snores appear above its head", "- A pat wakes it up"]);
+  clock += 3 * 3600 * 1000;
+  const r2 = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+  await api("POST", "/ops/result", { id: r2.id, status: "shipped", title: "Second", idea: "Another one" }, { ops: OPS_KEY });
+  eq((await api("GET", "/board")).jsonBody.done[0].n, 2);
+});
+
+test("Claude's own idea that fails or is declined just goes away", async () => {
+  reset();
+  const r = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+  await api("POST", "/ops/result", { id: r.id, status: "failed" }, { ops: OPS_KEY });
+  let b = (await api("GET", "/board")).jsonBody;
+  eq([b.open.length, b.done.length], [0, 0]);
+  const r2 = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+  await api("POST", "/ops/result", { id: r2.id, status: "declined" }, { ops: OPS_KEY });
+  b = (await api("GET", "/board")).jsonBody;
+  eq([b.open.length, b.done.length], [0, 0]);
+});
+
+test("OWN_IDEAS=0 skips the run when nothing has bones", async () => {
+  reset();
+  env.OWN_IDEAS = "0";
+  eq((await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick, null);
+});
+
+test("spending limits: no build past the 30-day budget or the daily count", async () => {
+  reset();
+  env.BUDGET_USD_30D = "5";
+  const r = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+  await api("POST", "/ops/result", { id: r.id, status: "shipped", title: "x", idea: "something small", cost: 5.5 }, { ops: OPS_KEY });
+  const b = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody;
+  eq([b.pick, b.reason, b.spent.usd], [null, "budget", 5.5]);
+  clock += 31 * 24 * 3600 * 1000;
+  ok((await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick, "a month later the budget is free again");
+
+  reset();
+  env.MAX_BUILDS_PER_DAY = "2";
+  for (let i = 0; i < 2; i++) {
+    const p = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+    await api("POST", "/ops/result", { id: p.id, status: "shipped", title: "x", idea: "idea " + i }, { ops: OPS_KEY });
+  }
+  eq((await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.reason, "daily_limit");
+  clock += 25 * 3600 * 1000;
+  ok((await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick);
+});
+
+test("suggestions: at most 140 characters, and no rude words", async () => {
+  reset();
+  const a = await player();
+  await earn(a, 400);
+  eq((await api("POST", "/suggest", { text: "x".repeat(141) }, { save: a })).status, 400);
+  eq((await api("POST", "/suggest", { text: "make the beagle s3xy please" }, { save: a })).jsonBody.error.code, "not_ok");
+  env.BLOCKED_WORDS = "squirrel*";
+  eq((await api("POST", "/suggest", { text: "add squirrels to chase" }, { save: a })).jsonBody.error.code, "not_ok");
+  eq((await api("POST", "/suggest", { text: "y".repeat(140) }, { save: a })).status, 200);
+});
+
+test("ratings: players who've played rate a shipped update; it can change", async () => {
+  reset();
+  const a = await player("1.1.1.1"), b = await player("2.2.2.2"), fresh = await player("3.3.3.3");
+  await earn(a, 60); await earn(b, 60);
+  const p = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+  await api("POST", "/ops/result", { id: p.id, status: "shipped", title: "Hats", idea: "Hats for the beagle" }, { ops: OPS_KEY });
+  eq((await api("POST", "/rate", { id: p.id, rating: "great" }, { save: fresh })).status, 403, "a brand-new save can't rate");
+  eq((await api("POST", "/rate", { id: p.id, rating: "amazing" }, { save: a })).status, 400);
+  eq((await api("POST", "/rate", { id: p.id, rating: "great" }, { save: a })).status, 200);
+  eq((await api("POST", "/rate", { id: p.id, rating: "bad" }, { save: b })).status, 200);
+  const u = (await api("POST", "/rate", { id: p.id, rating: "good" }, { save: b })).jsonBody.update;
+  eq(u.ratings.counts, [0, 0, 0, 1, 1]); eq(u.ratings.mine, "good"); eq(u.ratings.avg, 4.5);
+  const next = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody;
+  eq(next.ratings[0].ratings, { terrible: 0, bad: 0, neutral: 0, good: 1, great: 1 }, "the next build hears how it went");
+});
+
+test("reports: three players take a suggestion down and its bones go back", async () => {
+  reset();
+  const saves = [];
+  for (let i = 0; i < 5; i++) { saves.push(await player("10.0.0." + i)); await earn(saves[i], 200); }
+  const s = (await api("POST", "/suggest", { text: "Something people will not like" }, { save: saves[0] })).jsonBody.suggestion;
+  await api("POST", "/vote", { id: s.id, amount: 50 }, { save: saves[0] });
+  const before = await bonesOf(saves[0]);
+  eq((await api("POST", "/report", { id: s.id }, { save: saves[0] })).status, 409, "not your own");
+  for (let i = 1; i <= 3; i++) eq((await api("POST", "/report", { id: s.id }, { save: saves[i] })).status, 200);
+  eq((await api("POST", "/report", { id: s.id }, { save: saves[4] })).status, 409, "already down");
+  eq((await api("GET", "/board")).jsonBody.open.length, 0);
+  eq(await bonesOf(saves[0]), before + 50);
+});
+
+test("the log pages back through older updates", async () => {
+  reset();
+  env.MAX_BUILDS_PER_DAY = "100";
+  for (let i = 0; i < 25; i++) {
+    clock += 3 * 3600 * 1000;
+    const p = (await api("POST", "/ops/pick", {}, { ops: OPS_KEY })).jsonBody.pick;
+    await api("POST", "/ops/result", { id: p.id, status: "shipped", title: "Update " + i, idea: "idea number " + i }, { ops: OPS_KEY });
+  }
+  const b = (await api("GET", "/board")).jsonBody;
+  eq([b.done.length, b.moreDone, b.done[0].n], [20, true, 25]);
+  const old = (await api("GET", "/log?before=" + b.done[19].doneAt)).jsonBody;
+  eq([old.done.length, old.more, old.done[0].n, old.done[4].n], [5, false, 5, 1]);
 });
 
 test("big bodies are refused", async () => {

@@ -32,8 +32,10 @@ function cleanText(v, max) {
     .slice(0, max);
 }
 
-// The next hour on the clock (the hourly update's cron runs at minute 0, UTC).
+// When the next update starts: every `hours` hours from midnight UTC, as the workflow's cron
+// ("0 */3 * * *" for 3) runs it. The UPDATE_HOURS setting should match the cron.
 const HOUR = 3600 * 1000;
-const nextHour = now => Math.floor(now / HOUR) * HOUR + HOUR;
+const updateHours = env => Math.max(1, Math.min(24, Math.floor(+env.UPDATE_HOURS || 3)));
+const nextSlot = (now, hours) => Math.floor(now / (hours * HOUR)) * hours * HOUR + hours * HOUR;
 
-module.exports = { json, fail, sha256, randomId, safeEqual, clientIp, cleanText, nextHour, HOUR };
+module.exports = { json, fail, sha256, randomId, safeEqual, clientIp, cleanText, updateHours, nextSlot, HOUR };
