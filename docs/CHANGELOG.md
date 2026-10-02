@@ -15,7 +15,7 @@ them with bones, and rate each update in the log.
 
 ## 2026-10-02 · A happy wagging tail for the beagle
 
-Suggested by Hungry Bean 637, with 10 bones from 1 players:
+Suggested by Hungry Bean 637, with 10 bones from 1 player:
 
 > Give the beagle a little wagging tail that wags faster when you pat it
 

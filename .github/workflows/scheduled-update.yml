@@ -140,7 +140,11 @@ jobs:
       - name: Screen result
         id: screened
         if: always() && steps.screen.outcome != 'skipped'
+        env:
+          OUT: ${{ steps.screen.outputs.execution_file }}
         run: |
+          # Its numbers now, before the build step writes over the same file.
+          [ -n "$OUT" ] && [ -f "$OUT" ] && jq -c '[.. | objects | select(.type? == "result")] | last | { cost: (.total_cost_usd // 0), turns: .num_turns, ms: .duration_ms }' "$OUT" > .update-task/screen-run.json 2>/dev/null || true
           f=.update-task/screen.txt
           line=$(head -1 "$f" 2>/dev/null | tr -d '\r' || true)
           echo "Screen: ${line:-(no answer)}"
@@ -237,20 +241,23 @@ jobs:
       - name: Cost and refusals
         if: always()
         env:
-          SCREEN_OUT: ${{ steps.screen.outputs.execution_file }}
           BUILD_OUT: ${{ steps.claude.outputs.execution_file }}
+          BUILT: ${{ steps.claude.outcome }}
         run: |
-          total=0
-          files=("$SCREEN_OUT" "$BUILD_OUT")
-          [ -n "$SCREEN_OUT$BUILD_OUT" ] || files=("$RUNNER_TEMP/claude-execution-output.json") # older action versions
-          for f in "${files[@]}"; do
-            [ -n "$f" ] && [ -f "$f" ] || continue
-            c=$(jq -r '[.. | objects | select(.type? == "result")] | last | (.total_cost_usd // 0)' "$f" 2>/dev/null || echo 0)
-            total=$(node -e "console.log((+process.argv[1] + +process.argv[2]).toFixed(4))" "$total" "${c:-0}")
-            jq -r '[.. | objects | select(.type? == "result")] | last | "Turns: \(.num_turns), \((.duration_ms // 0) / 60000 | floor) min, $\(.total_cost_usd // 0)"' "$f" 2>/dev/null || true
+          screen=0; build=0
+          if [ -f .update-task/screen-run.json ]; then
+            screen=$(jq -r '.cost // 0' .update-task/screen-run.json)
+            echo "Screen: $(jq -r '"\(.turns) turns, $\(.cost)"' .update-task/screen-run.json)"
+          fi
+          f="$BUILD_OUT"
+          [ -n "$f" ] || f="$RUNNER_TEMP/claude-execution-output.json" # older action versions
+          if [ "$BUILT" != skipped ] && [ -f "$f" ]; then
+            build=$(jq -r '[.. | objects | select(.type? == "result")] | last | (.total_cost_usd // 0)' "$f" 2>/dev/null || echo 0)
+            jq -r '[.. | objects | select(.type? == "result")] | last | "Build: \(.num_turns) turns, \((.duration_ms // 0) / 60000 | floor) min, $\(.total_cost_usd // 0)"' "$f" 2>/dev/null || true
             jq -r '[.. | objects | select(.type? == "result")] | last | (.permission_denials // [])[] | "Refused \(.tool_name): \(.tool_input.command // .tool_input.file_path // (.tool_input | tostring))" | .[0:300]' "$f" 2>/dev/null || true
-          done
-          echo "This run cost \$$total."
+          fi
+          total=$(node -e "console.log((+process.argv[1] + +process.argv[2]).toFixed(4))" "${screen:-0}" "${build:-0}")
+          echo "This run cost \$total."
           echo "$total" > .update-task/cost.txt
 
       - name: What Claude says
@@ -299,7 +306,7 @@ jobs:
             who="Claude's own idea (no suggestion had bones)"
           else
             what=$(jq -r '.text' $T/suggestion.json)
-            who="Suggested by $(jq -r '.byName' $T/suggestion.json), with $(jq -r '.score' $T/suggestion.json) bones from $(jq -r '.voters' $T/suggestion.json) players"
+            who="Suggested by $(jq -r '.byName' $T/suggestion.json), with $(jq -r '.score' $T/suggestion.json) bones from $(jq -r '.voters' $T/suggestion.json) $(jq -r 'if .voters == 1 then "player" else "players" end' $T/suggestion.json)"
           fi
           clean() { tr -d '\r' | sed 's/[<>`]//g'; }
           [ -f docs/CHANGELOG.md ] || printf '# Changelog\n' > docs/CHANGELOG.md
