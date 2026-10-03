@@ -224,6 +224,20 @@ test("a run is due every few hours from the last one, and the countdown shows wh
   eq(await nextPickAt(), NOON + 9 * H + 30 * 60 * 1000);
 });
 
+test("a run by hand, or one GitHub starts very late, starts the countdown over; old settings still work", async () => {
+  reset();
+  await report((await pickNow()).pick.id, "shipped");
+  clock = NOON + 1.25 * H;
+  const byHand = (await api("POST", "/ops/pick", { manual: true }, { ops: OPS_KEY })).jsonBody.pick;
+  await report(byHand.id, "shipped");
+  eq(await nextPickAt(), NOON + 4.25 * H, "3 hours from the run by hand");
+  clock = NOON + 5.5 * H; // GitHub's checks were over an hour late
+  await report((await pickNow()).pick.id, "shipped");
+  eq(await nextPickAt(), NOON + 8.5 * H, "3 hours from when it ran, not straight away again");
+  await store.update("sys", "settings", cur => { const { anchorAt, ...old } = cur; return old; });
+  eq(await nextPickAt(), NOON + 8 * H, "settings saved before anchorAt count from the hour of the last run");
+});
+
 test("the owner changes the hours between updates", async () => {
   reset();
   const o = await owner();
@@ -251,7 +265,9 @@ test("run now: the countdown goes to 0 and the next check builds", async () => {
   const r = await o("POST", "run-now");
   eq([r.status, r.jsonBody.started], [200, false], "no GitHub token here, so it waits for the next check");
   eq(await nextPickAt(), clock);
+  clock += 40 * 1000;
   ok((await pickNow()).pick);
+  eq(await nextPickAt(), clock + 3 * H, "the countdown starts over at the full 3 hours");
   eq((await o("GET", "status")).jsonBody.next.runNowAt, null, "used up");
   eq((await pickNow()).reason, "busy");
 });

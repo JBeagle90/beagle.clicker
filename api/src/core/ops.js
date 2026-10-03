@@ -141,7 +141,7 @@ async function pick(c) {
   // build: true takes the owner's requirements for this build.
   const ran = async build => {
     let note = null;
-    await schedule.change(c, cur => { note = build && cur.note && cur.note.text ? cur.note : null; return { ...cur, lastRunAt: c.now, runNowAt: null, note: build ? null : cur.note || null }; });
+    await schedule.change(c, cur => { note = build && cur.note && cur.note.text ? cur.note : null; return { ...cur, lastRunAt: c.now, anchorAt: schedule.anchorOf(cur, c.env, c.now, !!(cur.runNowAt || c.body.manual)), runNowAt: null, note: build ? null : cur.note || null }; });
     return note;
   };
   const spent = await spending(c);
