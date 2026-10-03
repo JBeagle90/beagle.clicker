@@ -111,6 +111,18 @@ test("buying ten at once costs the next ten prices, and the server takes them al
   eq(sync(fresh({ bones: 1e12 }), { buy: Array(R.MAX_BUY).fill("puppy-pal") }, 0).owned["puppy-pal"], R.MAX_BUY);
 });
 
+test("Max buys as many as you can afford, up to MAX_BUY", () => {
+  const owned = { "chew-toy": 3 };
+  eq(R.maxBuy("chew-toy", owned, 0), 0);
+  eq(R.maxBuy("chew-toy", owned, R.costN("chew-toy", owned, 7)), 7);
+  eq(R.maxBuy("chew-toy", owned, R.costN("chew-toy", owned, 7) - 1), 6);
+  eq(R.maxBuy("puppy-pal", {}, 1e300), R.MAX_BUY);
+  eq(R.maxBuy("bloodhound-training", { "chew-toy": 9 }, 1e300), 0);
+  const b = R.BOOSTS[0], unlocked = { [b.boosts]: b.needs };
+  eq(R.maxBuy(b.id, unlocked, 1e300), 1);
+  eq(R.maxBuy(b.id, unlocked, b.cost - 1), 0);
+});
+
 test("what one upgrade makes, with boosts and trophies", () => {
   eq(R.output("dog-park", { "dog-park": 10, "treasure-maps": 1 }, {}), { perClick: 0, perSecond: 160 });
   eq(R.output("chew-toy", { "chew-toy": 2 }, { trophies: ["first-pat"] }), { perClick: 2.02, perSecond: 0 });

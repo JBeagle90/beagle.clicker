@@ -94,6 +94,18 @@
       for (let i = 0; i < n; i++) { sum += R.cost(id, o); o[id] = count(o, id) + 1; }
       return sum;
     },
+    // How many of an upgrade `bones` can buy, one after another (at most MAX_BUY; a boost: 1 or 0).
+    maxBuy(id, owned, bones) {
+      if (isBoost(id)) return bones >= R.cost(id, owned) ? 1 : 0;
+      let n = 0, sum = 0;
+      const o = { ...owned };
+      while (n < R.MAX_BUY) {
+        sum += R.cost(id, o);
+        if (!(sum <= bones)) break;
+        n++; o[id] = count(o, id) + 1;
+      }
+      return n;
+    },
     // How much more you get from everything, from trophies.
     bonus(game) {
       const t = game && Array.isArray(game.trophies) ? game.trophies : [];

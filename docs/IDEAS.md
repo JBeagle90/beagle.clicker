@@ -14,3 +14,5 @@ add ones that fit the game as it is now, and keep at most 15.
 - A dirt mound beside the beagle that grows as your Dig Sites do.
 - The beagle's nose wiggles a second before a treasure appears.
 - A daily dig: once a day, a free bonus of a minute's worth of bones.
+- Each upgrade in the shop says how long until you can afford it ("in 12s").
+- A little sparkle on shop items the moment you can afford them.

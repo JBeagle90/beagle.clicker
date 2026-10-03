@@ -92,11 +92,14 @@ function renderBank() {
 }
 
 // --- The shop: upgrades a few at a time (the next one shows once you own the one before), boosts once
-// you've unlocked them, and how many to buy at once (×1, ×10, ×100; remembered on this browser) ---
+// you've unlocked them, and how many to buy at once (×1, ×10, ×100 or Max, 0 here: as many as you can
+// afford, up to MAX_BUY; remembered on this browser) ---
 let amount = 1;
-try { const n = +localStorage.getItem("bc.buy"); if ([1, 10, 100].includes(n)) amount = n; } catch (e) { /* private mode */ }
-const howMany = id => R.isBoost(id) ? 1 : Math.min(amount, R.MAX_BUY);
-const price = (id, owned) => R.costN(id, owned, howMany(id));
+try { const n = localStorage.getItem("bc.buy"); if (["0", "1", "10", "100"].includes(n)) amount = +n; } catch (e) { /* private mode */ }
+// How many one click buys: with Max, what you can afford now (at least 1, so the price of one shows).
+const howMany = (id, me) => R.isBoost(id) ? 1 : amount ? Math.min(amount, R.MAX_BUY) : Math.max(1, me ? R.maxBuy(id, me.owned, me.bones) : 0);
+const price = (id, me) => R.costN(id, me ? me.owned : {}, howMany(id, me));
+const costText = (id, me) => (amount || R.isBoost(id) ? "" : `×${howMany(id, me)} · `) + fmt(price(id, me)) + " 🦴";
 function setupAmounts() {
   const mark = () => { for (const b of $("amounts").children) b.setAttribute("aria-pressed", String(+b.dataset.n === amount)); };
   for (const b of $("amounts").children) b.addEventListener("click", () => {
@@ -106,11 +109,10 @@ function setupAmounts() {
   mark();
 }
 function shopItem(u, desc, side, me) {
-  const c = price(u.id, me ? me.owned : {});
-  return h("button", { type: "button", class: "item", "data-id": u.id, disabled: !me || me.bones < c, on: { click: () => buy(u.id, howMany(u.id)) } },
+  return h("button", { type: "button", class: "item", "data-id": u.id, disabled: !me || me.bones < price(u.id, me), on: { click: () => buy(u.id, howMany(u.id, game.me)) } },
     h("span", { class: "item-icon", "aria-hidden": "true", text: u.icon }),
     h("span", { class: "item-main" }, h("span", { class: "item-name", text: u.name }), h("span", { class: "item-desc", text: desc })),
-    h("span", { class: "item-side" }, h("span", { class: "item-cost", text: fmt(c) + " 🦴" }), h("span", { class: "item-owned", text: side })));
+    h("span", { class: "item-side" }, h("span", { class: "item-cost", text: costText(u.id, me) }), h("span", { class: "item-owned", text: side })));
 }
 function renderShop() {
   const me = game.me, owned = me ? me.owned : {};
@@ -120,9 +122,13 @@ function renderShop() {
   $("boosts").replaceChildren(...R.BOOSTS.filter(b => R.available(b.id, owned))
     .map(b => shopItem(b, `Boost: ${R.byId(b.boosts).name} gives twice as much.`, "once", me)));
 }
+// Every 100 ms: what you can afford, and (with Max) how many and their price.
 function refreshShop() {
   const me = game.me;
-  for (const b of [...$("boosts").children, ...$("shop").children]) b.disabled = !me || me.bones < price(b.dataset.id, me.owned);
+  for (const b of [...$("boosts").children, ...$("shop").children]) {
+    b.disabled = !me || me.bones < price(b.dataset.id, me);
+    if (!amount) { const c = b.querySelector(".item-cost"), t = costText(b.dataset.id, me); if (c.textContent !== t) c.textContent = t; }
+  }
 }
 
 // --- Notices: can't reach the server; a new update is live ---

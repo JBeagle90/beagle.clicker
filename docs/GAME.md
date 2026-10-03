@@ -29,7 +29,7 @@ Tabs in the header (the address's #hash, so Back works): **Dig** (the beagle; Yo
 | Bone Mine | 1,000,000 | 2,000 bones a second |
 | Moon Base | 12,000,000 | 12,000 bones a second |
 
-- Each one you own makes the next 15% dearer. Buy ×1, ×10 or ×100 at once (all or none; remembered on the browser).
+- Each one you own makes the next 15% dearer. Buy ×1, ×10 or ×100 at once (all or none), or Max: as many as you can afford right now, up to 100 (the price shows "×5 · 103 🦴"). The choice is remembered on the browser.
 - The shop shows the first three, then one more past the last kind you own.
 - **Boosts** appear at the top of the shop once you own 10 of an upgrade. Each is bought once and makes that upgrade give twice as much: Bloodhound Training (Sharp Nose, 1,000), Turbo Buddies (Dig Buddy, 2,500), Treasure Maps (Dig Site, 30,000), Diamond Shovel (Steel Shovel, 60,000), Night Shift (Bone Digger, 400,000), Express Tracks (Bone Train, 4.5 M).
 
