@@ -162,6 +162,17 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 .beagle .lamp { fill: #5b5b5b; }
 .beagle .lamp-glass { fill: #fff6c8; }
 .beagle .lamp-beam { fill: #fff3b0; opacity: .35; }
+/* Goggles with a Bone Digger; a space helmet with a Moon Base (it hides the miner's helmet) */
+.beagle .goggles, .beagle .space { display: none; }
+.beagle.has-goggles .goggles, .beagle.has-space .space { display: inline; }
+.beagle.has-space .helmet { display: none; }
+.beagle .goggle { fill: #bfe6ff; fill-opacity: .3; stroke: #4a5866; stroke-width: 6; }
+.beagle .goggle-strap, .beagle .goggle-bridge { fill: none; stroke: #4a5866; stroke-width: 6; stroke-linecap: round; }
+.beagle .goggle-glint { fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; opacity: .8; }
+.beagle .space-glass { fill: #bfe6ff; fill-opacity: .16; stroke: #9fc7e6; stroke-width: 5; }
+.beagle .space-glint { fill: none; stroke: #fff; stroke-width: 7; stroke-linecap: round; opacity: .7; }
+.beagle .space-collar { fill: #e9eef3; stroke: #8796a5; stroke-width: 3; }
+.beagle .space-light { fill: #ff8fa3; }
 .beagle .blaze, .beagle .cheek, .beagle .muzzle { fill: var(--cream); }
 .beagle .nose, .beagle .eye { fill: #2b1d14; }
 .beagle .shine { fill: #fff; }

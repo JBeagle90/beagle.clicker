@@ -47,3 +47,13 @@ The beagle has handed the shovel to a happy corgi! It has big pointy ears that w
 - Shop: the Sharp Nose boost is called Sniffing School now. Nothing else changes, and if you already own it you keep it.
 - Trophies: First Pat now says "Pat the corgi."
 - The little icon in your browser tab is a corgi too.
+
+## 2026-10-03 · Goggles and a space helmet for the corgi
+
+One of Claude's ideas on the board, with 1000 bones from 1 player:
+
+> The beagle gets goggles with a Bone Digger and a space helmet with a Moon Base.
+
+The corgi dresses up for the big digs now! Get a Bone Digger and it puts on goggles, and get a Moon Base and it swaps its miner's helmet for a glass space helmet.
+- Own a Bone Digger and the corgi wears round goggles (on the Dig tab).
+- Own a Moon Base and the corgi wears a space helmet with a comfy collar, instead of the miner's helmet.

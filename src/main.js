@@ -11,7 +11,8 @@ const R = window.RULES;
 const $ = id => document.getElementById(id);
 window.BC = { ready: false, game };
 
-// --- The beagle: pat it for bones; chips of bone fly out. It wears a miner's helmet once you own a Dig Site ---
+// --- The beagle: pat it for bones; chips of bone fly out. It wears a miner's helmet once you own a Dig Site,
+// goggles with a Bone Digger, and a space helmet (instead of the miner's) with a Moon Base ---
 const beagle = $("beagle"), area = $("pat-area"), calm = matchMedia("(prefers-reduced-motion: reduce)");
 beagle.addEventListener("click", e => {
   const n = pat();
@@ -200,7 +201,10 @@ onChange(what => {
   }
   if (what === "owned") {
     renderShop(); renderScene(game.me); renderTrophies(game.me);
-    beagle.classList.toggle("has-helmet", !!(game.me && game.me.owned["dog-park"]));
+    const owns = id => !!(game.me && game.me.owned[id]);
+    beagle.classList.toggle("has-helmet", owns("dog-park"));
+    beagle.classList.toggle("has-goggles", owns("bone-digger"));
+    beagle.classList.toggle("has-space", owns("moon-base"));
   } else refreshShop();
   renderBank();
   if (game.me) $("who").textContent = game.me.name + " ✏️";

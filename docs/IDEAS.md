@@ -8,7 +8,7 @@ add ones that fit the game as it is now, and keep at most 15.
 - The corgi's big ears perk up for a moment when you buy something in the shop.
 - A dig sound on each pat and a treasure jingle, with a sound on/off button that's remembered.
 - The treasure chest pops open with a burst of sparkles when you grab it.
-- More helmet upgrades for the corgi: goggles with a Bone Digger, a space helmet with a Moon Base.
+- A little red bandana for the corgi with a Bone Train, and a tiny gold star on the space helmet with Night Shift.
 - Ten more ticker headlines, some about corgis (short legs, fluffy bottoms, herding).
 - A rare gold chest: one treasure in ten gives three times as much.
 - A dirt mound beside the corgi that grows as your Dig Sites do.
