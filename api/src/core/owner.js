@@ -7,6 +7,7 @@
 //   POST login-start                                → options for navigator.credentials.get
 //   POST login          { ...passkey }              → { session }: kept in the panel's tab only
 //   GET  status         (x-owner-session)           → the next update, the board, spending, runs, devices
+//   GET  progress                                   → how the newest run on GitHub is going (progress.js)
 //   POST schedule       { hours }                   → hours between updates (schedule.HOURS)
 //   POST run-now                                    → the next update starts now (see dispatch below)
 //   POST note           { text }                    → the owner's requirements for the next update ("" clears)
@@ -31,6 +32,7 @@ const ratelimit = require("./ratelimit");
 const ops = require("./ops");
 const S = require("./suggestions");
 const schedule = require("./schedule");
+const { progress, repoOf } = require("./progress");
 
 const PK = "owner";
 const MIN = 60 * 1000;
@@ -189,7 +191,7 @@ async function runNow(c) {
 
 async function dispatch(env) {
   if (!env.GH_DISPATCH_TOKEN) return { started: false };
-  const repo = /^[\w.-]+\/[\w.-]+$/.test(env.GH_REPO || "") ? env.GH_REPO : "JBeagle90/beagle.clicker";
+  const repo = repoOf(env);
   try {
     const r = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/scheduled-update.yml/dispatches`, {
       method: "POST", body: JSON.stringify({ ref: "main" }),
@@ -223,9 +225,10 @@ async function forget(c) {
 }
 
 async function handle(what, c, method) {
-  if (method === "GET" && what === "status") {
+  if (method === "GET" && (what === "status" || what === "progress")) {
     const s = await session(c);
-    return s ? status(c, s) : fail(401, "signed_out", "Sign in again.");
+    if (!s) return fail(401, "signed_out", "Sign in again.");
+    return what === "status" ? status(c, s) : progress(c);
   }
   if (method !== "POST") return fail(405, "method", "POST only.");
   if (["register-start", "register", "login-start", "login"].includes(what)) {

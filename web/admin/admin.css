@@ -78,6 +78,20 @@ button:disabled { opacity: .55; cursor: default; filter: none; }
 .tag.pick { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
 #board-all { margin-top: 8px; }
 
+a { color: var(--accent); }
+.prog-summary { margin: 0 0 10px; font-weight: 600; }
+.stages { list-style: none; margin: 0; padding: 0; }
+.stages li { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
+.stages .dot { flex: none; width: 1.5em; height: 1.5em; border-radius: 50%; display: grid; place-items: center; font-size: .8rem; font-weight: 700; border: 2px solid var(--line); color: var(--muted); }
+.stages .done .dot { background: var(--good); border-color: var(--good); color: var(--card); }
+.stages .running .dot { border-color: var(--accent); color: var(--accent); animation: pulse 1.4s ease-in-out infinite; }
+.stages .failed .dot { background: var(--bad); border-color: var(--bad); color: var(--card); }
+.stages .running .stage-name { font-weight: 700; }
+.stages .skipped, .stages .waiting { color: var(--muted); }
+.stages .took { margin-left: auto; color: var(--muted); font-size: .85rem; font-variant-numeric: tabular-nums; }
+@keyframes pulse { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .stages .running .dot { animation: none; } }
+
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
 .stat { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
 .stat-label { color: var(--muted); font-size: .85rem; }

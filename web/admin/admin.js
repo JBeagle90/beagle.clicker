@@ -97,6 +97,55 @@ function tick() {
   if (!last) return;
   const n = last.next, left = n.at - (Date.now() + offset);
   $("countdown").textContent = last.building ? "Building" : n.runNowAt ? "Waiting to start" : left > 0 ? clock(left) : "Any minute";
+  if (prog && prog.run && prog.run.status !== "completed") renderProgress();
+}
+
+// --- How it's going: the newest run on GitHub, stage by stage (api/src/core/progress.js) ---
+let prog = null, progTimer = null;
+const MARK = { done: "✓", running: "•", waiting: "", skipped: "–", failed: "✕" };
+const STATE = { done: "done", running: "under way", waiting: "not started", skipped: "skipped", failed: "failed" };
+// 45000 → "45 s"; 200000 → "3 min"; 4000000 → "1 h 6 min"
+function dur(ms) {
+  const s = Math.max(0, Math.round(ms / 1000)), m = Math.floor(s / 60);
+  return s < 60 ? `${s} s` : m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`;
+}
+
+function renderProgress() {
+  const p = prog;
+  if (!p) return;
+  const link = $("prog-link");
+  if (!p.ok) { $("prog-summary").textContent = p.why; $("stages").replaceChildren(); $("prog-checks").textContent = ""; link.hidden = true; return; }
+  const now = Date.now() + offset, run = p.run;
+  $("prog-summary").textContent = (run && run.status === "completed" ? `Last run, ${timeOf(run.at)}: ` : "") + p.summary + (p.stale ? ` (As of ${timeOf(p.checkedAt)}: ${p.stale})` : "");
+  // A run that was only a check ("not yet") has nothing past its first stage to show.
+  const stages = run && (run.status !== "completed" || p.stages.some(s => s.key !== "pick" && s.state !== "skipped")) ? p.stages : [];
+  $("stages").replaceChildren(...stages.map(s => h("li", { class: s.state },
+    h("span", { class: "dot", "aria-hidden": "true", text: MARK[s.state] }),
+    h("span", { class: "stage-name", text: s.label }), h("span", { class: "sr", text: `: ${STATE[s.state]}` }),
+    h("span", { class: "took", text: s.state === "running" && s.startedAt ? dur(now - s.startedAt) : s.startedAt && s.endedAt ? dur(s.endedAt - s.startedAt) : "" }))));
+  link.hidden = !run;
+  if (run) { link.href = run.url; link.textContent = `See this run on GitHub (${run.event === "schedule" ? "scheduled" : "started by hand"}, ${timeOf(run.at)})`; }
+  // When the checks ran: GitHub's scheduled ones can be late, or skipped altogether.
+  const checks = p.checks || [], sched = checks.find(c => c.event === "schedule");
+  const what = c => c.status !== "completed" ? " (running)" : c.conclusion === "skipped" ? " (skipped)" : c.conclusion === "failure" ? " (failed)" : "";
+  let text = checks.length ? `Latest checks: ${checks.map(c => timeOf(c.at) + (c.event === "schedule" ? "" : " by hand") + what(c)).join(", ")}.` : "";
+  if (!sched || now - sched.at > 45 * 60e3) {
+    text += ` GitHub's scheduled checks are running late${sched ? ` (the last was at ${timeOf(sched.at)})` : ""}.`;
+    if (last && !last.next.dispatch) text += " Without GH_DISPATCH_TOKEN, “Run it now” waits for one.";
+  }
+  $("prog-checks").textContent = text.trim();
+}
+
+// Every 15 s while something's under way or due, else every minute (the server keeps GitHub's answer a while).
+async function loadProgress() {
+  clearTimeout(progTimer);
+  if ($("panel").hidden) { progTimer = null; return; }
+  if (!prog || document.visibilityState === "visible") { // in a hidden tab, only the first time
+    try { prog = await call("GET", "progress"); } catch (e) { prog = { ok: false, why: e.message }; }
+    renderProgress();
+  }
+  const active = (prog && prog.ok && prog.run && prog.run.status !== "completed") || (last && (last.building || last.next.runNowAt));
+  progTimer = setTimeout(loadProgress, active ? 15000 : 60000);
 }
 
 function renderNext(st) {
@@ -199,7 +248,7 @@ function render(st) {
 
 // clearMsg = false keeps the message line (after an action, or the refresh every 30 s).
 async function load(clearMsg = true) {
-  try { render(await call("GET", "status")); show("panel"); if (clearMsg) say(""); }
+  try { render(await call("GET", "status")); show("panel"); if (clearMsg) say(""); if (!progTimer) loadProgress(); }
   catch (e) { if (getSession()) say(e.message, true); }
 }
 
@@ -238,6 +287,7 @@ function start() {
       say(r.started ? "Started. It goes live by itself when it's done."
         : r.why || "It starts at the next check, within 15 minutes. To start it straight away, add GH_DISPATCH_TOKEN in Azure (docs/OPERATIONS.md).", !!r.why);
       await load(false);
+      setTimeout(loadProgress, 8000);
     } catch (e) { say(e.message, true); }
   });
   $("hours-form").addEventListener("submit", async e => {

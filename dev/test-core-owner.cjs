@@ -368,4 +368,63 @@ test("the owner can unpick, and several picks go in the order picked", async () 
   eq((await pickNow()).pick.id, x.id, "a failed pick is tried again");
 });
 
+// GitHub's API, pretend: the newest runs of the scheduled update and one run's jobs.
+const realFetch = global.fetch;
+function fakeGitHub(runs, jobs) {
+  const calls = [];
+  global.fetch = async url => {
+    calls.push(url);
+    const body = /\/runs\?/.test(url) ? { workflow_runs: runs } : { jobs };
+    return { ok: true, status: 200, json: async () => body };
+  };
+  return calls;
+}
+const T = t => new Date(t).toISOString();
+const job = (name, status, conclusion, steps = [], at = NOON) => ({ name, status, conclusion, started_at: T(at), completed_at: status === "completed" ? T(at + 60000) : null,
+  steps: steps.map(([n, st, co]) => ({ name: n, status: st, conclusion: co, started_at: T(at), completed_at: st === "completed" ? T(at + 30000) : null })) });
+
+test("how it's going: the run under way on GitHub, stage by stage", async () => {
+  reset();
+  const o = await owner();
+  const run = { id: 7, html_url: "https://github.com/x/y/actions/runs/7", event: "workflow_dispatch", status: "in_progress", conclusion: null, run_started_at: T(NOON), updated_at: T(NOON) };
+  const calls = fakeGitHub([{ ...run, id: 8, status: "queued", event: "schedule" }, run], [
+    job("pick", "completed", "success"),
+    job("build", "in_progress", null, [["Screen the suggestion", "completed", "success"], ["Screen result", "completed", "success"], ["Claude builds it", "in_progress", null], ["Tests", "queued", null]]),
+  ]);
+  const r = (await o("GET", "progress")).jsonBody;
+  eq([r.ok, r.run.id, r.summary], [true, 7, "Claude is building it…"], "the one under way, not the check queued behind it");
+  eq(r.stages.map(s => s.state), ["done", "done", "running", "waiting", "waiting", "waiting", "waiting"]);
+  eq(r.checks.length, 2);
+  const before = calls.length;
+  await o("GET", "progress");
+  eq(calls.length, before, "kept a while, within GitHub's limits");
+  eq((await api("GET", "/owner/progress")).status, 401, "only signed in");
+});
+
+test("how it's going: a check, a paused run, a finished update, and GitHub not answering", async () => {
+  reset();
+  const o = await owner();
+  const run = { id: 9, html_url: "u", event: "schedule", status: "completed", conclusion: "success", run_started_at: T(NOON), updated_at: T(NOON) };
+  fakeGitHub([run], [job("pick", "completed", "success"), job("build", "completed", "skipped"), job("publish", "completed", "skipped"), job("deploy", "completed", "skipped"), job("report", "completed", "skipped")]);
+  eq((await o("GET", "progress")).jsonBody.summary, "Only a check: no update was due then, or there was nothing to build.");
+  clock += 5 * 60 * 1000;
+  fakeGitHub([{ ...run, conclusion: "skipped" }], [job("pick", "completed", "skipped")]);
+  eq((await o("GET", "progress")).jsonBody.summary, "Skipped: updates are paused (the UPDATES_PAUSED variable on GitHub).");
+  clock += 5 * 60 * 1000;
+  const ok = [["Screen the suggestion", "completed", "success"], ["Claude builds it", "completed", "success"], ["Tests", "completed", "success"], ["Guard", "completed", "success"]];
+  fakeGitHub([run], [job("pick", "completed", "success"), job("build", "completed", "success", ok), job("publish", "completed", "success"),
+    job("deploy / test", "completed", "success"), job("deploy / deploy", "completed", "success"), job("report", "completed", "success")]);
+  const done = (await o("GET", "progress")).jsonBody;
+  eq([done.summary, done.stages.every(s => s.state === "done")], ["Finished: the update is live.", true]);
+  clock += 5 * 60 * 1000;
+  global.fetch = async () => ({ ok: false, status: 403, json: async () => ({}) });
+  const slow = (await o("GET", "progress")).jsonBody;
+  eq([slow.summary, !!slow.stale], ["Finished: the update is live.", true], "the last answer, marked as old");
+  reset();
+  const o2 = await owner();
+  const none = (await o2("GET", "progress")).jsonBody;
+  eq([none.ok, /slow down/.test(none.why)], [false, true]);
+  global.fetch = realFetch;
+});
+
 done();
