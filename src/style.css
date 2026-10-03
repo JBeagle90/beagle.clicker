@@ -151,7 +151,9 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 .beagle:hover { transform: scale(1.03); }
 .beagle:active { transform: scale(.95); }
 .beagle svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.beagle .ear { fill: var(--brown); transform-box: fill-box; transform-origin: 50% 10%; }
+/* The dog is a corgi now (its class and id are still "beagle"): big pointy ears that wiggle from the base */
+.beagle .ear { fill: var(--tan); transform-box: fill-box; transform-origin: 50% 90%; }
+.beagle .ear-in { fill: #f4c7b8; }
 .beagle .head { fill: var(--tan); }
 .beagle .helmet { display: none; }
 .beagle.has-helmet .helmet { display: inline; }
@@ -160,7 +162,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 .beagle .lamp { fill: #5b5b5b; }
 .beagle .lamp-glass { fill: #fff6c8; }
 .beagle .lamp-beam { fill: #fff3b0; opacity: .35; }
-.beagle .blaze, .beagle .muzzle { fill: var(--cream); }
+.beagle .blaze, .beagle .cheek, .beagle .muzzle { fill: var(--cream); }
 .beagle .nose, .beagle .eye { fill: #2b1d14; }
 .beagle .shine { fill: #fff; }
 .beagle .mouth { fill: none; stroke: #2b1d14; stroke-width: 3; stroke-linecap: round; }

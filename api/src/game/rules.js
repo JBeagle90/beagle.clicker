@@ -24,7 +24,7 @@
   // Boosts: bought once each, after you own `needs` of the upgrade they boost. Each makes that
   // upgrade give twice as much. Owned ones are kept in `owned` like upgrades (owned[id] = 1).
   const BOOSTS = [
-    { id: "bloodhound-training", name: "Bloodhound Training", icon: "🎯", boosts: "chew-toy", needs: 10, cost: 1000 },
+    { id: "bloodhound-training", name: "Sniffing School", icon: "🎯", boosts: "chew-toy", needs: 10, cost: 1000 },
     { id: "turbo-buddies", name: "Turbo Buddies", icon: "⚡", boosts: "puppy-pal", needs: 10, cost: 2500 },
     { id: "treasure-maps", name: "Treasure Maps", icon: "🗺️", boosts: "dog-park", needs: 10, cost: 30000 },
     { id: "diamond-shovel", name: "Diamond Shovel", icon: "💎", boosts: "steel-shovel", needs: 10, cost: 60000 },
@@ -38,7 +38,7 @@
   // Trophies: earned once, kept for good (in game.trophies), each +TROPHY_BONUS bones from
   // everything. `when` looks at the saved player: pats, earned, owned, game.
   const TROPHIES = [
-    { id: "first-pat", name: "First Pat", icon: "🐾", desc: "Pat the beagle.", when: p => p.pats >= 1 },
+    { id: "first-pat", name: "First Pat", icon: "🐾", desc: "Pat the corgi.", when: p => p.pats >= 1 },
     { id: "quick-paws", name: "Quick Paws", icon: "👋", desc: "100 pats.", when: p => p.pats >= 100 },
     { id: "paw-machine", name: "Paw Machine", icon: "⚙️", desc: "1,000 pats.", when: p => p.pats >= 1000 },
     { id: "iron-paws", name: "Iron Paws", icon: "🦾", desc: "10,000 pats.", when: p => p.pats >= 10000 },

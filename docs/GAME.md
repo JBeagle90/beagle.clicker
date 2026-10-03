@@ -5,16 +5,16 @@ feature, with the numbers from `api/src/game/rules.js`.
 
 ## Bones
 
-The beagle is a scent hound digging for treasure: short, punchy words, a little funny, still for everyone.
+The dog is a corgi (it was a beagle until update 3; the site keeps its name, beagle.clicker): an orange corgi with big pointy ears that wiggle when patted, a white blaze and fluffy white cheeks, digging for treasure. Short, punchy words, a little funny, still for everyone.
 
-- Pat the beagle: 1 bone a pat, plus what Sharp Noses and Steel Shovels add.
+- Pat the corgi: 1 bone a pat, plus what Sharp Noses and Steel Shovels add.
 - Bones keep coming from upgrades every second, including while you're away (up to 8 hours).
 - At most 20 pats a second count.
-- Each pat sends three little bones flying (not with reduced motion). Once you own a Dig Site, the beagle wears a yellow miner's helmet with a headlamp.
+- Each pat sends three little bones flying (not with reduced motion). Once you own a Dig Site, the corgi wears a yellow miner's helmet with a headlamp.
 
 ## Screens
 
-Tabs in the header (the address's #hash, so Back works): **Dig** (the beagle; Your dig, a row of icons for each kind of upgrade you own with what it makes, under a news ticker of short, dry headlines that unlock as you progress; the shop), **Trophies**, **Stats** (bones, pats, rates, upgrades, boosts, trophies, treasures, frenzies, counting since) and **Updates** (the suggestion board and the update log). A dot on the Dig tab means a treasure is up. The header also shows the time to the next update (or that one's being built) on every screen, and your name: click it to change it.
+Tabs in the header (the address's #hash, so Back works): **Dig** (the corgi; Your dig, a row of icons for each kind of upgrade you own with what it makes, under a news ticker of short, dry headlines that unlock as you progress; the shop), **Trophies**, **Stats** (bones, pats, rates, upgrades, boosts, trophies, treasures, frenzies, counting since) and **Updates** (the suggestion board and the update log). A dot on the Dig tab means a treasure is up. The header also shows the time to the next update (or that one's being built) on every screen, and your name: click it to change it.
 
 ## Shop
 
@@ -31,13 +31,13 @@ Tabs in the header (the address's #hash, so Back works): **Dig** (the beagle; Yo
 
 - Each one you own makes the next 15% dearer. Buy ×1, ×10 or ×100 at once (all or none), or Max: as many as you can afford right now, up to 100 (the price shows "×5 · 103 🦴"). The choice is remembered on the browser.
 - The shop shows the first three, then one more past the last kind you own.
-- **Boosts** appear at the top of the shop once you own 10 of an upgrade. Each is bought once and makes that upgrade give twice as much: Bloodhound Training (Sharp Nose, 1,000), Turbo Buddies (Dig Buddy, 2,500), Treasure Maps (Dig Site, 30,000), Diamond Shovel (Steel Shovel, 60,000), Night Shift (Bone Digger, 400,000), Express Tracks (Bone Train, 4.5 M).
+- **Boosts** appear at the top of the shop once you own 10 of an upgrade. Each is bought once and makes that upgrade give twice as much: Sniffing School (`bloodhound-training`; Sharp Nose, 1,000), Turbo Buddies (Dig Buddy, 2,500), Treasure Maps (Dig Site, 30,000), Diamond Shovel (Steel Shovel, 60,000), Night Shift (Bone Digger, 400,000), Express Tracks (Bone Train, 4.5 M).
 
 ## Buried treasure
 
-- A treasure chest pops up beside the beagle now and then: the first 1 to 2 minutes after you start, then every 3 to 6 minutes. It stays 12 seconds.
+- A treasure chest pops up beside the corgi now and then: the first 1 to 2 minutes after you start, then every 3 to 6 minutes. It stays 12 seconds.
 - Grab it for a minute's worth of digging plus 30 pats' worth (at least 50 bones). Miss it and it sinks back.
-- One chest in five is a **Dig Frenzy** instead: everything gives ×7 for 30 seconds (a gold bar counts down, the beagle glows).
+- One chest in five is a **Dig Frenzy** instead: everything gives ×7 for 30 seconds (a gold bar counts down, the corgi glows).
 
 ## Trophies
 

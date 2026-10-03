@@ -34,3 +34,16 @@ The shop has a new Max button that buys as many of an upgrade as you can afford,
 - Shop: next to ×1, ×10 and ×100 there's now a Max button.
 - With Max on, each price shows how many you'll get, like "×5 · 103 🦴", and it updates as your bones grow.
 - Max buys up to 100 at a time, and the game remembers your choice on this browser.
+
+## 2026-10-03 · Say hello to the corgi!
+
+Suggested by Noble Pup 195, with 10000 bones from 1 player:
+
+> Replace the beagle, and all beagle related assets (artwork, naming conventions, etc.) with a corgi
+
+The beagle has handed the shovel to a happy corgi! It has big pointy ears that wiggle when you pat it, fluffy white cheeks and the same love of bones. The site keeps its name, beagle.clicker, and the game's code still says "beagle" inside, but everything you see and read is about the corgi now.
+- Dig: the dog you pat is a corgi now. It still wears the miner's helmet once you own a Dig Site.
+- Dig: the news ticker's headlines are about the corgi.
+- Shop: the Sharp Nose boost is called Sniffing School now. Nothing else changes, and if you already own it you keep it.
+- Trophies: First Pat now says "Pat the corgi."
+- The little icon in your browser tab is a corgi too.
