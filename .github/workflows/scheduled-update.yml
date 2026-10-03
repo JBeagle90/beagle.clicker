@@ -2,7 +2,7 @@
 # any, an idea of its own) and it goes live, with no one approving it in between.
 # Each job does one thing, so Claude never holds a token that can change the repository or the site:
 #   pick     asks the game for this run's suggestion (marked "building" there). It's asked every
-#            hour, and answers "not yet" until a run is due: the owner picks the hours between
+#            15 minutes, players or not, and answers "not yet" until a run is due: the owner picks the hours between
 #            updates in the panel (/admin), or "run now" (api/src/core/schedule.js). Run by hand,
 #            it's always due. The game also refuses when the 30-day budget or the day's number of
 #            builds is used up. With the pick come the owner's requirements for this update, if any.
@@ -19,7 +19,9 @@ name: Scheduled update
 
 on:
   schedule:
-    - cron: "0 * * * *" # a check every hour; the game says when a run is due
+    # A check every 15 minutes, whether anyone is playing or not; the game says when a run is due.
+    # Not on the hour: GitHub is busiest then and drops many scheduled runs.
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
 
 permissions:

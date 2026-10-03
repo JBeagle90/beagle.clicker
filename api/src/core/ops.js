@@ -2,7 +2,7 @@
 // the header x-ops-key: <OPS_KEY>. ("admin" routes are kept by Azure Functions, hence "ops".)
 //
 //   pick     { manual? } → { pick: { id, own, text, note?, ... } | null, reason, ratings }
-//            The workflow asks every hour; only when a run is due (schedule.js; manual: run by hand,
+//            The workflow asks every 15 minutes; only when a run is due (schedule.js; manual: run by hand,
 //            so always) does the suggestion with the most bones become "building". When none has
 //            enough bones, one of Claude's ideas on the board (below) is picked at random; with none of
 //            those, a placeholder for Claude's own idea is made instead (own: true, text ""), so every

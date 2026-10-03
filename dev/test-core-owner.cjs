@@ -209,12 +209,19 @@ test("a run is due every few hours from the last one, and the countdown shows wh
   p = await pickNow();
   eq([p.pick, p.reason, p.nextAt], [null, "not_yet", NOON + 3 * H]);
   eq(await nextPickAt(), NOON + 3 * H);
-  clock = NOON + 3 * H + 7 * 60 * 1000; // GitHub's hourly run, a few minutes late
+  clock = NOON + 3 * H + 7 * 60 * 1000; // GitHub's scheduled check, a few minutes late
   p = await pickNow();
   ok(p.pick);
   await report(p.pick.id, "shipped");
   clock += H;
-  eq(await nextPickAt(), NOON + 6 * H, "counted from the start of the last run's hour, so it doesn't drift");
+  eq(await nextPickAt(), NOON + 6 * H, "counted from the hour it was due, so it doesn't drift");
+  clock = NOON + 6 * H - 8 * 60 * 1000; // a check a few minutes early
+  p = await pickNow();
+  ok(p.pick, "a few minutes early counts");
+  await report(p.pick.id, "shipped");
+  eq(await nextPickAt(), NOON + 9 * H, "and the next is still 3 hours after the hour it was due");
+  clock = NOON + 9 * H + 20 * 60 * 1000; // overdue: the countdown shows the next check
+  eq(await nextPickAt(), NOON + 9 * H + 30 * 60 * 1000);
 });
 
 test("the owner changes the hours between updates", async () => {
@@ -242,7 +249,7 @@ test("run now: the countdown goes to 0 and the next check builds", async () => {
   clock = NOON + 0.5 * H;
   eq((await pickNow()).reason, "not_yet");
   const r = await o("POST", "run-now");
-  eq([r.status, r.jsonBody.started], [200, false], "no GitHub token here, so it waits for the hourly check");
+  eq([r.status, r.jsonBody.started], [200, false], "no GitHub token here, so it waits for the next check");
   eq(await nextPickAt(), clock);
   ok((await pickNow()).pick);
   eq((await o("GET", "status")).jsonBody.next.runNowAt, null, "used up");

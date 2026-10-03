@@ -20,7 +20,7 @@
 // Documents are in partition "owner": inv:<hash>, ch:<challenge>, dev:<hash>, ses:<hash>.
 // Settings: OWNER_ORIGIN, the panel's address, or several comma-separated (default https://beagle.games).
 // GH_DISPATCH_TOKEN (optional): a fine-grained GitHub token for this repository with "Actions: read and
-// write", so "run now" starts the workflow at once instead of at its next hourly check. GH_REPO:
+// write", so "run now" starts the workflow at once instead of at its next check (within 15 minutes). GH_REPO:
 // the repository (default JBeagle90/beagle.clicker).
 "use strict";
 const crypto = require("crypto");

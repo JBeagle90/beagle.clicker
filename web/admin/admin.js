@@ -106,7 +106,7 @@ function renderNext(st) {
   $("building").hidden = !b;
   if (b) $("building").textContent = (b.own ? "Claude is building an idea of its own right now" : `Claude is building “${b.text}” right now`) + (b.note ? ", with your requirements." : ".");
   $("next-when").textContent = n.runNowAt
-    ? (n.dispatch ? "Starting now." : `Starts at the next hourly check, by ${timeOf(Math.floor(st.now / 3600e3) * 3600e3 + 3600e3)}.`)
+    ? (n.dispatch ? "Starting now." : `Starts at the next check, by ${timeOf(Math.floor(st.now / 900e3) * 900e3 + 900e3)}.`)
     : `At ${timeOf(n.at)}, then every ${n.hours === 1 ? "hour" : n.hours + " hours"}.`;
   $("run-now").disabled = !!n.runNowAt;
   $("run-now").textContent = n.runNowAt ? "Asked to run" : "Run it now";
@@ -220,7 +220,7 @@ function start() {
     try {
       const r = await call("POST", "run-now");
       say(r.started ? "Started. It goes live by itself when it's done."
-        : r.why || "It starts at the next hourly check, within the hour. To start it straight away, add GH_DISPATCH_TOKEN in Azure (docs/OPERATIONS.md).", !!r.why);
+        : r.why || "It starts at the next check, within 15 minutes. To start it straight away, add GH_DISPATCH_TOKEN in Azure (docs/OPERATIONS.md).", !!r.why);
       await load(false);
     } catch (e) { say(e.message, true); }
   });

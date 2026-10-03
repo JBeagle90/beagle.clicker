@@ -222,7 +222,8 @@ export function startBoard() {
     if (board && cd) {
       const left = board.nextPickAt - now();
       cd.textContent = clock(left);
-      if (left <= 0) { board.nextPickAt += board.updateHours * 3600000; setTimeout(refresh, 15000); }
+      // At 0 it waits for the server, which says when the update starts (or the next check).
+      if (left <= 0 && !board.asked) { board.asked = true; setTimeout(refresh, 15000); }
     }
     renderNext();
   }, 1000);
