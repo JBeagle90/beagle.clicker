@@ -33,7 +33,10 @@ function renderStatus() {
   if (building) {
     el.replaceChildren(h("div", { class: "status-box building" },
       h("div", { class: "status-icon", "aria-hidden": "true", text: "🔨" }),
-      building.own && !building.text
+      building.ownerPick
+        ? h("div", {}, h("p", { class: "status-line", text: "Claude is building this right now:" }), h("p", { class: "status-text", text: quote(building.text) }),
+          h("p", { class: "muted", text: "The owner picked this one for the update. It goes live by itself when it's done." }))
+        : building.own && !building.text
         ? h("div", {}, h("p", { class: "status-line", text: "Claude is building an idea of its own right now." }),
           h("p", { class: "muted", text: "No suggestion had bones this time. Give some to one below so it's picked next!" }))
         : building.own && !building.score
@@ -43,12 +46,15 @@ function renderStatus() {
           h("p", { class: "muted", text: `${fmt(building.score)} bones from ${building.voters} ${building.voters === 1 ? "player" : "players"}. It goes live by itself when it's done.` }))));
     return;
   }
-  const lead = board.open.find(s => s.status === "open" && s.score > 0);
+  // The owner's pick is built next, whatever its bones; else the one with the most.
+  const picked = board.open.find(s => s.status === "open" && s.ownerPick);
+  const lead = !picked && board.open.find(s => s.status === "open" && s.score > 0);
   el.replaceChildren(h("div", { class: "status-box" },
     h("div", { class: "status-icon", "aria-hidden": "true", text: "⏳" }),
     h("div", {},
       h("p", { class: "status-line" }, "Next update in ", h("strong", { id: "countdown", text: clock(board.nextPickAt - now()) })),
-      lead ? h("p", { class: "status-text" }, "Leading: ", quote(lead.text), h("span", { class: "muted", text: ` · ${fmt(lead.score)} 🦴` }))
+      picked ? h("p", { class: "status-text" }, "Up next: ", quote(picked.text), h("span", { class: "muted", text: " · the owner's pick" }))
+      : lead ? h("p", { class: "status-text" }, "Leading: ", quote(lead.text), h("span", { class: "muted", text: ` · ${fmt(lead.score)} 🦴` }))
         : h("p", { class: "muted", text: board.open.some(s => s.own && s.status === "open")
           ? "No bones on anything yet, so Claude will pick one of its own ideas below at random. Back the one you like best, or suggest your own."
           : "No bones on anything yet, so Claude will pick an idea of its own. Suggest something, or back one below." }))));
@@ -72,10 +78,13 @@ function renderOpen() {
     h("div", { class: "score" }, h("strong", { text: fmt(s.score) }), h("span", { text: "🦴" })),
     h("div", { class: "sug-body" },
       h("p", { class: "sug-text", text: s.text }),
-      h("p", { class: "meta" }, s.own ? h("span", { class: "tag claude", text: "Claude's idea" }) : "", s.own ? " " : "", s.own ? ago(s.at, now()) : `by ${s.yours ? "you" : s.byName} · ${ago(s.at, now())}`, s.voters ? ` · ${s.voters} ${s.voters === 1 ? "backer" : "backers"}` : "",
+      h("p", { class: "meta" }, s.ownerPick ? h("span", { class: "tag pick", text: "⭐ Owner's pick" }) : "", s.ownerPick ? " " : "",
+        s.own ? h("span", { class: "tag claude", text: "Claude's idea" }) : "", s.own ? " " : "", s.own ? ago(s.at, now()) : `by ${s.yours ? "you" : s.byName} · ${ago(s.at, now())}`, s.voters ? ` · ${s.voters} ${s.voters === 1 ? "backer" : "backers"}` : "",
         s.mine ? h("span", { class: "mine", text: ` · you gave ${fmt(s.mine)}` }) : "",
-        s.status === "open" && !s.yours && !s.own ? h("button", { type: "button", class: "report", text: "Report", "aria-label": "Report this suggestion", on: { click: () => report(s) } }) : "")),
-    s.status === "open" ? h("div", { class: "gives" }, giveButtons(s)) : h("div", { class: "gives" }, h("span", { class: "tag", text: "Building" })))));
+        s.status === "open" && !s.yours && !s.own && !s.ownerPick ? h("button", { type: "button", class: "report", text: "Report", "aria-label": "Report this suggestion", on: { click: () => report(s) } }) : "")),
+    s.status !== "open" ? h("div", { class: "gives" }, h("span", { class: "tag", text: "Building" }))
+      : s.ownerPick ? h("div", { class: "gives" }, h("span", { class: "tag pick", text: "Up next" }))
+      : h("div", { class: "gives" }, giveButtons(s)))));
   if (board.openCount > board.open.length) list.append(h("li", { class: "empty", text: `…and ${board.openCount - board.open.length} more with fewer bones.` }));
 }
 
@@ -107,7 +116,7 @@ function logEntry(s) {
     h("p", { class: "note-title" }, h("span", { class: "tag ok", text: s.n ? `Update #${s.n}` : "New" }), " ", s.title || s.text),
     h("p", { class: "note-from" }, s.own ? h("span", { text: "Claude's own idea: " }) : h("span", { text: `${s.yours ? "Your" : s.byName + "'s"} suggestion: ` }), h("q", { text: s.text })),
     ...summaryOf(s.summary),
-    h("p", { class: "meta", text: [s.own ? "" : `${fmt(s.score)} 🦴 from ${s.voters} ${s.voters === 1 ? "player" : "players"}`, ago(s.doneAt, now())].filter(Boolean).join(" · ") }),
+    h("p", { class: "meta", text: [s.ownerPick ? "the owner's pick" : "", s.own ? "" : `${fmt(s.score)} 🦴 from ${s.voters} ${s.voters === 1 ? "player" : "players"}`, ago(s.doneAt, now())].filter(Boolean).join(" · ") }),
     ratingRow(s));
   return h("li", { class: "note declined", "data-id": s.id },
     h("p", { class: "note-title" }, h("span", { class: "tag", text: "Not built" }), " ", quote(s.text)),

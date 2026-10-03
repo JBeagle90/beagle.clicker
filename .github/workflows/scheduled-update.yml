@@ -70,7 +70,7 @@ jobs:
           jq -r '.pick.note // empty' .update-task/pick.json > .update-task/owner-note.md
           [ -s .update-task/owner-note.md ] && echo "With the owner's requirements." || rm -f .update-task/owner-note.md
           own=$(jq -r '.pick.own // false' .update-task/pick.json)
-          if [ "$own" = true ]; then echo "No suggestion has bones: Claude builds its own idea."; else echo "Building suggestion $id ($(jq -r '.pick.score' .update-task/pick.json) bones)."; fi
+          if [ "$(jq -r '.pick.ownerPick // false' .update-task/pick.json)" = true ]; then echo "Building the owner's pick, $id."; elif [ "$own" = true ]; then echo "No suggestion has bones: Claude builds its own idea."; else echo "Building suggestion $id ($(jq -r '.pick.score' .update-task/pick.json) bones)."; fi
           echo "id=$id" >> "$GITHUB_OUTPUT"
           echo "own=$own" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
@@ -192,6 +192,8 @@ jobs:
             - "own": true with a "text": one of the ideas a past build left on the board for players
               (see NEXT below). Either players backed it ("score" above 0) or nothing had bones and
               it was picked at random. Build it.
+            - "ownerPick": true: the owner picked this one for the update, whatever its bones. Build it
+              like any other ("own" still says whose words it is).
             - "own": true with no "text": no suggestion had bones this time, so you choose. Pick the
               best idea in docs/IDEAS.md or a better one of your own: something small and fun that
               fits the game as it is, and suits what players have liked.
@@ -346,6 +348,9 @@ jobs:
           if [ "$own" = true ] && [ -z "$(jq -r '.text // ""' $T/suggestion.json)" ]; then
             what=$(grep -m1 '^IDEA:' $T/result.md | sed 's/^IDEA: *//' | head -c 140 || true)
             who="Claude's own idea (no suggestion had bones)"
+          elif [ "$own" = true ] && [ "$(jq -r '.ownerPick // false' $T/suggestion.json)" = true ]; then
+            what=$(jq -r '.text' $T/suggestion.json)
+            who="One of Claude's ideas on the board, picked by the owner"
           elif [ "$own" = true ] && [ "$(jq -r '.score // 0' $T/suggestion.json)" = 0 ]; then
             what=$(jq -r '.text' $T/suggestion.json)
             who="One of Claude's ideas on the board, picked at random (no suggestion had bones)"
@@ -355,6 +360,7 @@ jobs:
           else
             what=$(jq -r '.text' $T/suggestion.json)
             who="Suggested by $(jq -r '.byName' $T/suggestion.json), with $(jq -r '.score' $T/suggestion.json) bones from $(jq -r '.voters' $T/suggestion.json) $(jq -r 'if .voters == 1 then "player" else "players" end' $T/suggestion.json)"
+            if [ "$(jq -r '.ownerPick // false' $T/suggestion.json)" = true ]; then who="$who, picked by the owner"; fi
           fi
           clean() { tr -d '\r' | sed 's/[<>`]//g'; }
           [ -f docs/CHANGELOG.md ] || printf '# Changelog\n' > docs/CHANGELOG.md

@@ -3,7 +3,8 @@
 //
 //   pick     { manual? } → { pick: { id, own, text, note?, ... } | null, reason, ratings }
 //            The workflow asks every 15 minutes; only when a run is due (schedule.js; manual: run by hand,
-//            so always) does the suggestion with the most bones become "building". When none has
+//            so always) does the owner's pick (owner.js), else the suggestion with the most bones, become
+//            "building" (ownerPick: true in the pick for the owner's). When none has
 //            enough bones, one of Claude's ideas on the board (below) is picked at random; with none of
 //            those, a placeholder for Claude's own idea is made instead (own: true, text ""), so every
 //            run builds something. note: the owner's requirements for this update, if any (taken
@@ -47,7 +48,7 @@ const summaryOf = v => String(v == null ? "" : v).split(/\r?\n/).map(l => cleanT
 // is simply dropped, as there's nothing for anyone to get back.
 const backed = s => Object.keys(s.votes || {}).length > 0;
 async function failOnce(c, s, why) {
-  if (s.own && !backed(s)) { await c.store.remove(S.OPEN, s.id); return null; }
+  if (s.own && !backed(s) && !s.ownerPick) { await c.store.remove(S.OPEN, s.id); return null; }
   const attempts = (s.attempts || 0) + 1;
   if (attempts >= MAX_TRIES) return S.close(c, s, "declined", { attempts, reason: why || "It couldn't be built after two tries, so everyone's bones went back." });
   await c.store.upsert({ ...s, status: "open", attempts, startedAt: null, ownerNote: null });
@@ -113,7 +114,7 @@ async function seedIdeas(c, ideas) {
     .filter(t => t.length >= IDEA_MIN && t.length <= S.MAX_LEN && !/https?:|www\./i.test(t) && !moderation.blocked(t, c.env)).slice(0, MAX_IDEAS);
   if (!list.length) return [];
   let open = await c.store.list(S.OPEN);
-  for (const s of open) if (s.own && s.status === "open" && !backed(s)) await c.store.remove(S.OPEN, s.id);
+  for (const s of open) if (s.own && s.status === "open" && !backed(s) && !s.ownerPick) await c.store.remove(S.OPEN, s.id);
   open = await c.store.list(S.OPEN);
   const norm = t => t.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(), seen = new Set(open.map(s => norm(s.text || "")));
   const added = [];
@@ -134,7 +135,7 @@ async function pick(c) {
   const settings = await schedule.read(c);
   if (!c.body.manual && !schedule.due(settings, c.env, c.now)) return json(200, { pick: null, reason: "not_yet", nextAt: schedule.nextAt(settings, c.env, c.now) });
   if (building) { await noteBack(c, building); await failOnce(c, building); open = await c.store.list(S.OPEN); }
-  for (const s of open) if (s.status === "open" && !(s.score > 0) && c.now - s.at > STALE_MS) await c.store.remove(S.OPEN, s.id);
+  for (const s of open) if (s.status === "open" && !(s.score > 0) && !s.ownerPick && c.now - s.at > STALE_MS) await c.store.remove(S.OPEN, s.id);
 
   // This is the run that was due: the countdown starts again from now, whatever happens next.
   // build: true takes the owner's requirements for this build.
@@ -150,7 +151,8 @@ async function pick(c) {
 
   const ratings = await S.recentRatings(c);
   const min = Math.max(1, +c.env.MIN_SCORE || 1);
-  const top = S.ranked(open.filter(s => s.status === "open" && (s.score || 0) >= min))[0];
+  // The owner's pick first, whatever its bones; else the most bones, with at least MIN_SCORE.
+  const top = S.ranked(open.filter(s => s.status === "open" && (s.ownerPick || (s.score || 0) >= min)))[0];
   // With no suggestion to build, Claude's own idea, unless that's turned off and the owner asked for nothing.
   if (!top && c.env.OWN_IDEAS === "0" && !(settings.note && settings.note.text)) { await ran(false); return json(200, { pick: null, reason: "nothing", spent }); }
   const note = await ran(true);
@@ -169,7 +171,9 @@ async function pick(c) {
   }
   const s = await c.store.update(S.OPEN, top.id, cur => cur && cur.status === "open" ? { ...cur, status: "building", startedAt: c.now, ownerNote: note } : null);
   if (!s) { if (note) await schedule.change(c, cur => cur.note ? null : { ...cur, note }); return json(200, { pick: null, reason: "raced" }); }
-  return json(200, { pick: withNote({ id: s.id, own: !!s.own, text: s.text, byName: s.byName, score: s.score, voters: Object.keys(s.votes || {}).length, attempts: s.attempts || 0 }), reason: "top", ratings, spent });
+  const p = { id: s.id, own: !!s.own, text: s.text, byName: s.byName, score: s.score, voters: Object.keys(s.votes || {}).length, attempts: s.attempts || 0 };
+  if (s.ownerPick) p.ownerPick = true;
+  return json(200, { pick: withNote(p), reason: s.ownerPick ? "owner_pick" : "top", ratings, spent });
 }
 
 async function result(c) {

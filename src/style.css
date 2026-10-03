@@ -334,6 +334,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 }
 .tag.ok { background: var(--good-bg); color: var(--good); border-color: transparent; }
 .tag.claude { color: var(--accent); border-color: var(--accent); background: none; }
+.tag.pick { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
 
 /* --- Patch notes --- */
 .done { display: grid; gap: 12px; }

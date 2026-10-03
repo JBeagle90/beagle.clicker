@@ -82,7 +82,7 @@ async function signIn() {
 }
 
 // --- The next update: countdown, run now, hours between updates ---
-let last = null, offset = 0, noteDirty = false;
+let last = null, offset = 0, noteDirty = false, allShown = false;
 const num = n => (+n || 0).toLocaleString();
 const plural = (n, one, many) => `${num(n)} ${n === 1 ? one : many}`;
 const timeOf = t => new Date(t).toLocaleString(undefined, new Date(t).toDateString() === new Date().toDateString()
@@ -115,15 +115,25 @@ function renderNext(st) {
   tick();
 }
 
-// --- What's winning the next update ---
+// --- What's winning the next update, and your picks ---
+const SHOW = 8;
 function renderBoard(st) {
-  const list = st.board, min = st.settings.minScore;
-  $("board").replaceChildren(...(list.length ? list.map(s => h("li", { class: s.enough ? null : "low" },
-    h("div", { class: "sug", text: s.text }),
-    h("div", { class: "muted", text: `${plural(s.score, "bone", "bones")} · ${plural(s.voters, "player", "players")} · by ${s.byName}` })))
+  const list = st.board, min = st.settings.minScore, picks = list.filter(s => s.ownerPick);
+  const shown = allShown ? list : list.slice(0, Math.max(SHOW, picks.length));
+  $("board").replaceChildren(...(shown.length ? shown.map(s => h("li", { class: s.enough || s.ownerPick ? null : "low" },
+    h("div", { class: "pick-row" },
+      h("div", {},
+        h("div", { class: "sug" }, s.text, s.ownerPick ? h("span", { class: "tag pick", text: picks.length > 1 ? `Your pick #${picks.indexOf(s) + 1}` : "Your pick" }) : null),
+        h("div", { class: "muted", text: `${plural(s.score, "bone", "bones")} · ${plural(s.voters, "player", "players")} · by ${s.own ? "Claude" : s.byName}` })),
+      h("button", { type: "button", class: "quiet", text: s.ownerPick ? "Unpick" : "Pick",
+        "aria-label": `${s.ownerPick ? "Unpick" : "Pick"} “${s.text}”`, on: { click: () => pickIt(s, !s.ownerPick) } }))))
     : [h("li", { class: "low", text: "No suggestions on the board." })]));
-  $("board-note").textContent = list.some(s => s.enough)
-    ? `The top one with at least ${plural(min, "bone", "bones")} is built next.`
+  $("board-all").hidden = list.length <= shown.length && !allShown;
+  $("board-all").textContent = allShown ? "Show fewer" : `Show all ${list.length}`;
+  $("board-note").textContent = picks.length
+    ? `Your pick is built next, whatever its bones${picks.length > 1 ? ", then the others in the order you picked them" : ""}. Bones already on it stay spent; players can't add more.`
+    : list.some(s => s.enough)
+    ? `The top one with at least ${plural(min, "bone", "bones")} is built next. Pick one to build it next instead.`
     : st.settings.ownIdeas ? "Nothing has bones yet, so Claude will build an idea of its own."
       : "Nothing has bones yet, and Claude's own ideas are off, so the next run builds only your requirements, or skips.";
 }
@@ -193,6 +203,12 @@ async function load(clearMsg = true) {
   catch (e) { if (getSession()) say(e.message, true); }
 }
 
+async function pickIt(s, on) {
+  if (on && !confirm(`Build “${s.text}” at the next update, whatever its bones? Players keep the bones they gave; it goes live by itself.`)) return;
+  try { await call("POST", "pick", { id: s.id, on }); await load(false); say(on ? "Picked: it's built at the next update." : "Unpicked: it's back to bones."); }
+  catch (e) { say(e.message, true); await load(false); }
+}
+
 async function forget(d) {
   if (!confirm(`Forget "${d.name}"? It won't be able to sign in until you add it again.`)) return;
   try { await call("POST", "forget", { id: d.id }); await load(); say(`Forgot ${d.name}.`); }
@@ -240,6 +256,7 @@ function start() {
     try { await call("POST", "note", { text: "" }); noteDirty = false; await load(false); say("Cleared."); }
     catch (err) { say(err.message, true); }
   });
+  $("board-all").addEventListener("click", () => { allShown = !allShown; if (last) renderBoard(last); });
   setInterval(tick, 1000);
   setInterval(() => { if (!$("panel").hidden && document.visibilityState === "visible") load(false); }, 30000);
 

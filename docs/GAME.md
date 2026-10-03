@@ -48,7 +48,7 @@ Tabs in the header (the address's #hash, so Back works): **Dig** (the beagle; Yo
 
 - A suggestion costs 100 bones: one small idea, 10 to 140 characters, no links, friendly words, one every 10 minutes.
 - Give bones to any open suggestion (+10, +100, +1,000). You can give to several.
-- On each scheduled update, Claude builds the suggestion with the most bones and puts it live.
+- On each scheduled update, Claude builds the suggestion with the most bones and puts it live. The owner can make any open suggestion the "Owner's pick" instead: it's built at the next update whatever its bones, shows "Up next", and takes no more bones (the bones already on it stay spent).
 - Each update leaves three of Claude's own ideas on the board ("Claude's idea", 0 bones) for players to back. When nothing has bones at update time, one of them is picked at random (with none on the board, Claude picks an idea of its own). New ones replace Claude's ideas nobody backed; a backed one stays and competes like any suggestion.
 - If a suggestion is declined (or can't be built after two tries), everyone who gave bones to it gets them back.
 - Report a suggestion that doesn't belong. After 3 players report one, it comes down and its bones go back.

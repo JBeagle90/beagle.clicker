@@ -7,8 +7,10 @@
 // move to "s:done", which is the update log. A suggestion:
 //   { id, pk, text, by (pid, or null for Claude's own), byName, own?, at, score, votes: { pid: bones },
 //     status, attempts, startedAt?, doneAt?, n? (update number), title?, summary? (lines), reason?,
-//     commit?, ratings?: { pid: 1..5 } }
+//     commit?, ratings?: { pid: 1..5 }, ownerPick? (when the owner picked it) }
 // status: open | building | shipped | declined. A declined suggestion's votes go back to the voters.
+// The owner's picks (owner.js) are built first, in the order picked, whatever their bones; they take
+// no more votes, and the bones already on them stay there.
 "use strict";
 const { json, fail, randomId, cleanText } = require("./util");
 const ratelimit = require("./ratelimit");
@@ -45,6 +47,7 @@ function publicOf(s, pid) {
   const voters = s.votes ? Object.keys(s.votes).length : s.voters || 0;
   const o = { id: s.id, text: s.text, byName: s.byName, at: s.at, score: s.score || 0, voters, status: s.status };
   if (s.own) o.own = true;
+  if (s.ownerPick) o.ownerPick = true;
   if (pid && s.votes && s.votes[pid]) o.mine = s.votes[pid];
   if (s.by && s.by === pid) o.yours = true;
   for (const k of ["startedAt", "doneAt", "n", "title", "summary", "reason"]) if (s[k] != null) o[k] = s[k];
@@ -52,7 +55,9 @@ function publicOf(s, pid) {
   return o;
 }
 
-const ranked = list => list.slice().sort((a, b) => (b.status === "building") - (a.status === "building") || (b.score || 0) - (a.score || 0) || a.at - b.at);
+// Being built, then the owner's picks (first picked first), then the most bones.
+const ranked = list => list.slice().sort((a, b) => (b.status === "building") - (a.status === "building")
+  || (a.ownerPick || Infinity) - (b.ownerPick || Infinity) || (b.score || 0) - (a.score || 0) || a.at - b.at);
 const limits = () => ({ min: MIN_LEN, max: MAX_LEN, cost: R.SUGGEST_COST });
 
 async function board(c, player) {
@@ -103,10 +108,11 @@ async function vote(c, player) {
   if (!(amount >= 1 && amount <= MAX_VOTE)) return fail(400, "bad_amount", "Give at least 1 bone.");
   const s = await c.store.read(OPEN, id);
   if (!s || s.status !== "open") return fail(409, "closed", s ? "That one's being built right now." : "That suggestion isn't on the board any more.");
+  if (s.ownerPick) return fail(409, "picked", "That one's already picked for the next update, so it doesn't need bones.");
   const paid = await players.spend(c, player.pid, amount);
   if (!paid) return fail(402, "not_enough", "You don't have that many bones.");
   const after = await c.store.update(OPEN, id, cur => {
-    if (!cur || cur.status !== "open") return null;
+    if (!cur || cur.status !== "open" || cur.ownerPick) return null;
     const votes = { ...(cur.votes || {}) };
     votes[player.pid] = (votes[player.pid] || 0) + amount;
     return { ...cur, votes, score: (cur.score || 0) + amount };

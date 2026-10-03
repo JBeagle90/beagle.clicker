@@ -73,6 +73,10 @@ button:disabled { opacity: .55; cursor: default; filter: none; }
 .board .muted { margin: 2px 0 0; }
 .board li.low { color: var(--muted); }
 .board li.low .sug { font-weight: 500; }
+.pick-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pick-row button { flex: none; }
+.tag.pick { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+#board-all { margin-top: 8px; }
 
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
 .stat { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }

@@ -10,6 +10,8 @@
 //   POST schedule       { hours }                   → hours between updates (schedule.HOURS)
 //   POST run-now                                    → the next update starts now (see dispatch below)
 //   POST note           { text }                    → the owner's requirements for the next update ("" clears)
+//   POST pick           { id, on }                  → on: true makes that open suggestion the owner's pick,
+//                                                     built at the next update whatever its bones (suggestions.js)
 //   POST forget         { id }                      → that device can't sign in any more
 //   POST logout
 // (Those after status need x-owner-session too.)
@@ -162,8 +164,8 @@ async function status(c, s) {
     now: c.now,
     next: { at: schedule.nextAt(set, c.env, c.now), hours: schedule.hoursOf(set, c.env), choices: schedule.HOURS, lastRunAt: set.lastRunAt || null,
       runNowAt: set.runNowAt || null, dispatch: !!c.env.GH_DISPATCH_TOKEN, note: set.note || null, noteMax: schedule.NOTE_LEN },
-    board: open.filter(x => x.status === "open").slice(0, 8).map(x => ({ id: x.id, text: x.text, byName: x.byName, score: x.score || 0,
-      voters: Object.keys(x.votes || {}).length, status: x.status, at: x.at, enough: (x.score || 0) >= min })),
+    board: open.filter(x => x.status === "open").map(x => ({ id: x.id, text: x.text, byName: x.byName, own: !!x.own, score: x.score || 0,
+      voters: Object.keys(x.votes || {}).length, status: x.status, at: x.at, enough: (x.score || 0) >= min, ownerPick: x.ownerPick || null })),
     building: (b => b ? { text: b.text, own: !!b.own, startedAt: b.startedAt, note: !!b.ownerNote } : null)(open.find(x => x.status === "building")),
     spend: { ...(await ops.spending(c)), budget, perDay, days: spend.days || {}, runs: (spend.runs || []).slice(-50).reverse() },
     settings: { ownIdeas: c.env.OWN_IDEAS !== "0", minScore: min },
@@ -203,6 +205,15 @@ async function setNote(c) {
   return json(200, { ok: true, note: text || null });
 }
 
+// The owner's pick: built at the next update even if it isn't winning. Taking it back leaves it on
+// the board as it was. Its bones stay on it either way.
+async function pick(c) {
+  const id = String(c.body.id || ""), on = c.body.on === true;
+  const s = S.SID.test(id) && await c.store.update(S.OPEN, id, cur => cur && cur.status === "open" ? { ...cur, ownerPick: on ? cur.ownerPick || c.now : null } : null);
+  if (!s) return fail(409, "closed", "That suggestion isn't open on the board any more.");
+  return json(200, { ok: true });
+}
+
 async function forget(c) {
   const id = String(c.body.id || "");
   const dev = /^[0-9a-f]{12}$/.test(id) && (await devices(c)).find(d => d.id.slice(4, 16) === id);
@@ -229,6 +240,7 @@ async function handle(what, c, method) {
   if (what === "schedule") return setHours(c);
   if (what === "run-now") return runNow(c);
   if (what === "note") return setNote(c);
+  if (what === "pick") return pick(c);
   if (what === "forget") return forget(c);
   if (what === "logout") { await c.store.remove(PK, s.id); return json(200, { ok: true }); }
   return fail(404, "not_found", "Nothing here.");

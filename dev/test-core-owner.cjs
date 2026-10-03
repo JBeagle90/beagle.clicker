@@ -318,4 +318,54 @@ test("the panel shows what's winning the next update", async () => {
   eq([after.building.text, after.board.map(s => s.text)], [b.text, [a.text]], "the one being built isn't still 'winning'");
 });
 
+test("the owner's pick is built next, whatever its bones, and keeps the bones on it", async () => {
+  reset();
+  const o = await owner();
+  const save = (await api("POST", "/players")).jsonBody.save;
+  const call = (path, body) => handle({ method: "POST", route: path.slice(1), headers: { get: k => ({ "x-bc-save": save, "x-forwarded-for": "1.2.3.4" })[k.toLowerCase()] }, body, rawLength: 10 }, store, env, clock);
+  for (let i = 0; i < 40; i++) { clock += 1000; await call("/sync", { pats: 20 }); }
+  const a = (await call("/suggest", { text: "Let the beagle wear a party hat" })).jsonBody.suggestion;
+  await call("/vote", { id: a.id, amount: 3 });
+  clock += 11 * 60 * 1000;
+  const b = (await call("/suggest", { text: "A pond for the beagle to splash in" })).jsonBody.suggestion;
+  await call("/vote", { id: b.id, amount: 10 });
+  eq((await api("POST", "/owner/pick", { id: a.id, on: true })).status, 401, "only signed in");
+  eq((await o("POST", "pick", { id: "nope-nope", on: true })).status, 409);
+  eq((await o("POST", "pick", { id: a.id, on: true })).status, 200);
+  const st = (await o("GET", "status")).jsonBody;
+  eq(st.board.map(s => [s.text, !!s.ownerPick]), [[a.text, true], [b.text, false]], "first on the panel");
+  const board = (await api("GET", "/board")).jsonBody;
+  eq([board.open[0].id, board.open[0].ownerPick], [a.id, true], "and on the game's board");
+  const before = (await call("/sync", {})).jsonBody.player.bones;
+  const v = await call("/vote", { id: a.id, amount: 5 });
+  eq([v.status, v.jsonBody.error.code], [409, "picked"], "it takes no more bones");
+  eq((await call("/sync", {})).jsonBody.player.bones, before, "none spent");
+  const p = await pickNow();
+  eq([p.reason, p.pick.id, p.pick.ownerPick, p.pick.score], ["owner_pick", a.id, true, 3]);
+  const r = (await report(a.id, "shipped")).jsonBody;
+  eq([r.done.status, r.done.ownerPick > 0, r.done.score], ["shipped", true, 3], "its bones aren't given back");
+  eq((await call("/sync", {})).jsonBody.player.bones, before, "no refund");
+  clock += 3 * H;
+  eq((await pickNow()).pick.id, b.id, "then back to the most bones");
+});
+
+test("the owner can unpick, and several picks go in the order picked", async () => {
+  reset();
+  const o = await owner();
+  const own = await api("POST", "/ops/seed", { ideas: ["A little bowl of water for the beagle", "Paw prints across the page when you pat"] }, { ops: OPS_KEY });
+  const [x, y] = own.jsonBody.ideas;
+  await o("POST", "pick", { id: y.id, on: true });
+  clock += 1000;
+  await o("POST", "pick", { id: x.id, on: true });
+  await o("POST", "pick", { id: y.id, on: true });
+  eq((await o("GET", "status")).jsonBody.board.map(s => s.id), [y.id, x.id], "picking again keeps its place");
+  await o("POST", "pick", { id: y.id, on: false });
+  eq((await o("GET", "status")).jsonBody.board.map(s => [s.id, !!s.ownerPick]), [[x.id, true], [y.id, false]]);
+  const p = await pickNow();
+  eq([p.pick.id, p.pick.own, p.pick.ownerPick], [x.id, true, true], "one of Claude's ideas can be picked too");
+  await report(x.id, "failed");
+  clock += 3 * H;
+  eq((await pickNow()).pick.id, x.id, "a failed pick is tried again");
+});
+
 done();
