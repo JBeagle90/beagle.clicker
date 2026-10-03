@@ -409,7 +409,7 @@ test("how it's going: a check, a paused run, a finished update, and GitHub not a
   eq((await o("GET", "progress")).jsonBody.summary, "Only a check: no update was due then, or there was nothing to build.");
   clock += 5 * 60 * 1000;
   fakeGitHub([{ ...run, conclusion: "skipped" }], [job("pick", "completed", "skipped")]);
-  eq((await o("GET", "progress")).jsonBody.summary, "Skipped: updates are paused (the UPDATES_PAUSED variable on GitHub).");
+  eq((await o("GET", "progress")).jsonBody.summary, "Skipped: updates were paused then (the UPDATES_PAUSED variable on GitHub).");
   clock += 5 * 60 * 1000;
   const ok = [["Screen the suggestion", "completed", "success"], ["Claude builds it", "completed", "success"], ["Tests", "completed", "success"], ["Guard", "completed", "success"]];
   fakeGitHub([run], [job("pick", "completed", "success"), job("build", "completed", "success", ok), job("publish", "completed", "success"),
@@ -425,6 +425,32 @@ test("how it's going: a check, a paused run, a finished update, and GitHub not a
   const none = (await o2("GET", "progress")).jsonBody;
   eq([none.ok, /slow down/.test(none.why)], [false, true]);
   global.fetch = realFetch;
+});
+
+test("run now again, once the token is set, asks GitHub, and the panel says what GitHub said", async () => {
+  reset();
+  const o = await owner();
+  await report((await pickNow()).pick.id, "shipped");
+  clock = NOON + 0.5 * H;
+  await o("POST", "run-now");
+  const asked = clock;
+  eq((await o("GET", "status")).jsonBody.next.started, null, "no token: nothing asked of GitHub");
+  env.GH_DISPATCH_TOKEN = "github_pat_test";
+  const sent = [];
+  global.fetch = async (url, init) => { sent.push([url, init.method]); return { status: 204 }; };
+  clock += 30 * 60 * 1000;
+  const r = await o("POST", "run-now");
+  eq([r.jsonBody.started, sent.length, sent[0][1]], [true, 1, "POST"]);
+  ok(/scheduled-update\.yml\/dispatches$/.test(sent[0][0]));
+  const n = (await o("GET", "status")).jsonBody.next;
+  eq([n.runNowAt, n.started.ok, n.started.at], [asked, true, clock], "the first ask's time is kept");
+  global.fetch = async () => ({ status: 403 });
+  clock += 60 * 1000;
+  const bad = await o("POST", "run-now");
+  eq([bad.jsonBody.started, (await o("GET", "status")).jsonBody.next.started.ok], [false, false]);
+  global.fetch = realFetch;
+  ok((await pickNow()).pick);
+  eq((await o("GET", "status")).jsonBody.next.started, null, "gone once the run starts");
 });
 
 done();

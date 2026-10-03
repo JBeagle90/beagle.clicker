@@ -165,7 +165,7 @@ async function status(c, s) {
   return json(200, {
     now: c.now,
     next: { at: schedule.nextAt(set, c.env, c.now), hours: schedule.hoursOf(set, c.env), choices: schedule.HOURS, lastRunAt: set.lastRunAt || null,
-      runNowAt: set.runNowAt || null, dispatch: !!c.env.GH_DISPATCH_TOKEN, note: set.note || null, noteMax: schedule.NOTE_LEN },
+      runNowAt: set.runNowAt || null, dispatch: !!c.env.GH_DISPATCH_TOKEN, started: set.runNowAt && set.started && set.started.at >= set.runNowAt ? set.started : null, note: set.note || null, noteMax: schedule.NOTE_LEN },
     board: open.filter(x => x.status === "open").map(x => ({ id: x.id, text: x.text, byName: x.byName, own: !!x.own, score: x.score || 0,
       voters: Object.keys(x.votes || {}).length, status: x.status, at: x.at, enough: (x.score || 0) >= min, ownerPick: x.ownerPick || null })),
     building: (b => b ? { text: b.text, own: !!b.own, startedAt: b.startedAt, note: !!b.ownerNote } : null)(open.find(x => x.status === "building")),
@@ -184,9 +184,13 @@ async function setHours(c) {
 }
 
 // The next update, now: the next check builds it, and with GH_DISPATCH_TOKEN the check is started at once.
+// Pressed again while it waits, it asks GitHub again (say, after the token was added). What GitHub
+// said is kept for the panel: started: { at, ok, why }.
 async function runNow(c) {
-  await schedule.change(c, cur => ({ ...cur, runNowAt: c.now }));
-  return json(200, { ok: true, ...(await dispatch(c.env)) });
+  await schedule.change(c, cur => ({ ...cur, runNowAt: cur.runNowAt || c.now }));
+  const d = await dispatch(c.env);
+  if (c.env.GH_DISPATCH_TOKEN) await schedule.change(c, cur => ({ ...cur, started: { at: c.now, ok: d.started, why: d.why || null } }));
+  return json(200, { ok: true, ...d });
 }
 
 async function dispatch(env) {

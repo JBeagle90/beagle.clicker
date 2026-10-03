@@ -68,7 +68,7 @@ function summaryOf(run, stages) {
     const now = stages.find(s => s.state === "running") || stages.find(s => s.state === "waiting");
     return run.status === "in_progress" && now ? now.label + "…" : "Waiting for GitHub to start it…";
   }
-  if (at("pick") === "skipped") return "Skipped: updates are paused (the UPDATES_PAUSED variable on GitHub).";
+  if (at("pick") === "skipped") return "Skipped: updates were paused then (the UPDATES_PAUSED variable on GitHub).";
   const failed = stages.find(s => s.state === "failed");
   if (failed) return `It stopped at “${failed.label}”. The run on GitHub says why.`;
   if (run.conclusion === "cancelled") return "It was cancelled on GitHub.";

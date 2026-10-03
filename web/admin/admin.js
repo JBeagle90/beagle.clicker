@@ -119,6 +119,7 @@ function renderProgress() {
   $("prog-summary").textContent = (run && run.status === "completed" ? `Last run, ${timeOf(run.at)}: ` : "") + p.summary + (p.stale ? ` (As of ${timeOf(p.checkedAt)}: ${p.stale})` : "");
   // A run that was only a check ("not yet") has nothing past its first stage to show.
   const stages = run && (run.status !== "completed" || p.stages.some(s => s.key !== "pick" && s.state !== "skipped")) ? p.stages : [];
+  $("stages").hidden = !stages.length;
   $("stages").replaceChildren(...stages.map(s => h("li", { class: s.state },
     h("span", { class: "dot", "aria-hidden": "true", text: MARK[s.state] }),
     h("span", { class: "stage-name", text: s.label }), h("span", { class: "sr", text: `: ${STATE[s.state]}` }),
@@ -148,17 +149,24 @@ async function loadProgress() {
   progTimer = setTimeout(loadProgress, active ? 15000 : 60000);
 }
 
+// After "Run it now": what GitHub said, so a run that never started doesn't look like it's starting.
+function waiting(n) {
+  const s = n.started, asked = `Asked at ${timeOf(n.runNowAt)}`;
+  if (s && s.ok) return `${asked}; GitHub took it at ${timeOf(s.at)}. It shows under “How it's going” within a minute or two.`;
+  if (s) return `${asked}, but GitHub didn't start it: ${s.why} Press “Run it now again” to retry.`;
+  if (n.dispatch) return `${asked}, before GH_DISPATCH_TOKEN was set, so it's waiting for a scheduled check. Press “Run it now again” to start it straight away.`;
+  return `${asked}. It starts at the next scheduled check (every 15 minutes, though GitHub can run them late).`;
+}
+
 function renderNext(st) {
   const n = st.next, b = st.building, sel = $("hours");
   if (!sel.options.length) sel.replaceChildren(...n.choices.map(x => h("option", { value: String(x), text: x === 1 ? "Every hour" : `Every ${x} hours` })));
   if (document.activeElement !== sel) sel.value = String(n.hours);
   $("building").hidden = !b;
   if (b) $("building").textContent = (b.own ? "Claude is building an idea of its own right now" : `Claude is building “${b.text}” right now`) + (b.note ? ", with your requirements." : ".");
-  $("next-when").textContent = n.runNowAt
-    ? (n.dispatch ? "Starting now." : `Starts at the next check, by ${timeOf(Math.floor(st.now / 900e3) * 900e3 + 900e3)}.`)
-    : `At ${timeOf(n.at)}, then every ${n.hours === 1 ? "hour" : n.hours + " hours"}.`;
-  $("run-now").disabled = !!n.runNowAt;
-  $("run-now").textContent = n.runNowAt ? "Asked to run" : "Run it now";
+  $("next-when").textContent = n.runNowAt ? waiting(n) : `At ${timeOf(n.at)}, then every ${n.hours === 1 ? "hour" : n.hours + " hours"}.`;
+  $("run-now").disabled = !!b;
+  $("run-now").textContent = n.runNowAt ? "Run it now again" : "Run it now";
   $("hours-note").textContent = 24 / n.hours > st.spend.perDay
     ? `At most ${st.spend.perDay} builds a day are allowed (MAX_BUILDS_PER_DAY in Azure), so some runs will be skipped.` : "";
   tick();
@@ -281,7 +289,7 @@ function start() {
     try { await signIn(); await load(); } catch (err) { say(passkeyError(err), true); }
   });
   $("run-now").addEventListener("click", async () => {
-    if (!confirm("Start the next update now? It counts toward today's builds.")) return;
+    if (!confirm(last && last.next.runNowAt ? "Ask GitHub again to start the next update now?" : "Start the next update now? It counts toward today's builds.")) return;
     try {
       const r = await call("POST", "run-now");
       say(r.started ? "Started. It goes live by itself when it's done."
