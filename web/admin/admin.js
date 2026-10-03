@@ -96,7 +96,7 @@ function clock(ms) {
 function tick() {
   if (!last) return;
   const n = last.next, left = n.at - (Date.now() + offset);
-  $("countdown").textContent = last.building ? "Building" : n.runNowAt ? "Now" : left > 0 ? clock(left) : "Any minute";
+  $("countdown").textContent = last.building ? "Building" : n.runNowAt ? "Waiting to start" : left > 0 ? clock(left) : "Any minute";
 }
 
 function renderNext(st) {

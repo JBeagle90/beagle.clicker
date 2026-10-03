@@ -23,6 +23,8 @@ export async function refresh() {
 }
 
 const now = () => Date.now() + offset;
+// The countdown's words: "in 12:34", or "starting soon" once it's due and waiting for its check to start.
+const untilNext = () => board.nextPickAt - now() > 0 ? ["in ", clock(board.nextPickAt - now())] : ["", "starting soon"];
 const quote = t => `“${t}”`;
 const every = () => board && board.updateHours > 1 ? `every ${board.updateHours} hours` : "every hour";
 
@@ -52,7 +54,7 @@ function renderStatus() {
   el.replaceChildren(h("div", { class: "status-box" },
     h("div", { class: "status-icon", "aria-hidden": "true", text: "⏳" }),
     h("div", {},
-      h("p", { class: "status-line" }, "Next update in ", h("strong", { id: "countdown", text: clock(board.nextPickAt - now()) })),
+      h("p", { class: "status-line" }, h("span", { id: "countdown-in", text: "Next update " + untilNext()[0] }), h("strong", { id: "countdown", text: untilNext()[1] })),
       picked ? h("p", { class: "status-text" }, "Up next: ", quote(picked.text), h("span", { class: "muted", text: " · the owner's pick" }))
       : lead ? h("p", { class: "status-text" }, "Leading: ", quote(lead.text), h("span", { class: "muted", text: ` · ${fmt(lead.score)} 🦴` }))
         : h("p", { class: "muted", text: board.open.some(s => s.own && s.status === "open")
@@ -150,7 +152,7 @@ function renderNext() {
   if (!board) return;
   const building = board.open.some(s => s.status === "building");
   $("next-icon").textContent = building ? "🔨" : "⏳";
-  $("next-text").textContent = building ? "Update being built" : `Next update ${clock(board.nextPickAt - now())}`;
+  $("next-text").textContent = building ? "Update being built" : "Next update " + untilNext()[1];
   $("next").classList.toggle("building", building);
 }
 
@@ -229,8 +231,9 @@ export function startBoard() {
   setInterval(() => {
     const cd = $("countdown");
     if (board && cd) {
-      const left = board.nextPickAt - now();
-      cd.textContent = clock(left);
+      const left = board.nextPickAt - now(), [pre, text] = untilNext();
+      $("countdown-in").textContent = "Next update " + pre;
+      cd.textContent = text;
       // At 0 it waits for the server, which says when the update starts (or the next check).
       if (left <= 0 && !board.asked) { board.asked = true; setTimeout(refresh, 15000); }
     }
