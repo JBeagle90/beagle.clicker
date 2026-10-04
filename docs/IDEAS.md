@@ -7,7 +7,7 @@ add ones that fit the game as it is now, and keep at most 15.
 - A trophy for owning every boost, and one for 100,000 pats.
 - The corgi's big ears perk up for a moment when you buy something in the shop.
 - A dig sound on each pat and a treasure jingle, with a sound on/off button that's remembered.
-- The treasure chest pops open with a burst of sparkles when you grab it.
+- A little bone or coin peeks out of the open chest when it pops open.
 - A tiny gold star on the space helmet with Night Shift.
 - The corgi's bandana flutters for a moment when a Dig Frenzy starts.
 - Ten more ticker headlines, some about corgis (short legs, fluffy bottoms, herding).

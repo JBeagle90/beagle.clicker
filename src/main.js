@@ -78,7 +78,7 @@ function checkTreasure() {
 }
 chest.addEventListener("click", async () => {
   const x = chest.offsetLeft, y = chest.offsetTop;
-  grabbed = chestAt; chest.hidden = true;
+  grabbed = chestAt; popOpen(x, y); chest.hidden = true;
   try {
     const r = await grabTreasure();
     if (r.frenzy) { floater("FRENZY!", x, y, "big"); toast(`🔥 Dig Frenzy! Everything gives ×${R.FRENZY.x} for ${R.FRENZY.seconds} seconds.`, "good"); }
@@ -88,6 +88,26 @@ chest.addEventListener("click", async () => {
     if (r.bonus) { floater("STREAK! +" + fmt(r.bonus), x, y - 40, "big"); toast(`🎯 ${R.STREAK.needs} treasures in a row! Streak bonus: +${fmt(r.bonus)} bones.`, "good"); }
   } catch (e) { toast(e.message || "The treasure got away.", "bad"); }
 });
+
+// The grabbed chest pops open where it was, its lid flipping up, with a burst of sparkles (no burst with reduced motion).
+function popOpen(x, y) {
+  const pop = h("span", { class: "treasure chest-pop" + (chest.classList.contains("gold") ? " gold" : ""), "aria-hidden": "true" });
+  pop.append(chest.querySelector("svg").cloneNode(true));
+  pop.style.left = x + "px"; pop.style.top = y + "px";
+  area.append(pop);
+  setTimeout(() => pop.remove(), 900);
+  if (calm.matches) return;
+  for (let i = 0; i < 8; i++) {
+    const s = h("span", { class: "chip sparkle", text: i % 2 ? "✨" : "⭐", "aria-hidden": "true" });
+    const a = -Math.PI * (i + 0.5) / 8; // a fan out of the open chest, left to right
+    s.style.left = x + "px"; s.style.top = (y - 10) + "px";
+    s.style.setProperty("--dx", Math.round(Math.cos(a) * (45 + Math.random() * 25)) + "px");
+    s.style.setProperty("--dy", Math.round(Math.sin(a) * (55 + Math.random() * 25)) + "px");
+    s.style.setProperty("--spin", Math.round(Math.random() * 180 - 90) + "deg");
+    area.append(s);
+    setTimeout(() => s.remove(), 900);
+  }
+}
 
 // --- Bones and rates, and the Dig Frenzy bar while one is on ---
 function renderBank() {

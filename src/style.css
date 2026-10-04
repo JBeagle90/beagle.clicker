@@ -247,12 +247,21 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 .treasure.gold .chest-band { stroke: #fff3c4; }
 .treasure.gold .chest-lock { fill: #fff3c4; stroke: var(--gold-ink); }
 .treasure.gold svg { filter: drop-shadow(0 0 6px var(--gold)); }
+/* A grabbed chest pops open: the lid flips up, then the chest fades (popOpen in main.js) */
+.treasure.chest-pop { pointer-events: none; animation: chest-fade .9s ease-in forwards; }
+.chest-pop .chest-lid, .chest-pop .chest-lock, .chest-pop .chest-glint { transform-box: view-box; transform-origin: 8px 26px; animation: lid-open .3s ease-out forwards; }
+.chest-pop .chest-band { display: none; }
+.chip.sparkle { font-size: 1.1rem; animation-duration: .9s; }
+@keyframes lid-open { to { transform: translate(-4px, -8px) rotate(-35deg); } }
+@keyframes chest-fade { 60% { opacity: 1; } to { opacity: 0; transform: translate(-50%, -50%) scale(1.1); } }
 @keyframes dig-up { from { transform: translate(-50%, 0) scale(.4); opacity: 0; } }
 @keyframes bob { 50% { transform: translate(-50%, -58%); } }
 @media (prefers-reduced-motion: reduce) {
   .beagle.boop svg, .beagle.boop .ear { animation: none; }
   .floater { animation-duration: .5s; }
   .treasure { animation: none; }
+  .treasure.chest-pop { animation: chest-fade .9s step-end forwards; }
+  .chest-pop .chest-lid, .chest-pop .chest-lock, .chest-pop .chest-glint { animation: none; transform: translate(-4px, -8px) rotate(-35deg); }
   .toast { transition: none; }
 }
 

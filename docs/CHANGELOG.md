@@ -103,3 +103,14 @@ All aboard! Once you own a Bone Train, the corgi ties on a little red bandana wi
 - Buy a Bone Train in the shop and look under the corgi's chin on the Dig tab: there's its new bandana.
 - A cheer pops up the first time the corgi puts it on.
 - It goes with all the other gear: the miner's helmet, goggles, party hat and space helmet.
+
+## 2026-10-04 · Treasure chests pop open with sparkles!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> Let the treasure chest pop open with a burst of sparkles when you grab it.
+
+Grabbing a treasure chest is more fun now: it pops open right where it was, and stars and sparkles burst out.
+- On the Dig tab, click a treasure chest: its lid flips open and a fan of stars and sparkles bursts out.
+- Gold chests pop open too, still all shiny gold.
+- With reduced motion on, you just see the open chest for a moment, with no burst.
