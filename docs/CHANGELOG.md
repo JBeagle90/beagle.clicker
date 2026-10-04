@@ -80,3 +80,15 @@ Keep an eye out: now and then a shiny gold chest pops up instead of a plain one,
 - Grab a gold chest for ×3 the bones of a normal treasure.
 - A new trophy, Gold Rush, for your first gold chest (on the Trophies screen).
 - Stats now counts the gold chests you've grabbed.
+
+## 2026-10-04 · Treasure streaks!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> Grab five treasure chests in a row without missing one for a treasure streak bonus.
+
+Grab five treasure chests in a row without missing one and you get a big streak bonus of bones!
+- Every chest you grab adds a paw to the new "Treasure streak" line under your bones (2/5, 3/5…).
+- The fifth chest in a row gives 5 treasures' worth of extra bones, then a new streak starts.
+- Missing a chest sets the streak back to 0.
+- A new trophy, On a Roll, for your first streak, and Stats now counts your streaks.

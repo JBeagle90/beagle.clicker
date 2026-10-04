@@ -78,7 +78,7 @@ export function tick(dt) {
 // gold chest } (or throws with why not).
 export async function grabTreasure() {
   const r = await spend("POST", "/game/treasure");
-  return { found: r.found || 0, frenzy: !!r.frenzy, gold: !!r.gold };
+  return { found: r.found || 0, frenzy: !!r.frenzy, gold: !!r.gold, bonus: r.bonus || 0 };
 }
 
 // A new display name (the server checks it). Throws with why not.

@@ -84,6 +84,8 @@ chest.addEventListener("click", async () => {
     if (r.frenzy) { floater("FRENZY!", x, y, "big"); toast(`🔥 Dig Frenzy! Everything gives ×${R.FRENZY.x} for ${R.FRENZY.seconds} seconds.`, "good"); }
     else if (r.gold) { floater("+" + fmt(r.found), x, y, "big"); toast(`🌟 A gold chest! ×${R.GOLD.x} bones: +${fmt(r.found)}.`, "good"); }
     else { floater("+" + fmt(r.found), x, y, "big"); toast(`Treasure! +${fmt(r.found)} bones.`, "good"); }
+    // The treasure streak: the fifth chest in a row says so instead.
+    if (r.bonus) { floater("STREAK! +" + fmt(r.bonus), x, y - 40, "big"); toast(`🎯 ${R.STREAK.needs} treasures in a row! Streak bonus: +${fmt(r.bonus)} bones.`, "good"); }
   } catch (e) { toast(e.message || "The treasure got away.", "bad"); }
 });
 
@@ -96,6 +98,14 @@ function renderBank() {
   const bar = $("frenzy");
   if (left > 0) bar.textContent = `🔥 Dig Frenzy ×${R.FRENZY.x} · ${left}s`;
   if (bar.hidden === left > 0) { bar.hidden = !(left > 0); document.body.classList.toggle("in-frenzy", left > 0); }
+  // The treasure streak so far, one paw for each chest grabbed in a row (hidden at 0).
+  const n = me ? me.game.streak || 0 : 0, streak = $("streak");
+  const text = n > 0 ? `Treasure streak ${"🐾".repeat(n)} ${n}/${R.STREAK.needs}` : "";
+  if (streak.textContent !== text) {
+    streak.textContent = text;
+    streak.hidden = !text;
+    streak.setAttribute("aria-label", `Treasure streak: ${n} of ${R.STREAK.needs}`);
+  }
 }
 
 // --- The shop: upgrades a few at a time (the next one shows once you own the one before), boosts once

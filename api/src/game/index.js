@@ -16,7 +16,8 @@ const actions = {};
 // Grab the buried treasure: only while it's up (the server's clock decides, with 2 s of slack for a
 // browser whose clock runs a little ahead). Gives R.treasure() bones, or (one in five) starts a Dig
 // Frenzy, and sets the next one. A gold chest (game.treasureGold) always gives R.GOLD.x times the
-// bones. `rand` is for tests.
+// bones. Every R.STREAK.needs grabs in a row (game.streak; a missed chest resets it in sync) add a
+// streak bonus of R.STREAK.x treasures' worth. `rand` is for tests.
 actions.treasure = async ({ player, now, rand = Math.random }) => {
   const p = sync(player, {}, now);
   const at = p.game.treasureAt;
@@ -39,9 +40,19 @@ actions.treasure = async ({ player, now, rand = Math.random }) => {
     p.bones += found;
     p.earned += found;
   }
+  // The treasure streak: the last chest of a run adds the bonus and starts a new run.
+  let bonus = 0;
+  p.game.streak = (p.game.streak || 0) + 1;
+  if (p.game.streak >= R.STREAK.needs) {
+    bonus = R.treasure(p.owned, p.game) * R.STREAK.x;
+    p.bones += bonus;
+    p.earned += bonus;
+    p.game.streak = 0;
+    p.game.streaks = (p.game.streaks || 0) + 1;
+  }
   nextTreasure(p, now);
   award(p);
-  return { player: p, body: { found, frenzy, gold } };
+  return { player: p, body: { found, frenzy, gold, bonus, streak: p.game.streak } };
 };
 
 module.exports = { R, sync, view, actions };

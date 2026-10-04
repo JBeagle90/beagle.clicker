@@ -44,8 +44,9 @@ function sync(player, input, now, rand = Math.random) {
     p.owned[id] = (p.owned[id] || 0) + 1;
   }
 
-  // A treasure that was missed sinks back; the next one is set.
+  // A treasure that was missed sinks back (and ends the treasure streak); the next one is set.
   const at = p.game.treasureAt;
+  if (typeof at === "number" && now > at + R.TREASURE.window * 1000) p.game.streak = 0;
   if (typeof at !== "number" || now > at + R.TREASURE.window * 1000) nextTreasure(p, now, rand);
   award(p);
   return p;

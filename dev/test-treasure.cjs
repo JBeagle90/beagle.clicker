@@ -61,4 +61,28 @@ test("a frenzy chest gives x7 for 30 s instead of bones, and the sync counts it"
   ok(Math.abs(z.bones - q.bones - 10 * bonus2) < 1e-6);
 });
 
+test("five chests in a row give a streak bonus, then a new streak starts", async () => {
+  let p = up(100000, { owned: { "puppy-pal": 1 } });
+  for (let i = 1; i < R.STREAK.needs; i++) {
+    const r = await actions.treasure({ player: p, body: {}, now: p.game.treasureAt, rand: never });
+    eq(r.body.streak, i); eq(r.body.bonus, 0);
+    p = r.player;
+  }
+  const r = await actions.treasure({ player: p, body: {}, now: p.game.treasureAt, rand: never });
+  eq(r.body.streak, 0);
+  ok(Math.abs(r.body.bonus - R.treasure(r.player.owned, p.game) * R.STREAK.x) < 1e-6, String(r.body.bonus));
+  const before = sync(p, {}, p.game.treasureAt).bones; // with the digging since the last chest
+  ok(Math.abs(r.player.bones - before - r.body.found - r.body.bonus) < 1e-6, String(r.player.bones - before));
+  eq(r.player.game.streaks, 1);
+  ok(r.player.game.trophies.includes("on-a-roll"));
+});
+
+test("a missed chest ends the streak; an old save starts at 0", async () => {
+  const p = up(100000, { game: { streak: 3 } });
+  eq(sync(p, {}, 100000 + R.TREASURE.window * 1000 - 1).game.streak, 3);
+  eq(sync(p, {}, 100000 + R.TREASURE.window * 1000 + 1).game.streak, 0);
+  const r = await actions.treasure({ player: up(100000), body: {}, now: 100000, rand: never });
+  eq(r.body.streak, 1);
+});
+
 done();

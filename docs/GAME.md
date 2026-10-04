@@ -39,10 +39,11 @@ Tabs in the header (the address's #hash, so Back works): **Dig** (the corgi; You
 - Grab it for a minute's worth of digging plus 30 pats' worth (at least 50 bones). Miss it and it sinks back.
 - One chest in five is a **Dig Frenzy** instead: everything gives ×7 for 30 seconds (a gold bar counts down, the corgi glows).
 - One chest in ten is a shiny **gold chest** (all gold, with sparkles and a glow, so you can see it): it always gives ×3 the bones, never a frenzy. Stats counts them.
+- A **treasure streak**: every chest you grab (any kind) adds a paw to "Treasure streak 🐾🐾 2/5" under the rates. The fifth in a row gives a streak bonus of 5 treasures' worth of bones on top, and a new streak starts. Missing a chest (or being away when one sinks) sets it back to 0. Stats counts streaks.
 
 ## Trophies
 
-- 15 trophies for pats (1, 100, 1,000, 10,000), bones dug up (1,000, 100,000, 10 M), 10 Dig Buddies, 50 upgrades, one of every upgrade, a first boost, treasures (1, 25), a Dig Frenzy and a gold chest (Gold Rush).
+- 16 trophies for pats (1, 100, 1,000, 10,000), bones dug up (1,000, 100,000, 10 M), 10 Dig Buddies, 50 upgrades, one of every upgrade, a first boost, treasures (1, 25), a Dig Frenzy, a gold chest (Gold Rush) and a treasure streak (On a Roll).
 - Each one is kept for good and gives +1% bones from pats and digging. The Trophies screen shows every one; a message pops up at the bottom when you earn one.
 
 ## Suggestions and updates
