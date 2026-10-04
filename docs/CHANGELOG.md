@@ -92,3 +92,14 @@ Grab five treasure chests in a row without missing one and you get a big streak 
 - The fifth chest in a row gives 5 treasures' worth of extra bones, then a new streak starts.
 - Missing a chest sets the streak back to 0.
 - A new trophy, On a Roll, for your first streak, and Stats now counts your streaks.
+
+## 2026-10-04 · A little red bandana for the corgi!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> A little red bandana for the corgi once you own a Bone Train.
+
+All aboard! Once you own a Bone Train, the corgi ties on a little red bandana with white polka dots.
+- Buy a Bone Train in the shop and look under the corgi's chin on the Dig tab: there's its new bandana.
+- A cheer pops up the first time the corgi puts it on.
+- It goes with all the other gear: the miner's helmet, goggles, party hat and space helmet.

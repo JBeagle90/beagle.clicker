@@ -208,7 +208,14 @@ function setupRename() {
 }
 
 // --- Start ---
-let partied = null; // is the party hat on? null until the first save arrives
+// The corgi's gear: put on or taken off, with a cheer the first time it appears,
+// but not when a save that has it loads (worn[cls] is unset until the first save arrives)
+const worn = {};
+function wear(cls, on, cheer) {
+  if (on && worn[cls] === false) toast(cheer, "good");
+  beagle.classList.toggle(cls, on);
+  if (game.me) worn[cls] = on;
+}
 onChange(what => {
   if (what.startsWith("trophy:")) {
     const t = R.TROPHIES.find(x => x.id === what.slice(7));
@@ -222,11 +229,8 @@ onChange(what => {
     beagle.classList.toggle("has-helmet", owns("dog-park"));
     beagle.classList.toggle("has-goggles", owns("bone-digger"));
     beagle.classList.toggle("has-space", owns("moon-base"));
-    // The party hat: a cheer the first time it appears, but not when a save that has it loads
-    const party = !!game.me && Object.values(game.me.owned).some(n => n >= 100);
-    if (party && partied === false) toast("🎉 100 of one thing! The corgi put on a party hat.", "good");
-    beagle.classList.toggle("has-party", party);
-    if (game.me) partied = party;
+    wear("has-party", !!game.me && Object.values(game.me.owned).some(n => n >= 100), "🎉 100 of one thing! The corgi put on a party hat.");
+    wear("has-bandana", owns("bone-train"), "🚂 All aboard! The corgi tied on a little red bandana.");
   } else refreshShop();
   renderBank();
   if (game.me) $("who").textContent = game.me.name + " ✏️";

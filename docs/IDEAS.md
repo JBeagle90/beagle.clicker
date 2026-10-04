@@ -8,7 +8,8 @@ add ones that fit the game as it is now, and keep at most 15.
 - The corgi's big ears perk up for a moment when you buy something in the shop.
 - A dig sound on each pat and a treasure jingle, with a sound on/off button that's remembered.
 - The treasure chest pops open with a burst of sparkles when you grab it.
-- A little red bandana for the corgi with a Bone Train, and a tiny gold star on the space helmet with Night Shift.
+- A tiny gold star on the space helmet with Night Shift.
+- The corgi's bandana flutters for a moment when a Dig Frenzy starts.
 - Ten more ticker headlines, some about corgis (short legs, fluffy bottoms, herding).
 - The treasure chest wears a little flame when your treasure streak is at 4, so you know the next one counts.
 - A dirt mound beside the corgi that grows as your Dig Sites do.
