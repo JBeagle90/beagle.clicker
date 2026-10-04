@@ -85,6 +85,7 @@ export function renderStats(me) {
     ["Boosts", `${boosts} / ${R.BOOSTS.length}`],
     ["Trophies", `${trophies} / ${R.TROPHIES.length} (+${Math.round(trophies * R.TROPHY_BONUS * 100)}% bones)`],
     ["Treasures grabbed", fmt(g.treasures || 0)],
+    ["Gold chests", fmt(g.golds || 0)],
     ["Dig Frenzies", fmt(g.frenzies || 0)],
     ["Counting since", g.startedAt ? new Date(g.startedAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "today"],
   ];

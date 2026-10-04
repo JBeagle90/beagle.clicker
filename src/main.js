@@ -68,6 +68,10 @@ function checkTreasure() {
     // A spot beside the beagle, a different one each time.
     const spots = [[12, 70], [88, 70], [14, 20], [86, 22]], s = spots[Math.floor(at / 1000) % spots.length];
     chest.style.left = s[0] + "%"; chest.style.top = s[1] + "%";
+    // A rare gold chest shines (the server picked it when it buried it).
+    const gold = !!game.me.game.treasureGold;
+    chest.classList.toggle("gold", gold);
+    chest.setAttribute("aria-label", gold ? "Grab the gold treasure!" : "Grab the buried treasure!");
   }
   if (chest.hidden === up) chest.hidden = !up;
   ping(up);
@@ -78,6 +82,7 @@ chest.addEventListener("click", async () => {
   try {
     const r = await grabTreasure();
     if (r.frenzy) { floater("FRENZY!", x, y, "big"); toast(`🔥 Dig Frenzy! Everything gives ×${R.FRENZY.x} for ${R.FRENZY.seconds} seconds.`, "good"); }
+    else if (r.gold) { floater("+" + fmt(r.found), x, y, "big"); toast(`🌟 A gold chest! ×${R.GOLD.x} bones: +${fmt(r.found)}.`, "good"); }
     else { floater("+" + fmt(r.found), x, y, "big"); toast(`Treasure! +${fmt(r.found)} bones.`, "good"); }
   } catch (e) { toast(e.message || "The treasure got away.", "bad"); }
 });

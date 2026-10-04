@@ -15,7 +15,8 @@ const actions = {};
 
 // Grab the buried treasure: only while it's up (the server's clock decides, with 2 s of slack for a
 // browser whose clock runs a little ahead). Gives R.treasure() bones, or (one in five) starts a Dig
-// Frenzy, and sets the next one. `rand` is for tests.
+// Frenzy, and sets the next one. A gold chest (game.treasureGold) always gives R.GOLD.x times the
+// bones. `rand` is for tests.
 actions.treasure = async ({ player, now, rand = Math.random }) => {
   const p = sync(player, {}, now);
   const at = p.game.treasureAt;
@@ -23,7 +24,13 @@ actions.treasure = async ({ player, now, rand = Math.random }) => {
   if (!(now <= at + R.TREASURE.window * 1000)) return { error: "Too slow! The treasure sank back into the dirt." };
   p.game.treasures = (p.game.treasures || 0) + 1;
   let found = 0, frenzy = false;
-  if (rand() < R.FRENZY.chance) {
+  const gold = !!p.game.treasureGold;
+  if (gold) {
+    found = R.treasure(p.owned, p.game) * R.GOLD.x;
+    p.bones += found;
+    p.earned += found;
+    p.game.golds = (p.game.golds || 0) + 1;
+  } else if (rand() < R.FRENZY.chance) {
     frenzy = true;
     p.game.frenzyUntil = now + R.FRENZY.seconds * 1000;
     p.game.frenzies = (p.game.frenzies || 0) + 1;
@@ -34,7 +41,7 @@ actions.treasure = async ({ player, now, rand = Math.random }) => {
   }
   nextTreasure(p, now);
   award(p);
-  return { player: p, body: { found, frenzy } };
+  return { player: p, body: { found, frenzy, gold } };
 };
 
 module.exports = { R, sync, view, actions };

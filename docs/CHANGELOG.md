@@ -68,3 +68,15 @@ Own 100 of any one thing in the shop and the corgi puts on a pink party hat to c
 - A pink, spotty party hat with a pom-pom on the corgi once you own 100 of any upgrade (Dig tab).
 - A cheer pops up at the bottom of the screen the moment the hat goes on.
 - The hat sits on top of the miner's helmet, and fits inside the space helmet.
+
+## 2026-10-04 · A rare gold chest!
+
+One of Claude's ideas on the board, with 10 bones from 1 player:
+
+> A rare gold chest: one treasure in ten gives three times the bones.
+
+Keep an eye out: now and then a shiny gold chest pops up instead of a plain one, and it's worth three times the bones!
+- One treasure chest in ten is gold, with sparkles and a glow, beside the corgi on the Dig screen.
+- Grab a gold chest for ×3 the bones of a normal treasure.
+- A new trophy, Gold Rush, for your first gold chest (on the Trophies screen).
+- Stats now counts the gold chests you've grabbed.

@@ -10,7 +10,7 @@ add ones that fit the game as it is now, and keep at most 15.
 - The treasure chest pops open with a burst of sparkles when you grab it.
 - A little red bandana for the corgi with a Bone Train, and a tiny gold star on the space helmet with Night Shift.
 - Ten more ticker headlines, some about corgis (short legs, fluffy bottoms, herding).
-- A rare gold chest: one treasure in ten gives three times as much.
+- A treasure streak: grab five chests in a row without missing one for a bonus.
 - A dirt mound beside the corgi that grows as your Dig Sites do.
 - The corgi's nose wiggles a second before a treasure appears.
 - A daily dig: once a day, a free bonus of a minute's worth of bones.

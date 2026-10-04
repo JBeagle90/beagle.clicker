@@ -74,10 +74,11 @@ export function tick(dt) {
   game.me.bones += n; game.me.earned += n;
 }
 
-// Grab the buried treasure. Answers { found: bones, frenzy: true if it started one } (or throws with why not).
+// Grab the buried treasure. Answers { found: bones, frenzy: true if it started one, gold: true for a
+// gold chest } (or throws with why not).
 export async function grabTreasure() {
   const r = await spend("POST", "/game/treasure");
-  return { found: r.found || 0, frenzy: !!r.frenzy };
+  return { found: r.found || 0, frenzy: !!r.frenzy, gold: !!r.gold };
 }
 
 // A new display name (the server checks it). Throws with why not.

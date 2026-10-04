@@ -51,10 +51,12 @@ function sync(player, input, now, rand = Math.random) {
   return p;
 }
 
-// Sets when the next buried treasure turns up: soon for a first one, then every few minutes.
+// Sets when the next buried treasure turns up (soon for a first one, then every few minutes), and
+// whether it's a rare gold chest.
 function nextTreasure(p, now, rand = Math.random) {
   const [lo, hi] = p.game.treasures ? R.TREASURE.gap : R.TREASURE.first;
   p.game.treasureAt = Math.round(now + (lo + (hi - lo) * rand()) * 1000);
+  p.game.treasureGold = rand() < R.GOLD.chance;
 }
 
 // Adds any trophies the player has just earned (they're kept for good).

@@ -234,6 +234,13 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 .treasure .chest-lock { fill: var(--gold); stroke: var(--brown); stroke-width: 2; }
 .treasure .chest-glint { fill: var(--gold); }
 .treasure:hover { filter: brightness(1.08); }
+/* The rare gold chest: all gold, with extra sparkles and a glow */
+.treasure .chest-sparkle { display: none; fill: var(--gold); }
+.treasure.gold .chest-sparkle { display: inline; }
+.treasure.gold .chest-lid, .treasure.gold .chest-box { fill: var(--gold); stroke: var(--gold-ink); }
+.treasure.gold .chest-band { stroke: #fff3c4; }
+.treasure.gold .chest-lock { fill: #fff3c4; stroke: var(--gold-ink); }
+.treasure.gold svg { filter: drop-shadow(0 0 6px var(--gold)); }
 @keyframes dig-up { from { transform: translate(-50%, 0) scale(.4); opacity: 0; } }
 @keyframes bob { 50% { transform: translate(-50%, -58%); } }
 @media (prefers-reduced-motion: reduce) {

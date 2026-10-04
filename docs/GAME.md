@@ -14,7 +14,7 @@ The dog is a corgi (it was a beagle until update 3; the site keeps its name, bea
 
 ## Screens
 
-Tabs in the header (the address's #hash, so Back works): **Dig** (the corgi; Your dig, a row of icons for each kind of upgrade you own with what it makes, under a news ticker of short, dry headlines that unlock as you progress; the shop), **Trophies**, **Stats** (bones, pats, rates, upgrades, boosts, trophies, treasures, frenzies, counting since) and **Updates** (the suggestion board and the update log). A dot on the Dig tab means a treasure is up. The header also shows the time to the next update (or that one's being built) on every screen, and your name: click it to change it.
+Tabs in the header (the address's #hash, so Back works): **Dig** (the corgi; Your dig, a row of icons for each kind of upgrade you own with what it makes, under a news ticker of short, dry headlines that unlock as you progress; the shop), **Trophies**, **Stats** (bones, pats, rates, upgrades, boosts, trophies, treasures, gold chests, frenzies, counting since) and **Updates** (the suggestion board and the update log). A dot on the Dig tab means a treasure is up. The header also shows the time to the next update (or that one's being built) on every screen, and your name: click it to change it.
 
 ## Shop
 
@@ -38,10 +38,11 @@ Tabs in the header (the address's #hash, so Back works): **Dig** (the corgi; You
 - A treasure chest pops up beside the corgi now and then: the first 1 to 2 minutes after you start, then every 3 to 6 minutes. It stays 12 seconds.
 - Grab it for a minute's worth of digging plus 30 pats' worth (at least 50 bones). Miss it and it sinks back.
 - One chest in five is a **Dig Frenzy** instead: everything gives ×7 for 30 seconds (a gold bar counts down, the corgi glows).
+- One chest in ten is a shiny **gold chest** (all gold, with sparkles and a glow, so you can see it): it always gives ×3 the bones, never a frenzy. Stats counts them.
 
 ## Trophies
 
-- 14 trophies for pats (1, 100, 1,000, 10,000), bones dug up (1,000, 100,000, 10 M), 10 Dig Buddies, 50 upgrades, one of every upgrade, a first boost, treasures (1, 25) and a Dig Frenzy.
+- 15 trophies for pats (1, 100, 1,000, 10,000), bones dug up (1,000, 100,000, 10 M), 10 Dig Buddies, 50 upgrades, one of every upgrade, a first boost, treasures (1, 25), a Dig Frenzy and a gold chest (Gold Rush).
 - Each one is kept for good and gives +1% bones from pats and digging. The Trophies screen shows every one; a message pops up at the bottom when you earn one.
 
 ## Suggestions and updates

@@ -30,6 +30,22 @@ test("a player with no treasure set yet can't grab one", async () => {
   ok((await actions.treasure({ player: fresh({ syncedAt: 0 }), body: {}, now: 5000 })).error);
 });
 
+test("a gold chest gives three times the bones, never a frenzy, and a trophy", async () => {
+  const r = await actions.treasure({ player: up(100000, { owned: { "puppy-pal": 1 }, game: { treasureGold: true } }), body: {}, now: 100000, rand: always });
+  ok(!r.error, r.error);
+  eq(r.body.gold, true); eq(r.body.frenzy, false);
+  eq(r.body.found, R.treasure({ "puppy-pal": 1 }) * R.GOLD.x);
+  eq(r.player.game.golds, 1);
+  ok(r.player.game.trophies.includes("gold-rush"));
+});
+
+test("about one chest in ten is buried gold", () => {
+  let golds = 0;
+  for (let i = 0; i < 2000; i++) if (sync(fresh(), {}, 0).game.treasureGold) golds++;
+  ok(golds > 120 && golds < 290, String(golds));
+  eq(sync(fresh(), {}, 0, () => 0.5).game.treasureGold, false);
+});
+
 test("a frenzy chest gives x7 for 30 s instead of bones, and the sync counts it", async () => {
   const r = await actions.treasure({ player: up(100000, { owned: { "puppy-pal": 1 } }), body: {}, now: 100000, rand: always });
   eq(r.body.frenzy, true); eq(r.body.found, 0);

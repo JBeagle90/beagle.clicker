@@ -52,6 +52,7 @@
     { id: "treasure-hunter", name: "Treasure Hunter", icon: "🧭", desc: "Grab a buried treasure.", when: p => ((p.game && p.game.treasures) || 0) >= 1 },
     { id: "dig-frenzy", name: "Dig Frenzy", icon: "🔥", desc: "Find a frenzy chest.", when: p => ((p.game && p.game.frenzies) || 0) >= 1 },
     { id: "treasure-legend", name: "Treasure Legend", icon: "🏆", desc: "Grab 25 buried treasures.", when: p => ((p.game && p.game.treasures) || 0) >= 25 },
+    { id: "gold-rush", name: "Gold Rush", icon: "🌟", desc: "Grab a gold chest.", when: p => ((p.game && p.game.golds) || 0) >= 1 },
   ];
 
   const byId = id => UPGRADES.find(u => u.id === id) || BOOSTS.find(b => b.id === id) || null;
@@ -72,6 +73,8 @@
     TREASURE: { first: [60, 120], gap: [180, 360], window: 15, show: 12, minBones: 50, digSeconds: 60, pats: 30 },
     // Some chests start a Dig Frenzy instead: everything gives `x` times as much for `seconds`.
     FRENZY: { chance: 0.2, x: 7, seconds: 30 },
+    // A rare gold chest (one in ten, picked when it's buried, so it shows) gives `x` times the bones, never a frenzy.
+    GOLD: { chance: 0.1, x: 3 },
     MAX_BUY: 100,            // the most of one upgrade bought in one go (the shop's ×100)
     byId,
     isBoost,
