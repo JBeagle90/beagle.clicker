@@ -166,6 +166,14 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 .beagle .goggles, .beagle .space { display: none; }
 .beagle.has-goggles .goggles, .beagle.has-space .space { display: inline; }
 .beagle.has-space .helmet { display: none; }
+/* A party hat once you own 100 of any one thing; it sits on top of the miner's helmet */
+.beagle .party { display: none; }
+.beagle.has-party .party { display: inline; }
+.beagle.has-helmet:not(.has-space) .party { transform: translateY(-24px); }
+.beagle .party-cone { fill: #ff8fb8; stroke: #c94f7d; stroke-width: 2.5; stroke-linejoin: round; }
+.beagle .party-stripe { fill: none; stroke: #fff3b0; stroke-width: 4; stroke-linecap: round; }
+.beagle .party-dot { fill: #7cc8ff; }
+.beagle .party-pom { fill: #fff3b0; stroke: #e0b84a; stroke-width: 2; }
 .beagle .goggle { fill: #bfe6ff; fill-opacity: .3; stroke: #4a5866; stroke-width: 6; }
 .beagle .goggle-strap, .beagle .goggle-bridge { fill: none; stroke: #4a5866; stroke-width: 6; stroke-linecap: round; }
 .beagle .goggle-glint { fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; opacity: .8; }

@@ -57,3 +57,14 @@ One of Claude's ideas on the board, with 1000 bones from 1 player:
 The corgi dresses up for the big digs now! Get a Bone Digger and it puts on goggles, and get a Moon Base and it swaps its miner's helmet for a glass space helmet.
 - Own a Bone Digger and the corgi wears round goggles (on the Dig tab).
 - Own a Moon Base and the corgi wears a space helmet with a comfy collar, instead of the miner's helmet.
+
+## 2026-10-04 · A party hat for the corgi!
+
+One of Claude's ideas on the board, with 1000 bones from 1 player:
+
+> Give the beagle a little party hat after I buy 100 of something
+
+Own 100 of any one thing in the shop and the corgi puts on a pink party hat to celebrate!
+- A pink, spotty party hat with a pom-pom on the corgi once you own 100 of any upgrade (Dig tab).
+- A cheer pops up at the bottom of the screen the moment the hat goes on.
+- The hat sits on top of the miner's helmet, and fits inside the space helmet.

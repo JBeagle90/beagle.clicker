@@ -10,7 +10,7 @@ The dog is a corgi (it was a beagle until update 3; the site keeps its name, bea
 - Pat the corgi: 1 bone a pat, plus what Sharp Noses and Steel Shovels add.
 - Bones keep coming from upgrades every second, including while you're away (up to 8 hours).
 - At most 20 pats a second count.
-- Each pat sends three little bones flying (not with reduced motion). Once you own a Dig Site, the corgi wears a yellow miner's helmet with a headlamp. With a Bone Digger it adds round goggles, and with a Moon Base the miner's helmet becomes a glass space helmet with a collar.
+- Each pat sends three little bones flying (not with reduced motion). Once you own a Dig Site, the corgi wears a yellow miner's helmet with a headlamp. With a Bone Digger it adds round goggles, and with a Moon Base the miner's helmet becomes a glass space helmet with a collar. Once you own 100 of any one upgrade, the corgi puts on a pink party hat (a cheer pops up the first time); it sits on top of the miner's helmet.
 
 ## Screens
 

@@ -16,5 +16,5 @@ add ones that fit the game as it is now, and keep at most 15.
 - A daily dig: once a day, a free bonus of a minute's worth of bones.
 - Each upgrade in the shop says how long until you can afford it ("in 12s").
 - A little sparkle on shop items the moment you can afford them.
-- A little wagging corgi bottom that peeks up under the corgi's head when you pat it.
+- A puff of confetti from the party hat each time you pat the corgi during a Dig Frenzy.
 - Choose the corgi's colour in the save panel: orange, black-and-tan or fluffy cream.

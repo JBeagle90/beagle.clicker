@@ -12,7 +12,8 @@ const $ = id => document.getElementById(id);
 window.BC = { ready: false, game };
 
 // --- The beagle: pat it for bones; chips of bone fly out. It wears a miner's helmet once you own a Dig Site,
-// goggles with a Bone Digger, and a space helmet (instead of the miner's) with a Moon Base ---
+// goggles with a Bone Digger, a space helmet (instead of the miner's) with a Moon Base, and a party hat
+// with 100 of any one thing ---
 const beagle = $("beagle"), area = $("pat-area"), calm = matchMedia("(prefers-reduced-motion: reduce)");
 beagle.addEventListener("click", e => {
   const n = pat();
@@ -192,6 +193,7 @@ function setupRename() {
 }
 
 // --- Start ---
+let partied = null; // is the party hat on? null until the first save arrives
 onChange(what => {
   if (what.startsWith("trophy:")) {
     const t = R.TROPHIES.find(x => x.id === what.slice(7));
@@ -205,6 +207,11 @@ onChange(what => {
     beagle.classList.toggle("has-helmet", owns("dog-park"));
     beagle.classList.toggle("has-goggles", owns("bone-digger"));
     beagle.classList.toggle("has-space", owns("moon-base"));
+    // The party hat: a cheer the first time it appears, but not when a save that has it loads
+    const party = !!game.me && Object.values(game.me.owned).some(n => n >= 100);
+    if (party && partied === false) toast("🎉 100 of one thing! The corgi put on a party hat.", "good");
+    beagle.classList.toggle("has-party", party);
+    if (game.me) partied = party;
   } else refreshShop();
   renderBank();
   if (game.me) $("who").textContent = game.me.name + " ✏️";
