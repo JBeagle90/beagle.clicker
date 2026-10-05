@@ -4,11 +4,14 @@
 const W = 320, H = 240;                       // the board, in canvas units (CSS scales it)
 const COLS = 8, ROWS = 4, BW = 36, BH = 14, GAP = 4, TOP = 30;
 const PW = 56, PH = 10, PY = H - 20, R = 5;   // paddle size and height, ball radius
+const GOLD = { chance: .12, fall: 70, wide: 92, secs: 10 }; // the golden biscuit: how often, how fast, how wide, how long
 const BEST = "bc.bricks";
 const $ = id => document.getElementById(id);
 
 let cv, ctx, colors, running = false, raf = 0, last = 0;
 let paddle, ball, bricks, score, lives, level, best = 0, keys = {};
+let drop = null, clock = 0, wideUntil = 0;   // a falling golden biscuit, game time (s), when the wide paw ends
+const pw = () => clock < wideUntil ? GOLD.wide : PW;   // the paw's width now
 
 // The page's colour tokens, read again at each start so dark mode looks right.
 function readColors() {
@@ -36,7 +39,13 @@ function draw() {
     ctx.fillStyle = "rgba(0,0,0,.18)";       // two little dots, like a biscuit
     ctx.beginPath(); ctx.arc(b.x + BW / 2 - 6, b.y + BH / 2, 1.5, 0, 7); ctx.arc(b.x + BW / 2 + 6, b.y + BH / 2, 1.5, 0, 7); ctx.fill();
   }
-  round(paddle.x - PW / 2, PY, PW, PH, 5, colors.accent);
+  if (drop) goldBiscuit(drop.x, drop.y);
+  const w = pw();
+  if (w > PW) {                               // a wide paw: a golden rim, and a bar that shrinks as it runs out
+    round(paddle.x - w / 2 - 2, PY - 2, w + 4, PH + 4, 7, "#f5c518");
+    round(paddle.x - w / 2, PY + PH + 4, w * (wideUntil - clock) / GOLD.secs, 2, 1, "#f5c518");
+  }
+  round(paddle.x - w / 2, PY, w, PH, 5, colors.accent);
   ctx.font = "9px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.fillText("🐾", paddle.x, PY + PH / 2 + 1);
   tennis(ball.x, ball.y, R);
@@ -44,6 +53,13 @@ function draw() {
   ctx.fillStyle = colors.ink; ctx.font = "bold 12px sans-serif"; ctx.textBaseline = "top";
   ctx.textAlign = "left"; ctx.fillText(`🦴 ${score}`, 8, 8);
   ctx.textAlign = "center"; ctx.fillText(`Level ${level}`, W / 2, 8);
+}
+function goldBiscuit(x, y) {
+  round(x - 11, y - 6, 22, 12, 4, "#f5c518");
+  ctx.strokeStyle = "#c08a00"; ctx.lineWidth = 1; ctx.stroke();
+  ctx.fillStyle = "rgba(0,0,0,.2)";
+  ctx.beginPath(); ctx.arc(x - 4, y, 1.3, 0, 7); ctx.arc(x + 4, y, 1.3, 0, 7); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(x + 8, y - 3, 1.4, 0, 7); ctx.fill();   // a little shine
 }
 function tennis(x, y, r) {
   ctx.fillStyle = "#c9e04a"; ctx.strokeStyle = "#7c9a1e"; ctx.lineWidth = 1.5;
@@ -57,17 +73,24 @@ function message(big, small) {
 
 // --- Moving: the paddle, the ball, bounces and biscuits ---
 function step(dt) {
+  clock += dt;
   if (keys.ArrowLeft) paddle.x -= 260 * dt;
   if (keys.ArrowRight) paddle.x += 260 * dt;
-  paddle.x = Math.max(PW / 2, Math.min(W - PW / 2, paddle.x));
+  paddle.x = Math.max(pw() / 2, Math.min(W - pw() / 2, paddle.x));
+  // The golden biscuit falls: catch it on the paw for a wider paw.
+  if (drop) {
+    drop.y += GOLD.fall * dt;
+    if (drop.y + 6 >= PY && drop.y - 6 < PY + PH && Math.abs(drop.x - paddle.x) <= pw() / 2 + 11) { wideUntil = clock + GOLD.secs; drop = null; }
+    else if (drop.y - 6 > H) drop = null;
+  }
   if (ball.stuck) { ball.x = paddle.x; return; }
   ball.x += ball.vx * dt; ball.y += ball.vy * dt;
   if (ball.x < R) { ball.x = R; ball.vx = Math.abs(ball.vx); }
   if (ball.x > W - R) { ball.x = W - R; ball.vx = -Math.abs(ball.vx); }
   if (ball.y < R) { ball.y = R; ball.vy = Math.abs(ball.vy); }
   // The paddle: where it lands sets the angle, so players can aim.
-  if (ball.vy > 0 && ball.y + R >= PY && ball.y < PY + PH && Math.abs(ball.x - paddle.x) <= PW / 2 + R) {
-    const speed = Math.hypot(ball.vx, ball.vy), hit = (ball.x - paddle.x) / (PW / 2);
+  if (ball.vy > 0 && ball.y + R >= PY && ball.y < PY + PH && Math.abs(ball.x - paddle.x) <= pw() / 2 + R) {
+    const speed = Math.hypot(ball.vx, ball.vy), hit = (ball.x - paddle.x) / (pw() / 2);
     ball.vx = speed * Math.max(-.85, Math.min(.85, hit * .85));
     ball.vy = -Math.sqrt(speed * speed - ball.vx * ball.vx);
     ball.y = PY - R;
@@ -75,13 +98,15 @@ function step(dt) {
   for (const b of bricks) {
     if (!b.on || ball.x + R < b.x || ball.x - R > b.x + BW || ball.y + R < b.y || ball.y - R > b.y + BH) continue;
     b.on = false; score += 10;
+    if (!drop && Math.random() < GOLD.chance) drop = { x: b.x + BW / 2, y: b.y + BH / 2 };
     const fromSide = Math.min(ball.x + R - b.x, b.x + BW - (ball.x - R)) < Math.min(ball.y + R - b.y, b.y + BH - (ball.y - R));
     if (fromSide) ball.vx = -ball.vx; else ball.vy = -ball.vy;
     break;
   }
-  if (bricks.every(b => !b.on)) { level++; newBricks(); serve(); return; }
+  if (bricks.every(b => !b.on)) { level++; drop = null; newBricks(); serve(); return; }
   if (ball.y - R > H) {
     lives--;
+    drop = null;
     if (lives > 0) serve(); else over();
   }
 }
@@ -103,7 +128,7 @@ function showBest() { $("bricks-best").textContent = best ? `Best: ${best}` : ""
 // --- Starting, pausing and controls ---
 function start() {
   colors = readColors();
-  paddle = { x: W / 2 }; score = 0; lives = 3; level = 1;
+  paddle = { x: W / 2 }; score = 0; lives = 3; level = 1; drop = null; clock = wideUntil = 0;
   newBricks(); serve(); running = true;
   $("bricks-go").textContent = "Restart"; cv.focus();
   cancelAnimationFrame(raf); last = performance.now(); raf = requestAnimationFrame(loop);

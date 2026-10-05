@@ -146,3 +146,14 @@ There's a new mini game! Bone Breaker is a little brick breaker where you bounce
 - Move the paw with the mouse, a finger or the arrow keys. Tap, or press Space, to throw the ball.
 - You get 3 balls a game. Clear every biscuit to reach the next level, which is a little faster.
 - Your best score is kept on your browser, next to the Play button.
+
+## 2026-10-05 · Bone Breaker: golden biscuits for a wide paw!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> In Bone Breaker, a golden biscuit sometimes drops and makes the corgi's paw wider for a while.
+
+In Bone Breaker, a shiny golden biscuit now and then falls out of a biscuit you break. Catch it on the corgi's paw and the paw grows much wider for 10 seconds!
+- Play tab, Bone Breaker: broken biscuits sometimes drop a golden biscuit.
+- Catch it on the paw to make the paw extra wide for 10 seconds, with a golden rim.
+- A little gold bar under the paw shrinks to show how long the wide paw lasts.
