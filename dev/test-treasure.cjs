@@ -39,6 +39,15 @@ test("a gold chest gives three times the bones, never a frenzy, and a trophy", a
   ok(r.player.game.trophies.includes("gold-rush"));
 });
 
+test("the tenth gold chest gives the Golden Paws trophy", async () => {
+  const gold = golds => up(100000, { game: { treasureGold: true, golds } });
+  const ninth = await actions.treasure({ player: gold(8), body: {}, now: 100000, rand: never });
+  ok(!ninth.player.game.trophies.includes("golden-paws"));
+  const tenth = await actions.treasure({ player: gold(9), body: {}, now: 100000, rand: never });
+  eq(tenth.player.game.golds, 10);
+  ok(tenth.player.game.trophies.includes("golden-paws"));
+});
+
 test("about one chest in ten is buried gold", () => {
   let golds = 0;
   for (let i = 0; i < 2000; i++) if (sync(fresh(), {}, 0).game.treasureGold) golds++;

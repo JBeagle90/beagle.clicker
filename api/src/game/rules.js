@@ -54,6 +54,7 @@
     { id: "treasure-legend", name: "Treasure Legend", icon: "🏆", desc: "Grab 25 buried treasures.", when: p => ((p.game && p.game.treasures) || 0) >= 25 },
     { id: "gold-rush", name: "Gold Rush", icon: "🌟", desc: "Grab a gold chest.", when: p => ((p.game && p.game.golds) || 0) >= 1 },
     { id: "on-a-roll", name: "On a Roll", icon: "🎯", desc: "Grab 5 treasures in a row.", when: p => ((p.game && p.game.streaks) || 0) >= 1 },
+    { id: "golden-paws", name: "Golden Paws", icon: "🥇", desc: "Grab 10 gold chests.", when: p => ((p.game && p.game.golds) || 0) >= 10 },
   ];
 
   const byId = id => UPGRADES.find(u => u.id === id) || BOOSTS.find(b => b.id === id) || null;

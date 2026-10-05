@@ -124,3 +124,13 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 Now when you grab a treasure chest and it pops open, a little bone pops up out of it to say hello.
 - On the Dig tab, grab a treasure chest: as the lid flips up, a little bone peeks out of the chest.
 - It peeks out of the shiny gold chests too.
+
+## 2026-10-05 · Golden Paws: a trophy for 10 gold chests!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> A trophy for grabbing 10 gold chests.
+
+Grab 10 gold chests and you'll earn the new Golden Paws trophy! Like every trophy, it's yours for good and gives +1% bones.
+- New trophy: Golden Paws 🥇, for grabbing 10 gold chests. Find it on the Trophies screen.
+- Gold chests you've already grabbed count toward it, so you might get it straight away.
