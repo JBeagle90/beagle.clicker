@@ -114,3 +114,13 @@ Grabbing a treasure chest is more fun now: it pops open right where it was, and 
 - On the Dig tab, click a treasure chest: its lid flips open and a fan of stars and sparkles bursts out.
 - Gold chests pop open too, still all shiny gold.
 - With reduced motion on, you just see the open chest for a moment, with no burst.
+
+## 2026-10-05 · A bone peeks out of the treasure chest!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> A little bone peeks out of the treasure chest when it pops open.
+
+Now when you grab a treasure chest and it pops open, a little bone pops up out of it to say hello.
+- On the Dig tab, grab a treasure chest: as the lid flips up, a little bone peeks out of the chest.
+- It peeks out of the shiny gold chests too.

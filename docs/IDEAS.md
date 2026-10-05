@@ -7,7 +7,7 @@ add ones that fit the game as it is now, and keep at most 15.
 - A trophy for owning every boost, and one for 100,000 pats.
 - The corgi's big ears perk up for a moment when you buy something in the shop.
 - A dig sound on each pat and a treasure jingle, with a sound on/off button that's remembered.
-- A little bone or coin peeks out of the open chest when it pops open.
+- A trophy for grabbing 10 gold chests.
 - A tiny gold star on the space helmet with Night Shift.
 - The corgi's bandana flutters for a moment when a Dig Frenzy starts.
 - Ten more ticker headlines, some about corgis (short legs, fluffy bottoms, herding).
@@ -17,5 +17,5 @@ add ones that fit the game as it is now, and keep at most 15.
 - A daily dig: once a day, a free bonus of a minute's worth of bones.
 - Each upgrade in the shop says how long until you can afford it ("in 12s").
 - A little sparkle on shop items the moment you can afford them.
-- A puff of confetti from the party hat each time you pat the corgi during a Dig Frenzy.
+- The corgi's ears wiggle happily when a treasure chest pops open.
 - Choose the corgi's colour in the save panel: orange, black-and-tan or fluffy cream.

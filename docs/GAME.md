@@ -36,7 +36,7 @@ Tabs in the header (the address's #hash, so Back works): **Dig** (the corgi; You
 ## Buried treasure
 
 - A treasure chest pops up beside the corgi now and then: the first 1 to 2 minutes after you start, then every 3 to 6 minutes. It stays 12 seconds.
-- Grab it for a minute's worth of digging plus 30 pats' worth (at least 50 bones). Miss it and it sinks back. A grabbed chest pops open, its lid flipping up, with a burst of stars and sparkles (just the open chest with reduced motion).
+- Grab it for a minute's worth of digging plus 30 pats' worth (at least 50 bones). Miss it and it sinks back. A grabbed chest pops open, its lid flipping up and a little bone peeking out of it, with a burst of stars and sparkles (just the open chest with reduced motion).
 - One chest in five is a **Dig Frenzy** instead: everything gives ×7 for 30 seconds (a gold bar counts down, the corgi glows).
 - One chest in ten is a shiny **gold chest** (all gold, with sparkles and a glow, so you can see it): it always gives ×3 the bones, never a frenzy. Stats counts them.
 - A **treasure streak**: every chest you grab (any kind) adds a paw to "Treasure streak 🐾🐾 2/5" under the rates. The fifth in a row gives a streak bonus of 5 treasures' worth of bones on top, and a new streak starts. Missing a chest (or being away when one sinks) sets it back to 0. Stats counts streaks.
