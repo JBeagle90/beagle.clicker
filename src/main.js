@@ -5,6 +5,7 @@ import { game, start, pat, buy, tick, onChange, serverNow, grabTreasure, frenzy,
 import { startBoard, refresh as refreshBoard } from "./board.js";
 import { setupTabs, ping, view, renderScene, startTicker, renderTrophies, renderStats } from "./screens.js";
 import { getSave, setSave, SAVE } from "./api.js";
+import { setupBricks, showBricks } from "./bricks.js";
 import { h, fmt, fmtRate } from "./ui.js";
 
 const R = window.RULES;
@@ -268,7 +269,8 @@ function frame(t) {
   requestAnimationFrame(frame);
 }
 
-setupTabs(v => { if (v === "stats") renderStats(game.me); });
+setupBricks();
+setupTabs(v => { if (v === "stats") renderStats(game.me); showBricks(v === "play"); });
 setupAmounts();
 renderShop();
 renderScene(game.me);

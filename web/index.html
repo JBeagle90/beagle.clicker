@@ -18,6 +18,7 @@
       <a href="#dig" data-view="dig"><span aria-hidden="true">⛏️</span> Dig</a>
       <a href="#trophies" data-view="trophies"><span aria-hidden="true">🏆</span> Trophies</a>
       <a href="#stats" data-view="stats"><span aria-hidden="true">📊</span> Stats</a>
+      <a href="#play" data-view="play"><span aria-hidden="true">🎾</span> Play</a>
       <a href="#updates" data-view="updates"><span aria-hidden="true">🗳️</span> Updates</a>
     </nav>
     <a class="next" id="next" href="#updates" aria-label="Time to the next update"><span aria-hidden="true" id="next-icon">⏳</span> <span id="next-text">Next update</span></a>
@@ -153,6 +154,19 @@
       <section class="card stats" aria-labelledby="stats-h">
         <h2 id="stats-h">Stats</h2>
         <dl class="stat-list" id="stats"></dl>
+      </section>
+    </div>
+
+    <!-- Play: Bone Breaker, a little brick breaker (src/bricks.js) -->
+    <div class="view" id="view-play" hidden>
+      <section class="card bricks" aria-labelledby="bricks-h">
+        <div class="bricks-head">
+          <h2 id="bricks-h">Bone Breaker</h2>
+          <span class="bricks-best" id="bricks-best"></span>
+          <button type="button" class="bricks-go" id="bricks-go">Play</button>
+        </div>
+        <canvas class="bricks-board" id="bricks" tabindex="0" aria-label="Bone Breaker: move the paw with the mouse, a finger or the arrow keys, and press Space to throw the ball"></canvas>
+        <p class="bricks-help">Bounce the tennis ball off the corgi's paw to break every biscuit. Just for fun: no bones won or lost.</p>
       </section>
     </div>
 

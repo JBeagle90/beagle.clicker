@@ -1,11 +1,11 @@
-// The game's screens (tabs in the header: Dig, Trophies, Stats, Updates) and what's on them besides
+// The game's screens (tabs in the header: Dig, Trophies, Stats, Play, Updates) and what's on them besides
 // the beagle and the shop: your dig, the news ticker, the trophy case and the stats.
 import { h, fmt, fmtRate } from "./ui.js";
 import { headline } from "./news.js";
 
 const R = window.RULES;
 const $ = id => document.getElementById(id);
-const VIEWS = ["dig", "trophies", "stats", "updates"];
+const VIEWS = ["dig", "trophies", "stats", "play", "updates"];
 
 // --- Tabs: the address's #hash picks the screen, so Back works and links like #updates do too ---
 export let view = "dig";

@@ -134,3 +134,15 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 Grab 10 gold chests and you'll earn the new Golden Paws trophy! Like every trophy, it's yours for good and gives +1% bones.
 - New trophy: Golden Paws 🥇, for grabbing 10 gold chests. Find it on the Trophies screen.
 - Gold chests you've already grabbed count toward it, so you might get it straight away.
+
+## 2026-10-05 · Bone Breaker: a brick breaker mini game!
+
+Suggested by Howly Nose 604, with 1000 bones from 1 player:
+
+> add a brick breaker type mini game
+
+There's a new mini game! Bone Breaker is a little brick breaker where you bounce a tennis ball off the corgi's paw to break rows of colourful dog biscuits. It's just for fun, so you never win or lose bones.
+- A new Play tab in the header opens Bone Breaker.
+- Move the paw with the mouse, a finger or the arrow keys. Tap, or press Space, to throw the ball.
+- You get 3 balls a game. Clear every biscuit to reach the next level, which is a little faster.
+- Your best score is kept on your browser, next to the Play button.

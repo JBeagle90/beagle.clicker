@@ -14,7 +14,12 @@ The dog is a corgi (it was a beagle until update 3; the site keeps its name, bea
 
 ## Screens
 
-Tabs in the header (the address's #hash, so Back works): **Dig** (the corgi; Your dig, a row of icons for each kind of upgrade you own with what it makes, under a news ticker of short, dry headlines that unlock as you progress; the shop), **Trophies**, **Stats** (bones, pats, rates, upgrades, boosts, trophies, treasures, gold chests, frenzies, counting since) and **Updates** (the suggestion board and the update log). A dot on the Dig tab means a treasure is up. The header also shows the time to the next update (or that one's being built) on every screen, and your name: click it to change it.
+Tabs in the header (the address's #hash, so Back works): **Dig** (the corgi; Your dig, a row of icons for each kind of upgrade you own with what it makes, under a news ticker of short, dry headlines that unlock as you progress; the shop), **Trophies**, **Stats** (bones, pats, rates, upgrades, boosts, trophies, treasures, gold chests, frenzies, counting since), **Play** (Bone Breaker, below) and **Updates** (the suggestion board and the update log). A dot on the Dig tab means a treasure is up. The header also shows the time to the next update (or that one's being built) on every screen, and your name: click it to change it.
+
+## Bone Breaker
+
+- A little brick breaker on the Play tab, just for fun: no bones won or lost. Bounce a tennis ball off the corgi's paw paddle to break 4 rows of 8 colourful dog biscuits (10 points each). Where the ball lands on the paw sets its angle.
+- Move with the mouse, a finger or the arrow keys; Space, Enter or a tap throws the ball. 3 balls a game; clearing every biscuit starts the next level, a little faster. The best score is kept on the browser. Leaving the tab pauses it.
 
 ## Shop
 

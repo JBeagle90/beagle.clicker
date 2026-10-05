@@ -13,8 +13,8 @@ add ones that fit the game as it is now, and keep at most 15.
 - The treasure chest wears a little flame when your treasure streak is at 4, so you know the next one counts.
 - A dirt mound beside the corgi that grows as your Dig Sites do.
 - The corgi's nose wiggles a second before a treasure appears.
-- A daily dig: once a day, a free bonus of a minute's worth of bones.
 - Each upgrade in the shop says how long until you can afford it ("in 12s").
 - A little sparkle on shop items the moment you can afford them.
 - The corgi's ears wiggle happily when a treasure chest pops open.
 - Choose the corgi's colour in the save panel: orange, black-and-tan or fluffy cream.
+- In Bone Breaker, a golden biscuit now and then that makes the corgi's paw wider for a while.
