@@ -7,7 +7,8 @@ const PW = 56, PH = 10, PY = H - 20, R = 5;   // paddle size and height, ball ra
 const GOLD = { chance: .12, fall: 70, wide: 92, secs: 10 }; // the golden biscuit: how often, how fast, how wide, how long
 const CONFETTI = { count: 40, speed: 140, gravity: 220, secs: 1.6 }; // the burst when a level is cleared
 const WIGGLE = { secs: .35, turns: 2, tilt: .45, dip: 2 }; // the paw's happy wiggle at each bounce: how long, how many wags, how far
-const BEST = "bc.bricks";
+const OOPS = { text: "My hot dog!", secs: 1.4, pitch: 1.7, rate: 1.15 }; // a missed golden biscuit: the shout, how long it shows, its voice
+const BEST = "bc.bricks", SOUND = "bc.bricksSound";
 const $ = id => document.getElementById(id);
 
 let cv, ctx, colors, running = false, raf = 0, last = 0;
@@ -15,6 +16,7 @@ let paddle, ball, bricks, score, lives, level, best = 0, keys = {};
 let drop = null, clock = 0, wideUntil = 0;   // a falling golden biscuit, game time (s), when the wide paw ends
 let confetti = [], cheerUntil = 0;           // confetti pieces, and when the "Level n!" cheer ends
 let wiggleUntil = 0;                         // when the paw's bounce wiggle ends
+let oops = null, sound = true;               // the "My hot dog!" bubble ({ x, until }), and whether it's said out loud
 const pw = () => clock < wideUntil ? GOLD.wide : PW;   // the paw's width now
 
 // The page's colour tokens, read again at each start so dark mode looks right.
@@ -60,6 +62,7 @@ function draw() {
     ctx.beginPath(); ctx.arc(b.x + BW / 2 - 6, b.y + BH / 2, 1.5, 0, 7); ctx.arc(b.x + BW / 2 + 6, b.y + BH / 2, 1.5, 0, 7); ctx.fill();
   }
   if (drop) goldBiscuit(drop.x, drop.y);
+  if (oops && clock < oops.until) bubble(oops.x, Math.min(1, (oops.until - clock) * 3));
   for (const c of confetti) {                 // little paper pieces, fading as they end
     ctx.save(); ctx.globalAlpha = Math.min(1, (c.end - clock) * 3);
     ctx.translate(c.x, c.y); ctx.rotate(c.turn); ctx.fillStyle = c.color; ctx.fillRect(-3, -1.5, 6, 3);
@@ -95,6 +98,23 @@ function goldBiscuit(x, y) {
   ctx.beginPath(); ctx.arc(x - 4, y, 1.3, 0, 7); ctx.arc(x + 4, y, 1.3, 0, 7); ctx.fill();
   ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(x + 8, y - 3, 1.4, 0, 7); ctx.fill();   // a little shine
 }
+// "My hot dog!" in a little speech bubble just above the paw, fading as it ends.
+function bubble(x, alpha) {
+  ctx.save(); ctx.globalAlpha = alpha; ctx.font = "bold 11px sans-serif";
+  const w = ctx.measureText(OOPS.text).width + 14, bx = Math.max(2, Math.min(W - w - 2, x - w / 2)), by = PY - 34;
+  round(bx, by, w, 18, 9, colors.cream);
+  ctx.strokeStyle = colors.brown; ctx.lineWidth = 1; ctx.stroke();
+  ctx.fillStyle = colors.brown; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(OOPS.text, bx + w / 2, by + 9.5);
+  ctx.restore();
+}
+// The golden biscuit got away: the corgi shouts "My hot dog!" (out loud only when sound is on).
+function missed(x) {
+  oops = { x, until: clock + OOPS.secs };
+  if (!sound || !window.speechSynthesis) return;
+  const say = new SpeechSynthesisUtterance(OOPS.text);
+  say.pitch = OOPS.pitch; say.rate = OOPS.rate;
+  speechSynthesis.cancel(); speechSynthesis.speak(say);
+}
 function tennis(x, y, r) {
   ctx.fillStyle = "#c9e04a"; ctx.strokeStyle = "#7c9a1e"; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.stroke();
@@ -116,7 +136,7 @@ function step(dt) {
   if (drop) {
     drop.y += GOLD.fall * dt;
     if (drop.y + 6 >= PY && drop.y - 6 < PY + PH && Math.abs(drop.x - paddle.x) <= pw() / 2 + 11) { wideUntil = clock + GOLD.secs; drop = null; }
-    else if (drop.y - 6 > H) drop = null;
+    else if (drop.y - 6 > H) { missed(drop.x); drop = null; }
   }
   if (ball.stuck) { ball.x = paddle.x; return; }
   ball.x += ball.vx * dt; ball.y += ball.vy * dt;
@@ -161,11 +181,17 @@ function loop(t) {
   raf = requestAnimationFrame(loop);
 }
 function showBest() { $("bricks-best").textContent = best ? `Best: ${best}` : ""; }
+// The sound button: 🔊 or 🔇, kept on this browser.
+function showSound() {
+  const b = $("bricks-sound");
+  b.textContent = sound ? "🔊" : "🔇"; b.setAttribute("aria-pressed", String(sound));
+  b.title = sound ? "Sound on" : "Sound off";
+}
 
 // --- Starting, pausing and controls ---
 function start() {
   colors = readColors();
-  paddle = { x: W / 2 }; score = 0; lives = 3; level = 1; drop = null; clock = wideUntil = cheerUntil = wiggleUntil = 0; confetti = [];
+  paddle = { x: W / 2 }; score = 0; lives = 3; level = 1; drop = null; clock = wideUntil = cheerUntil = wiggleUntil = 0; confetti = []; oops = null;
   newBricks(); serve(); running = true;  $("bricks-go").textContent = "Restart"; cv.focus();
   cancelAnimationFrame(raf); last = performance.now(); raf = requestAnimationFrame(loop);
 }
@@ -184,7 +210,13 @@ export function setupBricks() {
   const ratio = Math.min(3, window.devicePixelRatio || 1);
   cv.width = W * ratio; cv.height = H * ratio; ctx.scale(ratio, ratio);
   try { best = +localStorage.getItem(BEST) || 0; } catch (e) { /* private mode */ }
-  showBest();
+  try { sound = localStorage.getItem(SOUND) !== "off"; } catch (e) { /* private mode */ }
+  showBest(); showSound();
+  $("bricks-sound").addEventListener("click", () => {
+    sound = !sound; showSound();
+    if (!sound && window.speechSynthesis) speechSynthesis.cancel();
+    try { localStorage.setItem(SOUND, sound ? "on" : "off"); } catch (e) { /* private mode */ }
+  });
   $("bricks-go").addEventListener("click", start);
   const aim = e => { if (!running) return; const r = cv.getBoundingClientRect(); paddle.x = (e.clientX - r.left) / r.width * W; };
   cv.addEventListener("pointermove", aim);

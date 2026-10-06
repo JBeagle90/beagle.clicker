@@ -335,6 +335,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 .bricks-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .bricks-head h2 { margin: 0; }
 .bricks-best { margin-left: auto; color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+.bricks-sound { border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; background: none; font-size: 1rem; line-height: 1.2; }
 .bricks-go { border: 0; border-radius: 999px; padding: 6px 16px; background: var(--accent); color: var(--accent-ink); font-weight: 700; }
 .bricks-board { display: block; width: 100%; aspect-ratio: 4 / 3; border-radius: 12px; border: 1px solid var(--line); touch-action: none; }
 .bricks-help { margin: 10px 0 0; color: var(--muted); font-size: .88rem; }

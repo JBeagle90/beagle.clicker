@@ -19,7 +19,7 @@ Tabs in the header (the address's #hash, so Back works): **Dig** (the corgi; You
 ## Bone Breaker
 
 - A little brick breaker on the Play tab, just for fun: no bones won or lost. Bounce a tennis ball off the corgi's paw paddle to break 4 rows of 8 colourful dog biscuits (10 points each). Where the ball lands on the paw sets its angle. Each bounce makes the paw give a happy little wiggle: it dips, and its 🐾 wags side to side (not when the device asks for less motion).
-- Now and then a broken biscuit drops a shiny golden biscuit: catch it on the paw and the paw grows much wider for 10 seconds (a golden rim, and a gold bar under it that shrinks as time runs out). Catching another starts the 10 seconds again.
+- Now and then a broken biscuit drops a shiny golden biscuit: catch it on the paw and the paw grows much wider for 10 seconds (a golden rim, and a gold bar under it that shrinks as time runs out). Catching another starts the 10 seconds again. Miss it and the corgi shouts "My hot dog!": a little speech bubble pops up over the paw, and it's said out loud in a squeaky voice (the browser's own speech) when sound is on. The 🔊/🔇 button by Play turns the sound on or off, remembered on the browser.
 - Move with the mouse, a finger or the arrow keys; Space, Enter or a tap throws the ball. 3 balls a game; clearing every biscuit starts the next level, a little faster, with a burst of confetti from the last biscuit and a big "Level n! 🎉" over the waiting ball (just the words when the device asks for less motion). The best score is kept on the browser. Leaving the tab pauses it.
 
 ## Shop

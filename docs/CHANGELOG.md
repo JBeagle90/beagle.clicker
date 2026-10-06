@@ -178,3 +178,14 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 In Bone Breaker, the corgi's paw is happier than ever: every time it bounces the tennis ball, it gives a little wiggle.
 - Play tab, Bone Breaker: the paw dips a little and its 🐾 wags side to side on each bounce.
 - If your device asks for less motion, the paw stays still.
+
+## 2026-10-06 · Bone Breaker: "My hot dog!" when a golden biscuit gets away
+
+Suggested by Howly Nose 604, with 1000 bones from 1 player:
+
+> In the brick breaker mini game, when you miss grabbing a power up, it should play a (toggleable) sound effect that says "MY HOT DOG!".
+
+Miss a golden biscuit in Bone Breaker and the corgi shouts "My hot dog!" Turn the sound off any time with the new sound button.
+- Bone Breaker (Play tab): when a golden biscuit falls past the paw, a "My hot dog!" bubble pops up over the paw.
+- With sound on, the corgi says it out loud in a squeaky voice.
+- The new 🔊/🔇 button next to Play turns sound on or off, and your browser remembers your choice.
