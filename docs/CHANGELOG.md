@@ -168,3 +168,13 @@ Clear every biscuit in Bone Breaker and the last one bursts into colourful confe
 - Play tab, Bone Breaker: break the last biscuit for a burst of confetti
 - A big "Level 2! 🎉" (and so on) shows over the ball while you get ready for the next level
 - If your device asks for less motion, you get the cheer without the flying confetti
+
+## 2026-10-06 · Bone Breaker: a happy wiggle for every bounce!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> The corgi's paw gives a happy little wiggle each time it bounces the ball in Bone Breaker.
+
+In Bone Breaker, the corgi's paw is happier than ever: every time it bounces the tennis ball, it gives a little wiggle.
+- Play tab, Bone Breaker: the paw dips a little and its 🐾 wags side to side on each bounce.
+- If your device asks for less motion, the paw stays still.

@@ -6,6 +6,7 @@ const COLS = 8, ROWS = 4, BW = 36, BH = 14, GAP = 4, TOP = 30;
 const PW = 56, PH = 10, PY = H - 20, R = 5;   // paddle size and height, ball radius
 const GOLD = { chance: .12, fall: 70, wide: 92, secs: 10 }; // the golden biscuit: how often, how fast, how wide, how long
 const CONFETTI = { count: 40, speed: 140, gravity: 220, secs: 1.6 }; // the burst when a level is cleared
+const WIGGLE = { secs: .35, turns: 2, tilt: .45, dip: 2 }; // the paw's happy wiggle at each bounce: how long, how many wags, how far
 const BEST = "bc.bricks";
 const $ = id => document.getElementById(id);
 
@@ -13,6 +14,7 @@ let cv, ctx, colors, running = false, raf = 0, last = 0;
 let paddle, ball, bricks, score, lives, level, best = 0, keys = {};
 let drop = null, clock = 0, wideUntil = 0;   // a falling golden biscuit, game time (s), when the wide paw ends
 let confetti = [], cheerUntil = 0;           // confetti pieces, and when the "Level n!" cheer ends
+let wiggleUntil = 0;                         // when the paw's bounce wiggle ends
 const pw = () => clock < wideUntil ? GOLD.wide : PW;   // the paw's width now
 
 // The page's colour tokens, read again at each start so dark mode looks right.
@@ -68,14 +70,23 @@ function draw() {
     round(paddle.x - w / 2 - 2, PY - 2, w + 4, PH + 4, 7, "#f5c518");
     round(paddle.x - w / 2, PY + PH + 4, w * (wideUntil - clock) / GOLD.secs, 2, 1, "#f5c518");
   }
-  round(paddle.x - w / 2, PY, w, PH, 5, colors.accent);
-  ctx.font = "9px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText("🐾", paddle.x, PY + PH / 2 + 1);
+  paw(w);
   tennis(ball.x, ball.y, R);
   for (let i = 0; i < lives; i++) tennis(W - 12 - i * 14, 14, 4.5);   // balls left
   ctx.fillStyle = colors.ink; ctx.font = "bold 12px sans-serif"; ctx.textBaseline = "top";
   ctx.textAlign = "left"; ctx.fillText(`🦴 ${score}`, 8, 8);
   ctx.textAlign = "center"; ctx.fillText(`Level ${level}`, W / 2, 8);
+}
+// The paw paddle. Just after a bounce it dips a little and its 🐾 wags side to side, a bit bigger.
+function paw(w) {
+  const left = Math.max(0, wiggleUntil - clock) / WIGGLE.secs;   // 1 right at the bounce, down to 0
+  const wag = Math.sin((1 - left) * Math.PI * 2 * WIGGLE.turns) * WIGGLE.tilt * left;
+  const y = PY + (left > 0 ? Math.sin((1 - left) * Math.PI) * WIGGLE.dip : 0);
+  round(paddle.x - w / 2, y, w, PH, 5, colors.accent);
+  ctx.save(); ctx.translate(paddle.x, y + PH / 2 + 1); ctx.rotate(wag); ctx.scale(1 + left * .4, 1 + left * .4);
+  ctx.font = "9px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText("🐾", 0, 0);
+  ctx.restore();
 }
 function goldBiscuit(x, y) {
   round(x - 11, y - 6, 22, 12, 4, "#f5c518");
@@ -118,6 +129,7 @@ function step(dt) {
     ball.vx = speed * Math.max(-.85, Math.min(.85, hit * .85));
     ball.vy = -Math.sqrt(speed * speed - ball.vx * ball.vx);
     ball.y = PY - R;
+    if (!calm()) wiggleUntil = clock + WIGGLE.secs;   // a happy little wiggle (none when motion is reduced)
   }
   let broke = null;
   for (const b of bricks) {
@@ -153,9 +165,8 @@ function showBest() { $("bricks-best").textContent = best ? `Best: ${best}` : ""
 // --- Starting, pausing and controls ---
 function start() {
   colors = readColors();
-  paddle = { x: W / 2 }; score = 0; lives = 3; level = 1; drop = null; clock = wideUntil = cheerUntil = 0; confetti = [];
-  newBricks(); serve(); running = true;
-  $("bricks-go").textContent = "Restart"; cv.focus();
+  paddle = { x: W / 2 }; score = 0; lives = 3; level = 1; drop = null; clock = wideUntil = cheerUntil = wiggleUntil = 0; confetti = [];
+  newBricks(); serve(); running = true;  $("bricks-go").textContent = "Restart"; cv.focus();
   cancelAnimationFrame(raf); last = performance.now(); raf = requestAnimationFrame(loop);
 }
 const throwBall = () => { if (running && ball.stuck) ball.stuck = false; };
