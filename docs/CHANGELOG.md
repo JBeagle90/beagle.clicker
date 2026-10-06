@@ -189,3 +189,13 @@ Miss a golden biscuit in Bone Breaker and the corgi shouts "My hot dog!" Turn th
 - Bone Breaker (Play tab): when a golden biscuit falls past the paw, a "My hot dog!" bubble pops up over the paw.
 - With sound on, the corgi says it out loud in a squeaky voice.
 - The new 🔊/🔇 button next to Play turns sound on or off, and your browser remembers your choice.
+
+## 2026-10-06 · Bone Breaker: a soft "boing" for every bounce!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> In Bone Breaker, a soft "boing" sound when the tennis ball bounces off the paw.
+
+Bone Breaker has a new sound: every time the tennis ball bounces off the corgi's paw, it makes a soft, springy "boing"!
+- Play tab, Bone Breaker: a gentle "boing" plays each time the ball bounces off the paw.
+- The 🔊/🔇 button by Play turns the boing on or off, along with "My hot dog!".
