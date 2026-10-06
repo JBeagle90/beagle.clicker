@@ -5,12 +5,14 @@ const W = 320, H = 240;                       // the board, in canvas units (CSS
 const COLS = 8, ROWS = 4, BW = 36, BH = 14, GAP = 4, TOP = 30;
 const PW = 56, PH = 10, PY = H - 20, R = 5;   // paddle size and height, ball radius
 const GOLD = { chance: .12, fall: 70, wide: 92, secs: 10 }; // the golden biscuit: how often, how fast, how wide, how long
+const CONFETTI = { count: 40, speed: 140, gravity: 220, secs: 1.6 }; // the burst when a level is cleared
 const BEST = "bc.bricks";
 const $ = id => document.getElementById(id);
 
 let cv, ctx, colors, running = false, raf = 0, last = 0;
 let paddle, ball, bricks, score, lives, level, best = 0, keys = {};
 let drop = null, clock = 0, wideUntil = 0;   // a falling golden biscuit, game time (s), when the wide paw ends
+let confetti = [], cheerUntil = 0;           // confetti pieces, and when the "Level n!" cheer ends
 const pw = () => clock < wideUntil ? GOLD.wide : PW;   // the paw's width now
 
 // The page's colour tokens, read again at each start so dark mode looks right.
@@ -19,6 +21,22 @@ function readColors() {
   return { bg: v("--bg"), ink: v("--ink"), muted: v("--muted"), accent: v("--accent"), cream: v("--cream"), brown: v("--brown"), tan: v("--tan") };
 }
 const BISCUITS = ["#f2a1b8", "#f6c35b", "#8fd18a", "#8cc4f0"]; // one soft colour a row
+const calm = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// A level is cleared: confetti bursts out where the last biscuit was (just the cheer when motion is reduced).
+function burst(x, y) {
+  cheerUntil = clock + CONFETTI.secs + .4;
+  if (calm()) return;
+  for (let i = 0; i < CONFETTI.count; i++) {
+    const a = Math.random() * Math.PI * 2, v = CONFETTI.speed * (.4 + Math.random() * .8);
+    confetti.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 80, turn: Math.random() * 6, spin: (Math.random() - .5) * 14,
+      color: [...BISCUITS, "#f5c518"][i % 5], end: clock + CONFETTI.secs * (.7 + Math.random() * .3) });
+  }
+}
+function moveConfetti(dt) {
+  for (const c of confetti) { c.x += c.vx * dt; c.y += c.vy * dt; c.vy += CONFETTI.gravity * dt; c.vx *= 1 - dt; c.turn += c.spin * dt; }
+  confetti = confetti.filter(c => clock < c.end && c.y < H + 6);
+}
 
 function newBricks() {
   const left = (W - COLS * BW - (COLS - 1) * GAP) / 2;
@@ -40,6 +58,11 @@ function draw() {
     ctx.beginPath(); ctx.arc(b.x + BW / 2 - 6, b.y + BH / 2, 1.5, 0, 7); ctx.arc(b.x + BW / 2 + 6, b.y + BH / 2, 1.5, 0, 7); ctx.fill();
   }
   if (drop) goldBiscuit(drop.x, drop.y);
+  for (const c of confetti) {                 // little paper pieces, fading as they end
+    ctx.save(); ctx.globalAlpha = Math.min(1, (c.end - clock) * 3);
+    ctx.translate(c.x, c.y); ctx.rotate(c.turn); ctx.fillStyle = c.color; ctx.fillRect(-3, -1.5, 6, 3);
+    ctx.restore();
+  }
   const w = pw();
   if (w > PW) {                               // a wide paw: a golden rim, and a bar that shrinks as it runs out
     round(paddle.x - w / 2 - 2, PY - 2, w + 4, PH + 4, 7, "#f5c518");
@@ -74,6 +97,7 @@ function message(big, small) {
 // --- Moving: the paddle, the ball, bounces and biscuits ---
 function step(dt) {
   clock += dt;
+  moveConfetti(dt);
   if (keys.ArrowLeft) paddle.x -= 260 * dt;
   if (keys.ArrowRight) paddle.x += 260 * dt;
   paddle.x = Math.max(pw() / 2, Math.min(W - pw() / 2, paddle.x));
@@ -95,15 +119,16 @@ function step(dt) {
     ball.vy = -Math.sqrt(speed * speed - ball.vx * ball.vx);
     ball.y = PY - R;
   }
+  let broke = null;
   for (const b of bricks) {
     if (!b.on || ball.x + R < b.x || ball.x - R > b.x + BW || ball.y + R < b.y || ball.y - R > b.y + BH) continue;
-    b.on = false; score += 10;
+    b.on = false; score += 10; broke = b;
     if (!drop && Math.random() < GOLD.chance) drop = { x: b.x + BW / 2, y: b.y + BH / 2 };
     const fromSide = Math.min(ball.x + R - b.x, b.x + BW - (ball.x - R)) < Math.min(ball.y + R - b.y, b.y + BH - (ball.y - R));
     if (fromSide) ball.vx = -ball.vx; else ball.vy = -ball.vy;
     break;
   }
-  if (bricks.every(b => !b.on)) { level++; drop = null; newBricks(); serve(); return; }
+  if (broke && bricks.every(b => !b.on)) { burst(broke.x + BW / 2, broke.y + BH / 2); level++; drop = null; newBricks(); serve(); return; }
   if (ball.y - R > H) {
     lives--;
     drop = null;
@@ -120,7 +145,7 @@ function loop(t) {
   const dt = Math.min(.03, (t - last) / 1000); last = t;
   if (!running) return;
   step(dt); draw();
-  if (ball.stuck) message("", "Tap or press Space to throw the ball");
+  if (ball.stuck) message(clock < cheerUntil ? `Level ${level}! 🎉` : "", "Tap or press Space to throw the ball");
   raf = requestAnimationFrame(loop);
 }
 function showBest() { $("bricks-best").textContent = best ? `Best: ${best}` : ""; }
@@ -128,7 +153,7 @@ function showBest() { $("bricks-best").textContent = best ? `Best: ${best}` : ""
 // --- Starting, pausing and controls ---
 function start() {
   colors = readColors();
-  paddle = { x: W / 2 }; score = 0; lives = 3; level = 1; drop = null; clock = wideUntil = 0;
+  paddle = { x: W / 2 }; score = 0; lives = 3; level = 1; drop = null; clock = wideUntil = cheerUntil = 0; confetti = [];
   newBricks(); serve(); running = true;
   $("bricks-go").textContent = "Restart"; cv.focus();
   cancelAnimationFrame(raf); last = performance.now(); raf = requestAnimationFrame(loop);

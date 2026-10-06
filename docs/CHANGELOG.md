@@ -157,3 +157,14 @@ In Bone Breaker, a shiny golden biscuit now and then falls out of a biscuit you 
 - Play tab, Bone Breaker: broken biscuits sometimes drop a golden biscuit.
 - Catch it on the paw to make the paw extra wide for 10 seconds, with a golden rim.
 - A little gold bar under the paw shrinks to show how long the wide paw lasts.
+
+## 2026-10-06 · Bone Breaker: confetti for every level cleared!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> Little confetti bursts out in Bone Breaker when you clear a whole level.
+
+Clear every biscuit in Bone Breaker and the last one bursts into colourful confetti, while a big cheer tells you which level is next!
+- Play tab, Bone Breaker: break the last biscuit for a burst of confetti
+- A big "Level 2! 🎉" (and so on) shows over the ball while you get ready for the next level
+- If your device asks for less motion, you get the cheer without the flying confetti

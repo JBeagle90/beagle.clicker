@@ -13,8 +13,8 @@ add ones that fit the game as it is now, and keep at most 15.
 - A dirt mound beside the corgi that grows as your Dig Sites do.
 - The corgi's nose wiggles a second before a treasure appears.
 - Each upgrade in the shop says how long until you can afford it ("in 12s").
-- A little sparkle on shop items the moment you can afford them.
-- The corgi's ears wiggle happily when a treasure chest pops open.
 - Choose the corgi's colour in the save panel: orange, black-and-tan or fluffy cream.
 - In Bone Breaker, a blue biscuit that splits the tennis ball into two for a while.
-- In Bone Breaker, little confetti bursts out when you clear a whole level.
+- In Bone Breaker, a few biscuits are sprinkle biscuits that take two hits to break.
+- In Bone Breaker, the corgi's paw gives a happy little wiggle each time it bounces the ball.
+- A trophy on the Trophies screen for reaching level 3 in Bone Breaker (kept on this browser).
