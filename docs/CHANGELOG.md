@@ -219,3 +219,14 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 Clear every biscuit in Bone Breaker and a cheerful little tune now plays along with the confetti!
 - On the Play tab, clearing a level plays six bright, bell-like notes that climb up and end on a happy high note.
 - It only plays when sound is on (the 🔊 button next to Restart), so the 🔇 button keeps the game quiet.
+
+## 2026-10-07 · Bone Breaker: sprinkle biscuits take two hits!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> In Bone Breaker, a few biscuits are sprinkle biscuits that take two hits to break.
+
+Bone Breaker has sprinkle biscuits now! Each level, a few biscuits wear colourful sprinkles, and they take two hits to break.
+- On the Play tab, look for the biscuits with little coloured sprinkles on top.
+- The first hit sends the sprinkles flying off, and the second hit breaks the biscuit.
+- Each hit is worth 10 points, so a sprinkle biscuit is worth 20 in all.

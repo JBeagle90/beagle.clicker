@@ -11,6 +11,7 @@ const OOPS = { text: "My hot dog!", secs: 1.4, pitch: 1.7, rate: 1.15 }; // a mi
 const BOING = { from: 180, to: 420, wobble: 14, secs: .22, volume: .12 }; // the paw's soft bounce sound: pitch slide (Hz), its wobble, how long, how loud
 const CRUNCH = { secs: .09, freq: 1600, volume: .22 }; // a biscuit breaking: how long, the crunch's pitch (Hz), how loud
 const TUNE = { notes: [523, 659, 784, 659, 784, 1047], beat: .11, last: .35, volume: .09 }; // the level-cleared tune: notes (Hz, C E G E G C), each beat (s), the last note's length, how loud
+const SPRINKLE = { count: 4, colors: ["#ffffff", "#e8577a", "#5a8fd8", "#f5c518"] }; // sprinkle biscuits a level (two hits each), and their sprinkles' colours
 const BEST = "bc.bricks", SOUND = "bc.bricksSound";
 const $ = id => document.getElementById(id);
 
@@ -49,7 +50,25 @@ function moveConfetti(dt) {
 function newBricks() {
   const left = (W - COLS * BW - (COLS - 1) * GAP) / 2;
   bricks = [];
-  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) bricks.push({ x: left + c * (BW + GAP), y: TOP + r * (BH + GAP), row: r, on: true });
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) bricks.push({ x: left + c * (BW + GAP), y: TOP + r * (BH + GAP), row: r, on: true, hits: 1 });
+  // A few biscuits, picked at random, wear sprinkles: the first hit knocks them off, the second breaks it.
+  for (let n = 0; n < SPRINKLE.count;) { const b = bricks[Math.floor(Math.random() * bricks.length)]; if (b.hits === 1) { b.hits = 2; n++; } }
+}
+// Little sprinkles on a biscuit, in the same places every frame.
+const SPOTS = [[-12, -3, .6], [-5, 3, -.5], [3, -3, .3], [10, 2, -.8], [-14, 3, -.2], [13, -3, .9]];
+function sprinkles(b) {
+  ctx.lineWidth = 2; ctx.lineCap = "round";
+  SPOTS.forEach(([dx, dy, a], i) => {
+    const x = b.x + BW / 2 + dx, y = b.y + BH / 2 + dy;
+    ctx.strokeStyle = SPRINKLE.colors[i % SPRINKLE.colors.length];
+    ctx.beginPath(); ctx.moveTo(x - Math.cos(a) * 2, y - Math.sin(a) * 2); ctx.lineTo(x + Math.cos(a) * 2, y + Math.sin(a) * 2); ctx.stroke();
+  });
+}
+// The sprinkles fly off a biscuit as little bits of confetti (none when motion is reduced).
+function shake(b) {
+  if (calm()) return;
+  SPOTS.forEach(([dx, dy], i) => confetti.push({ x: b.x + BW / 2 + dx, y: b.y + BH / 2 + dy, vx: dx * 4, vy: -40 - Math.random() * 40,
+    turn: Math.random() * 6, spin: (Math.random() - .5) * 14, color: SPRINKLE.colors[i % SPRINKLE.colors.length], end: clock + .7 }));
 }
 function serve() {
   const speed = 150 + level * 25;            // a little faster each level
@@ -64,6 +83,7 @@ function draw() {
     round(b.x, b.y, BW, BH, 5, BISCUITS[b.row]);
     ctx.fillStyle = "rgba(0,0,0,.18)";       // two little dots, like a biscuit
     ctx.beginPath(); ctx.arc(b.x + BW / 2 - 6, b.y + BH / 2, 1.5, 0, 7); ctx.arc(b.x + BW / 2 + 6, b.y + BH / 2, 1.5, 0, 7); ctx.fill();
+    if (b.hits > 1) sprinkles(b);
   }
   if (drop) goldBiscuit(drop.x, drop.y);
   if (oops && clock < oops.until) bubble(oops.x, Math.min(1, (oops.until - clock) * 3));
@@ -223,9 +243,11 @@ function step(dt) {
   let broke = null;
   for (const b of bricks) {
     if (!b.on || ball.x + R < b.x || ball.x - R > b.x + BW || ball.y + R < b.y || ball.y - R > b.y + BH) continue;
-    b.on = false; score += 10; broke = b;
+    score += 10;
     crunch();
-    if (!drop && Math.random() < GOLD.chance) drop = { x: b.x + BW / 2, y: b.y + BH / 2 };
+    if (--b.hits > 0) shake(b);               // a sprinkle biscuit: the sprinkles come off, the biscuit stays
+    else { b.on = false; broke = b; }
+    if (!b.on && !drop && Math.random() < GOLD.chance) drop = { x: b.x + BW / 2, y: b.y + BH / 2 };
     const fromSide = Math.min(ball.x + R - b.x, b.x + BW - (ball.x - R)) < Math.min(ball.y + R - b.y, b.y + BH - (ball.y - R));
     if (fromSide) ball.vx = -ball.vx; else ball.vy = -ball.vy;
     break;
