@@ -209,3 +209,13 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 Every biscuit you break in Bone Breaker now makes a little crackly "crunch", a tiny bit different each time.
 - Play tab, Bone Breaker: a crunch when the tennis ball breaks a biscuit
 - The 🔊/🔇 button by Play turns the crunch on or off, along with the other sounds
+
+## 2026-10-07 · Bone Breaker: a happy tune for every level cleared!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> In Bone Breaker, a cheerful little tune plays when you clear a level.
+
+Clear every biscuit in Bone Breaker and a cheerful little tune now plays along with the confetti!
+- On the Play tab, clearing a level plays six bright, bell-like notes that climb up and end on a happy high note.
+- It only plays when sound is on (the 🔊 button next to Restart), so the 🔇 button keeps the game quiet.

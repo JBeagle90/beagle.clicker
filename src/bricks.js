@@ -10,6 +10,7 @@ const WIGGLE = { secs: .35, turns: 2, tilt: .45, dip: 2 }; // the paw's happy wi
 const OOPS = { text: "My hot dog!", secs: 1.4, pitch: 1.7, rate: 1.15 }; // a missed golden biscuit: the shout, how long it shows, its voice
 const BOING = { from: 180, to: 420, wobble: 14, secs: .22, volume: .12 }; // the paw's soft bounce sound: pitch slide (Hz), its wobble, how long, how loud
 const CRUNCH = { secs: .09, freq: 1600, volume: .22 }; // a biscuit breaking: how long, the crunch's pitch (Hz), how loud
+const TUNE = { notes: [523, 659, 784, 659, 784, 1047], beat: .11, last: .35, volume: .09 }; // the level-cleared tune: notes (Hz, C E G E G C), each beat (s), the last note's length, how loud
 const BEST = "bc.bricks", SOUND = "bc.bricksSound";
 const $ = id => document.getElementById(id);
 
@@ -164,6 +165,24 @@ function crunch() {
     src.start(t);
   } catch (e) { /* no sound here: the game goes on */ }
 }
+// A cheerful little tune when a level is cleared (only when sound is on): six bright, bell-like
+// notes climbing up, the last one held a little longer.
+function tune() {
+  try {
+    if (!ears()) return;
+    const start = audio.currentTime + .05;
+    TUNE.notes.forEach((freq, i) => {
+      const t = start + i * TUNE.beat, len = i === TUNE.notes.length - 1 ? TUNE.last : TUNE.beat * 1.4;
+      const osc = audio.createOscillator(), vol = audio.createGain();
+      osc.type = "triangle"; osc.frequency.value = freq;
+      vol.gain.setValueAtTime(0.0001, t);
+      vol.gain.exponentialRampToValueAtTime(TUNE.volume, t + .012);   // a soft "ting" at the start
+      vol.gain.exponentialRampToValueAtTime(0.0001, t + len);         // then fading away
+      osc.connect(vol); vol.connect(audio.destination);
+      osc.start(t); osc.stop(t + len + .02);
+    });
+  } catch (e) { /* no sound here: the game goes on */ }
+}
 function tennis(x, y, r) {
   ctx.fillStyle = "#c9e04a"; ctx.strokeStyle = "#7c9a1e"; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.stroke();
@@ -211,7 +230,7 @@ function step(dt) {
     if (fromSide) ball.vx = -ball.vx; else ball.vy = -ball.vy;
     break;
   }
-  if (broke && bricks.every(b => !b.on)) { burst(broke.x + BW / 2, broke.y + BH / 2); level++; drop = null; newBricks(); serve(); return; }
+  if (broke && bricks.every(b => !b.on)) { burst(broke.x + BW / 2, broke.y + BH / 2); tune(); level++; drop = null; newBricks(); serve(); return; }
   if (ball.y - R > H) {
     lives--;
     drop = null;
