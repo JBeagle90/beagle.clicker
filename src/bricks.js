@@ -12,6 +12,7 @@ const BOING = { from: 180, to: 420, wobble: 14, secs: .22, volume: .12 }; // the
 const CRUNCH = { secs: .09, freq: 1600, volume: .22 }; // a biscuit breaking: how long, the crunch's pitch (Hz), how loud
 const TUNE = { notes: [523, 659, 784, 659, 784, 1047], beat: .11, last: .35, volume: .09 }; // the level-cleared tune: notes (Hz, C E G E G C), each beat (s), the last note's length, how loud
 const SPRINKLE = { count: 4, colors: ["#ffffff", "#e8577a", "#5a8fd8", "#f5c518"] }; // sprinkle biscuits a level (two hits each), and their sprinkles' colours
+const RAINBOW = { count: 1, points: 50, colors: ["#f28b8b", "#f6c35b", "#f5e36b", "#8fd18a", "#8cc4f0", "#b79cf0"], secs: 1 }; // rainbow biscuits a level, their points, stripes, how long "+50" floats
 const BEST = "bc.bricks", SOUND = "bc.bricksSound";
 const $ = id => document.getElementById(id);
 
@@ -21,7 +22,8 @@ let drop = null, clock = 0, wideUntil = 0;   // a falling golden biscuit, game t
 let confetti = [], cheerUntil = 0;           // confetti pieces, and when the "Level n!" cheer ends
 let wiggleUntil = 0;                         // when the paw's bounce wiggle ends
 let oops = null, sound = true;               // the "My hot dog!" bubble ({ x, until }), and whether it's said out loud
-let audio = null;                            // the Web Audio context for the boing and crunch, made at the first sound
+let pops = [];                               // "+50" words floating up from a rainbow biscuit ({ x, y, until })
+let audio = null;                           // the Web Audio context for the boing and crunch, made at the first sound
 const pw = () => clock < wideUntil ? GOLD.wide : PW;   // the paw's width now
 
 // The page's colour tokens, read again at each start so dark mode looks right.
@@ -53,6 +55,8 @@ function newBricks() {
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) bricks.push({ x: left + c * (BW + GAP), y: TOP + r * (BH + GAP), row: r, on: true, hits: 1 });
   // A few biscuits, picked at random, wear sprinkles: the first hit knocks them off, the second breaks it.
   for (let n = 0; n < SPRINKLE.count;) { const b = bricks[Math.floor(Math.random() * bricks.length)]; if (b.hits === 1) { b.hits = 2; n++; } }
+  // And one is a rainbow biscuit (never a sprinkle one): breaking it gives RAINBOW.points.
+  for (let n = 0; n < RAINBOW.count;) { const b = bricks[Math.floor(Math.random() * bricks.length)]; if (b.hits === 1 && !b.rainbow) { b.rainbow = true; n++; } }
 }
 // Little sprinkles on a biscuit, in the same places every frame.
 const SPOTS = [[-12, -3, .6], [-5, 3, -.5], [3, -3, .3], [10, 2, -.8], [-14, 3, -.2], [13, -3, .9]];
@@ -63,6 +67,23 @@ function sprinkles(b) {
     ctx.strokeStyle = SPRINKLE.colors[i % SPRINKLE.colors.length];
     ctx.beginPath(); ctx.moveTo(x - Math.cos(a) * 2, y - Math.sin(a) * 2); ctx.lineTo(x + Math.cos(a) * 2, y + Math.sin(a) * 2); ctx.stroke();
   });
+}
+// A rainbow biscuit's stripes, soft and bright.
+function rainbow(b) {
+  const g = ctx.createLinearGradient(b.x, 0, b.x + BW, 0);
+  RAINBOW.colors.forEach((c, i) => g.addColorStop(i / (RAINBOW.colors.length - 1), c));
+  return g;
+}
+// A rainbow biscuit breaks: "+50" floats up, and rainbow sparkles fly out (no sparkles when motion is reduced).
+function cheer(b) {
+  const x = b.x + BW / 2, y = b.y + BH / 2;
+  pops.push({ x, y, until: clock + RAINBOW.secs });
+  if (calm()) return;
+  for (let i = 0; i < 12; i++) {
+    const a = i / 12 * Math.PI * 2;
+    confetti.push({ x, y, vx: Math.cos(a) * 70, vy: Math.sin(a) * 70 - 30, turn: a, spin: (Math.random() - .5) * 14,
+      color: RAINBOW.colors[i % RAINBOW.colors.length], end: clock + .8 });
+  }
 }
 // The sprinkles fly off a biscuit as little bits of confetti (none when motion is reduced).
 function shake(b) {
@@ -80,7 +101,7 @@ function round(x, y, w, h, r, fill) { ctx.fillStyle = fill; ctx.beginPath(); ctx
 function draw() {
   ctx.fillStyle = colors.bg; ctx.fillRect(0, 0, W, H);
   for (const b of bricks) if (b.on) {
-    round(b.x, b.y, BW, BH, 5, BISCUITS[b.row]);
+    round(b.x, b.y, BW, BH, 5, b.rainbow ? rainbow(b) : BISCUITS[b.row]);
     ctx.fillStyle = "rgba(0,0,0,.18)";       // two little dots, like a biscuit
     ctx.beginPath(); ctx.arc(b.x + BW / 2 - 6, b.y + BH / 2, 1.5, 0, 7); ctx.arc(b.x + BW / 2 + 6, b.y + BH / 2, 1.5, 0, 7); ctx.fill();
     if (b.hits > 1) sprinkles(b);
@@ -91,6 +112,13 @@ function draw() {
     ctx.save(); ctx.globalAlpha = Math.min(1, (c.end - clock) * 3);
     ctx.translate(c.x, c.y); ctx.rotate(c.turn); ctx.fillStyle = c.color; ctx.fillRect(-3, -1.5, 6, 3);
     ctx.restore();
+  }
+  ctx.font = "bold 13px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for (const p of pops) {                     // "+50", rising and fading (just fading when motion is reduced)
+    const t = p.until - clock;
+    ctx.globalAlpha = Math.max(0, Math.min(1, t * 3)); ctx.fillStyle = "#e8577a";
+    ctx.fillText(`+${RAINBOW.points}`, p.x, p.y - (RAINBOW.secs - t) * (calm() ? 0 : 24));
+    ctx.globalAlpha = 1;
   }
   const w = pw();
   if (w > PW) {                               // a wide paw: a golden rim, and a bar that shrinks as it runs out
@@ -217,6 +245,7 @@ function message(big, small) {
 function step(dt) {
   clock += dt;
   moveConfetti(dt);
+  pops = pops.filter(p => clock < p.until);
   if (keys.ArrowLeft) paddle.x -= 260 * dt;
   if (keys.ArrowRight) paddle.x += 260 * dt;
   paddle.x = Math.max(pw() / 2, Math.min(W - pw() / 2, paddle.x));
@@ -243,10 +272,10 @@ function step(dt) {
   let broke = null;
   for (const b of bricks) {
     if (!b.on || ball.x + R < b.x || ball.x - R > b.x + BW || ball.y + R < b.y || ball.y - R > b.y + BH) continue;
-    score += 10;
+    score += b.rainbow ? RAINBOW.points : 10;
     crunch();
     if (--b.hits > 0) shake(b);               // a sprinkle biscuit: the sprinkles come off, the biscuit stays
-    else { b.on = false; broke = b; }
+    else { b.on = false; broke = b; if (b.rainbow) cheer(b); }
     if (!b.on && !drop && Math.random() < GOLD.chance) drop = { x: b.x + BW / 2, y: b.y + BH / 2 };
     const fromSide = Math.min(ball.x + R - b.x, b.x + BW - (ball.x - R)) < Math.min(ball.y + R - b.y, b.y + BH - (ball.y - R));
     if (fromSide) ball.vx = -ball.vx; else ball.vy = -ball.vy;
@@ -283,8 +312,7 @@ function showSound() {
 // --- Starting, pausing and controls ---
 function start() {
   colors = readColors();
-  paddle = { x: W / 2 }; score = 0; lives = 3; level = 1; drop = null; clock = wideUntil = cheerUntil = wiggleUntil = 0; confetti = []; oops = null;
-  newBricks(); serve(); running = true;  $("bricks-go").textContent = "Restart"; cv.focus();
+  paddle = { x: W / 2 }; score = 0; lives = 3; level = 1; drop = null; clock = wideUntil = cheerUntil = wiggleUntil = 0; confetti = []; pops = []; oops = null;  newBricks(); serve(); running = true;  $("bricks-go").textContent = "Restart"; cv.focus();
   cancelAnimationFrame(raf); last = performance.now(); raf = requestAnimationFrame(loop);
 }
 const throwBall = () => { if (running && ball.stuck) ball.stuck = false; };

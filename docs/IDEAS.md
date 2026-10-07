@@ -7,7 +7,6 @@ add ones that fit the game as it is now, and keep at most 15.
 - A trophy for owning every boost, and one for 100,000 pats.
 - The corgi's big ears perk up for a moment when you buy something in the shop.
 - A dig sound on each pat and a treasure jingle, with a sound on/off button that's remembered.
-- The corgi's bandana flutters for a moment when a Dig Frenzy starts.
 - The treasure chest wears a little flame when your treasure streak is at 4, so you know the next one counts.
 - A dirt mound beside the corgi that grows as your Dig Sites do.
 - Each upgrade in the shop says how long until you can afford it ("in 12s").
@@ -17,4 +16,5 @@ add ones that fit the game as it is now, and keep at most 15.
 - In Bone Breaker, a silly slide-whistle "whoops" when the tennis ball gets past the paw.
 - A trophy on the Trophies screen for reaching level 3 in Bone Breaker (kept on this browser).
 - In Bone Breaker, a sprinkle biscuit gives a little wobble when its sprinkles get knocked off.
+- In Bone Breaker, a sparkly "twinkle" sound when you break the rainbow biscuit.
 - In Bone Breaker, a happy "ding" when you catch a golden biscuit and the paw grows wide.

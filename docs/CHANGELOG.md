@@ -230,3 +230,14 @@ Bone Breaker has sprinkle biscuits now! Each level, a few biscuits wear colourfu
 - On the Play tab, look for the biscuits with little coloured sprinkles on top.
 - The first hit sends the sprinkles flying off, and the second hit breaks the biscuit.
 - Each hit is worth 10 points, so a sprinkle biscuit is worth 20 in all.
+
+## 2026-10-07 · Bone Breaker: a rainbow biscuit worth 50 points!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> In Bone Breaker, a rainbow biscuit that gives 50 points when you break it.
+
+Every level of Bone Breaker now has one rainbow biscuit, and breaking it gives you 50 points!
+- Look for the biscuit with soft rainbow stripes on the Play tab: it's in a different place each level.
+- Break it for 50 points, with a "+50" floating up and a ring of rainbow sparkles.
+- When your device asks for less motion, you just see the "+50".
