@@ -199,3 +199,13 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 Bone Breaker has a new sound: every time the tennis ball bounces off the corgi's paw, it makes a soft, springy "boing"!
 - Play tab, Bone Breaker: a gentle "boing" plays each time the ball bounces off the paw.
 - The 🔊/🔇 button by Play turns the boing on or off, along with "My hot dog!".
+
+## 2026-10-07 · Bone Breaker: a crunchy "crunch" for every biscuit!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> In Bone Breaker, a little "crunch" sound each time a biscuit breaks.
+
+Every biscuit you break in Bone Breaker now makes a little crackly "crunch", a tiny bit different each time.
+- Play tab, Bone Breaker: a crunch when the tennis ball breaks a biscuit
+- The 🔊/🔇 button by Play turns the crunch on or off, along with the other sounds

@@ -9,6 +9,7 @@ const CONFETTI = { count: 40, speed: 140, gravity: 220, secs: 1.6 }; // the burs
 const WIGGLE = { secs: .35, turns: 2, tilt: .45, dip: 2 }; // the paw's happy wiggle at each bounce: how long, how many wags, how far
 const OOPS = { text: "My hot dog!", secs: 1.4, pitch: 1.7, rate: 1.15 }; // a missed golden biscuit: the shout, how long it shows, its voice
 const BOING = { from: 180, to: 420, wobble: 14, secs: .22, volume: .12 }; // the paw's soft bounce sound: pitch slide (Hz), its wobble, how long, how loud
+const CRUNCH = { secs: .09, freq: 1600, volume: .22 }; // a biscuit breaking: how long, the crunch's pitch (Hz), how loud
 const BEST = "bc.bricks", SOUND = "bc.bricksSound";
 const $ = id => document.getElementById(id);
 
@@ -18,7 +19,7 @@ let drop = null, clock = 0, wideUntil = 0;   // a falling golden biscuit, game t
 let confetti = [], cheerUntil = 0;           // confetti pieces, and when the "Level n!" cheer ends
 let wiggleUntil = 0;                         // when the paw's bounce wiggle ends
 let oops = null, sound = true;               // the "My hot dog!" bubble ({ x, until }), and whether it's said out loud
-let audio = null;                            // the Web Audio context for the boing, made at the first bounce
+let audio = null;                            // the Web Audio context for the boing and crunch, made at the first sound
 const pw = () => clock < wideUntil ? GOLD.wide : PW;   // the paw's width now
 
 // The page's colour tokens, read again at each start so dark mode looks right.
@@ -117,14 +118,19 @@ function missed(x) {
   say.pitch = OOPS.pitch; say.rate = OOPS.rate;
   speechSynthesis.cancel(); speechSynthesis.speak(say);
 }
+// The one Web Audio context, made when first needed (null when sound is off or the browser has none).
+function ears() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!sound || !AC) return null;
+  audio = audio || new AC();
+  if (audio.state === "suspended") audio.resume();
+  return audio;
+}
 // A soft "boing" when the ball bounces off the paw (only when sound is on): a gentle sine wave that
 // slides up in pitch with a little wobble, fading out fast.
 function boing() {
-  const AC = window.AudioContext || window.webkitAudioContext;
-  if (!sound || !AC) return;
   try {
-    audio = audio || new AC();
-    if (audio.state === "suspended") audio.resume();
+    if (!ears()) return;
     const t = audio.currentTime, osc = audio.createOscillator(), lfo = audio.createOscillator();
     const wob = audio.createGain(), vol = audio.createGain();
     osc.type = "sine";
@@ -137,6 +143,25 @@ function boing() {
     vol.gain.exponentialRampToValueAtTime(0.0001, t + BOING.secs);
     osc.connect(vol); vol.connect(audio.destination);
     osc.start(t); lfo.start(t); osc.stop(t + BOING.secs + .02); lfo.stop(t + BOING.secs + .02);
+  } catch (e) { /* no sound here: the game goes on */ }
+}
+// A little "crunch" when a biscuit breaks (only when sound is on): a short burst of crackly noise
+// through a filter, pitched a bit differently each time.
+function crunch() {
+  try {
+    if (!ears()) return;
+    const t = audio.currentTime, n = Math.floor(audio.sampleRate * CRUNCH.secs);
+    const buf = audio.createBuffer(1, n, audio.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) {             // noise in loud and soft little bits, fading out
+      const crackle = Math.floor(i * 6 / n) % 2 ? .45 : 1;
+      d[i] = (Math.random() * 2 - 1) * crackle * (1 - i / n);
+    }
+    const src = audio.createBufferSource(), band = audio.createBiquadFilter(), vol = audio.createGain();
+    src.buffer = buf;
+    band.type = "bandpass"; band.Q.value = 1.2; band.frequency.value = CRUNCH.freq * (.8 + Math.random() * .4);
+    vol.gain.value = CRUNCH.volume;
+    src.connect(band); band.connect(vol); vol.connect(audio.destination);
+    src.start(t);
   } catch (e) { /* no sound here: the game goes on */ }
 }
 function tennis(x, y, r) {
@@ -180,6 +205,7 @@ function step(dt) {
   for (const b of bricks) {
     if (!b.on || ball.x + R < b.x || ball.x - R > b.x + BW || ball.y + R < b.y || ball.y - R > b.y + BH) continue;
     b.on = false; score += 10; broke = b;
+    crunch();
     if (!drop && Math.random() < GOLD.chance) drop = { x: b.x + BW / 2, y: b.y + BH / 2 };
     const fromSide = Math.min(ball.x + R - b.x, b.x + BW - (ball.x - R)) < Math.min(ball.y + R - b.y, b.y + BH - (ball.y - R));
     if (fromSide) ball.vx = -ball.vx; else ball.vy = -ball.vy;
