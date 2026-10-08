@@ -42,6 +42,7 @@
     { id: "quick-paws", name: "Quick Paws", icon: "👋", desc: "100 pats.", when: p => p.pats >= 100 },
     { id: "paw-machine", name: "Paw Machine", icon: "⚙️", desc: "1,000 pats.", when: p => p.pats >= 1000 },
     { id: "iron-paws", name: "Iron Paws", icon: "🦾", desc: "10,000 pats.", when: p => p.pats >= 10000 },
+    { id: "pat-legend", name: "Pat Legend", icon: "🌈", desc: "100,000 pats.", when: p => p.pats >= 1e5 },
     { id: "bone-pile", name: "Bone Pile", icon: "🦴", desc: "Dig up 1,000 bones.", when: p => p.earned >= 1000 },
     { id: "bone-baron", name: "Bone Baron", icon: "🎩", desc: "Dig up 100,000 bones.", when: p => p.earned >= 1e5 },
     { id: "bone-tycoon", name: "Bone Tycoon", icon: "👑", desc: "Dig up 10 million bones.", when: p => p.earned >= 1e7 },

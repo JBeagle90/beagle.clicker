@@ -4,7 +4,7 @@ Small, fun ideas for when no suggestion has bones. Each one fits in one update. 
 add ones that fit the game as it is now, and keep at most 15.
 
 - A boost for Bone Mines ("Deep Drills"), unlocked at 10 Bone Mines.
-- A trophy for owning every boost, and one for 100,000 pats.
+- A trophy for owning every boost.
 - The corgi's big ears perk up for a moment when you buy something in the shop.
 - A dig sound on each pat and a treasure jingle, with a sound on/off button that's remembered.
 - The treasure chest wears a little flame when your treasure streak is at 4, so you know the next one counts.

@@ -251,3 +251,14 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 Missing the ball in Bone Breaker is now a little funnier: a silly slide-whistle "whoops" swoops up and then slides all the way down.
 - Play tab, Bone Breaker: when the tennis ball gets past the paw, you hear a slide-whistle "whoops".
 - It only plays when sound is on, so the 🔊/🔇 button by Play still turns it off.
+
+## 2026-10-08 · A new trophy: Pat Legend for 100,000 pats!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> A trophy for patting the corgi 100,000 times.
+
+There's a new trophy for the most devoted patters: pat the corgi 100,000 times to become a Pat Legend!
+- Pat Legend 🌈 is on the Trophies screen, after Iron Paws
+- Like every trophy, it's kept for good and gives +1% bones
+- Already past 100,000 pats? It's yours within a few seconds of opening the game

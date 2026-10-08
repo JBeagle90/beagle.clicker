@@ -86,6 +86,13 @@ test("trophies are earned once, kept, and give 1% each", () => {
   eq(R.newTrophies(fresh({ pats: 100, earned: 1000 })).sort(), ["bone-pile", "first-pat", "quick-paws"]);
 });
 
+test("Pat Legend comes at 100,000 pats", () => {
+  ok(!R.newTrophies(fresh({ pats: 99999 })).includes("pat-legend"));
+  const p = sync(fresh({ pats: 99999 }), { pats: 1 }, 2000);
+  eq(p.pats, 100000);
+  ok(p.game.trophies.includes("pat-legend"));
+});
+
 test("a treasure is set soon for new players, then every few minutes, and sinks back when missed", () => {
   const p = sync(fresh(), {}, 0, () => 0);
   eq(p.game.treasureAt, 60 * 1000);
