@@ -283,3 +283,14 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 Your treasure streak is bouncier now: every time you grab a chest, the paws on the streak line do a happy little hop, one after another.
 - Grab a treasure chest and watch the paws on the "Treasure streak" line under your bones hop.
 - If your device asks for less motion, the paws stay still.
+
+## 2026-10-08 · The corgi has a waggy tail!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> The corgi's tail wags fast for a moment when you grab a treasure chest.
+
+The corgi has a fluffy tail now! It wags gently all the time, and wags super fast for a moment whenever you grab a treasure chest.
+- A fluffy tail with a cream tip peeks out beside the corgi's head on the Dig screen.
+- Grab a treasure chest and watch the tail wag fast with joy.
+- With reduced motion turned on, the tail stays still.

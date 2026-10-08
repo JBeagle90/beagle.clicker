@@ -86,7 +86,7 @@ function checkTreasure() {
 }
 chest.addEventListener("click", async () => {
   const x = chest.offsetLeft, y = chest.offsetTop;
-  grabbed = chestAt; popOpen(x, y); chest.hidden = true;
+  grabbed = chestAt; popOpen(x, y); chest.hidden = true; wag();
   try {
     const r = await grabTreasure();
     if (r.frenzy) { floater("FRENZY!", x, y, "big"); toast(`🔥 Dig Frenzy! Everything gives ×${R.FRENZY.x} for ${R.FRENZY.seconds} seconds.`, "good"); }
@@ -96,6 +96,14 @@ chest.addEventListener("click", async () => {
     if (r.bonus) { floater("STREAK! +" + fmt(r.bonus), x, y - 40, "big"); toast(`🎯 ${R.STREAK.needs} treasures in a row! Streak bonus: +${fmt(r.bonus)} bones.`, "good"); }
   } catch (e) { toast(e.message || "The treasure got away.", "bad"); }
 });
+
+// The corgi's tail wags fast for a moment when you grab a chest (CSS keeps it still with reduced motion).
+let wagging = 0;
+function wag() {
+  beagle.classList.add("wagging");
+  clearTimeout(wagging);
+  wagging = setTimeout(() => beagle.classList.remove("wagging"), 1600);
+}
 
 // The grabbed chest pops open where it was, its lid flipping up, with a burst of sparkles (no burst with reduced motion).
 function popOpen(x, y) {

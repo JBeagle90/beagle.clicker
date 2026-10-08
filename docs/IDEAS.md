@@ -6,7 +6,7 @@ add ones that fit the game as it is now, and keep at most 15.
 - A boost for Bone Mines ("Deep Drills"), unlocked at 10 Bone Mines.
 - A trophy for owning every boost.
 - The corgi's big ears perk up for a moment when you buy something in the shop.
-- A dig sound on each pat and a treasure jingle, with a sound on/off button that's remembered.
+- The corgi's tail wags fast the whole time a Dig Frenzy is on.
 - The bones counter gives a little bounce each time you buy something in the shop.
 - A dirt mound beside the corgi that grows as your Dig Sites do.
 - Each upgrade in the shop says how long until you can afford it ("in 12s").
