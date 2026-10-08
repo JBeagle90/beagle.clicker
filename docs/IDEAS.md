@@ -7,7 +7,7 @@ add ones that fit the game as it is now, and keep at most 15.
 - A trophy for owning every boost.
 - The corgi's big ears perk up for a moment when you buy something in the shop.
 - A dig sound on each pat and a treasure jingle, with a sound on/off button that's remembered.
-- The treasure chest wears a little flame when your treasure streak is at 4, so you know the next one counts.
+- The paws on the treasure streak line do a happy little hop each time a new one is added.
 - A dirt mound beside the corgi that grows as your Dig Sites do.
 - Each upgrade in the shop says how long until you can afford it ("in 12s").
 - Choose the corgi's colour in the save panel: orange, black-and-tan or fluffy cream.

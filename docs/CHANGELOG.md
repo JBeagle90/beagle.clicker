@@ -262,3 +262,14 @@ There's a new trophy for the most devoted patters: pat the corgi 100,000 times t
 - Pat Legend 🌈 is on the Trophies screen, after Iron Paws
 - Like every trophy, it's kept for good and gives +1% bones
 - Already past 100,000 pats? It's yours within a few seconds of opening the game
+
+## 2026-10-08 · A little flame on the chest at streak 4!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> The treasure chest wears a little flame when your treasure streak is at 4, so you know the next one counts.
+
+When your treasure streak is at 4/5, the next chest now wears a little flickering flame, so you know grabbing it gets you the streak bonus.
+- On the Dig screen, a chest that pops up at streak 4/5 has a tiny cartoon flame on its lid.
+- It works on gold chests too, and the flame holds still if your device asks for less motion.
+- Screen readers hear "One more for a streak bonus!" on that chest.

@@ -74,6 +74,13 @@ function checkTreasure() {
     chest.classList.toggle("gold", gold);
     chest.setAttribute("aria-label", gold ? "Grab the gold treasure!" : "Grab the buried treasure!");
   }
+  // One grab away from a streak bonus: the chest wears a little flame, so you know this one counts.
+  const hot = up && (game.me.game.streak || 0) === R.STREAK.needs - 1;
+  if (chest.classList.contains("hot") !== hot) {
+    chest.classList.toggle("hot", hot);
+    const kind = chest.classList.contains("gold") ? "gold" : "buried";
+    chest.setAttribute("aria-label", `Grab the ${kind} treasure!` + (hot ? " One more for a streak bonus!" : ""));
+  }
   if (chest.hidden === up) chest.hidden = !up;
   ping(up);
 }
