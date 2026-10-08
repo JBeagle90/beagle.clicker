@@ -273,3 +273,13 @@ When your treasure streak is at 4/5, the next chest now wears a little flickerin
 - On the Dig screen, a chest that pops up at streak 4/5 has a tiny cartoon flame on its lid.
 - It works on gold chests too, and the flame holds still if your device asks for less motion.
 - Screen readers hear "One more for a streak bonus!" on that chest.
+
+## 2026-10-08 · Happy hopping paws on your treasure streak!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> The paws on the treasure streak line do a happy little hop each time a new one is added.
+
+Your treasure streak is bouncier now: every time you grab a chest, the paws on the streak line do a happy little hop, one after another.
+- Grab a treasure chest and watch the paws on the "Treasure streak" line under your bones hop.
+- If your device asks for less motion, the paws stay still.

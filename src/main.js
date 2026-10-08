@@ -127,11 +127,18 @@ function renderBank() {
   if (left > 0) bar.textContent = `🔥 Dig Frenzy ×${R.FRENZY.x} · ${left}s`;
   if (bar.hidden === left > 0) { bar.hidden = !(left > 0); document.body.classList.toggle("in-frenzy", left > 0); }
   // The treasure streak so far, one paw for each chest grabbed in a row (hidden at 0).
-  const n = me ? me.game.streak || 0 : 0, streak = $("streak");
-  const text = n > 0 ? `Treasure streak ${"🐾".repeat(n)} ${n}/${R.STREAK.needs}` : "";
-  if (streak.textContent !== text) {
-    streak.textContent = text;
-    streak.hidden = !text;
+  // When a paw is added (not on page load), every paw does a happy little hop, one after another.
+  const n = me ? me.game.streak || 0 : 0, streak = $("streak"), was = streak.dataset.n;
+  if (was !== String(n)) {
+    streak.dataset.n = n;
+    const hop = was != null && n > Number(was);
+    const paws = Array.from({ length: n }, (_, i) => {
+      const paw = h("span", { class: hop ? "paw hop" : "paw" }, "🐾");
+      paw.style.setProperty("--i", i);
+      return paw;
+    });
+    streak.replaceChildren(...(n > 0 ? ["Treasure streak ", ...paws, ` ${n}/${R.STREAK.needs}`] : []));
+    streak.hidden = !(n > 0);
     streak.setAttribute("aria-label", `Treasure streak: ${n} of ${R.STREAK.needs}`);
   }
 }
