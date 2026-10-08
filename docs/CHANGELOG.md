@@ -241,3 +241,13 @@ Every level of Bone Breaker now has one rainbow biscuit, and breaking it gives y
 - Look for the biscuit with soft rainbow stripes on the Play tab: it's in a different place each level.
 - Break it for 50 points, with a "+50" floating up and a ring of rainbow sparkles.
 - When your device asks for less motion, you just see the "+50".
+
+## 2026-10-08 · Bone Breaker: a silly "whoops" for every missed ball!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> In Bone Breaker, a silly slide-whistle "whoops" when the tennis ball gets past the paw.
+
+Missing the ball in Bone Breaker is now a little funnier: a silly slide-whistle "whoops" swoops up and then slides all the way down.
+- Play tab, Bone Breaker: when the tennis ball gets past the paw, you hear a slide-whistle "whoops".
+- It only plays when sound is on, so the 🔊/🔇 button by Play still turns it off.

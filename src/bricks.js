@@ -9,6 +9,7 @@ const CONFETTI = { count: 40, speed: 140, gravity: 220, secs: 1.6 }; // the burs
 const WIGGLE = { secs: .35, turns: 2, tilt: .45, dip: 2 }; // the paw's happy wiggle at each bounce: how long, how many wags, how far
 const OOPS = { text: "My hot dog!", secs: 1.4, pitch: 1.7, rate: 1.15 }; // a missed golden biscuit: the shout, how long it shows, its voice
 const BOING = { from: 180, to: 420, wobble: 14, secs: .22, volume: .12 }; // the paw's soft bounce sound: pitch slide (Hz), its wobble, how long, how loud
+const WHOOPS = { from: 700, top: 1300, to: 260, up: .12, down: .5, vibrato: 6, wobble: 18, volume: .1 }; // the slide-whistle "whoops" for a missed ball: pitches (Hz), how long up and down (s), its wobble (Hz, depth), how loud
 const CRUNCH = { secs: .09, freq: 1600, volume: .22 }; // a biscuit breaking: how long, the crunch's pitch (Hz), how loud
 const TUNE = { notes: [523, 659, 784, 659, 784, 1047], beat: .11, last: .35, volume: .09 }; // the level-cleared tune: notes (Hz, C E G E G C), each beat (s), the last note's length, how loud
 const SPRINKLE = { count: 4, colors: ["#ffffff", "#e8577a", "#5a8fd8", "#f5c518"] }; // sprinkle biscuits a level (two hits each), and their sprinkles' colours
@@ -194,6 +195,27 @@ function boing() {
     osc.start(t); lfo.start(t); osc.stop(t + BOING.secs + .02); lfo.stop(t + BOING.secs + .02);
   } catch (e) { /* no sound here: the game goes on */ }
 }
+// A silly slide-whistle "whoops" when the ball gets past the paw (only when sound is on): a soft
+// sine that swoops up a little, then slides all the way down, with a gentle wobble.
+function whoops() {
+  try {
+    if (!ears()) return;
+    const t = audio.currentTime, end = t + WHOOPS.up + WHOOPS.down;
+    const osc = audio.createOscillator(), lfo = audio.createOscillator(), wob = audio.createGain(), vol = audio.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(WHOOPS.from, t);
+    osc.frequency.exponentialRampToValueAtTime(WHOOPS.top, t + WHOOPS.up);
+    osc.frequency.exponentialRampToValueAtTime(WHOOPS.to, end);
+    lfo.frequency.value = WHOOPS.vibrato; wob.gain.value = WHOOPS.wobble;   // the whistle's wobble
+    lfo.connect(wob); wob.connect(osc.frequency);
+    vol.gain.setValueAtTime(0.0001, t);
+    vol.gain.exponentialRampToValueAtTime(WHOOPS.volume, t + .03);
+    vol.gain.setValueAtTime(WHOOPS.volume, end - .12);
+    vol.gain.exponentialRampToValueAtTime(0.0001, end);
+    osc.connect(vol); vol.connect(audio.destination);
+    osc.start(t); lfo.start(t); osc.stop(end + .02); lfo.stop(end + .02);
+  } catch (e) { /* no sound here: the game goes on */ }
+}
 // A little "crunch" when a biscuit breaks (only when sound is on): a short burst of crackly noise
 // through a filter, pitched a bit differently each time.
 function crunch() {
@@ -285,6 +307,7 @@ function step(dt) {
   if (ball.y - R > H) {
     lives--;
     drop = null;
+    whoops();
     if (lives > 0) serve(); else over();
   }
 }
