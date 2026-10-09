@@ -115,6 +115,16 @@ function wag() {
   wagging = setTimeout(() => beagle.classList.remove("wagging"), 1600);
 }
 
+// The corgi's ears give a happy little twitch when you earn a new trophy (none with reduced motion).
+let twitching = 0;
+function twitch() {
+  beagle.classList.remove("twitching");
+  void beagle.offsetWidth; // restart the animation if two trophies come close together
+  beagle.classList.add("twitching");
+  clearTimeout(twitching);
+  twitching = setTimeout(() => beagle.classList.remove("twitching"), 1000);
+}
+
 // The grabbed chest pops open where it was, its lid flipping up, with a burst of sparkles (no burst with reduced motion).
 function popOpen(x, y) {
   const pop = h("span", { class: "treasure chest-pop" + (chest.classList.contains("gold") ? " gold" : ""), "aria-hidden": "true" });
@@ -273,6 +283,7 @@ onChange(what => {
   if (what.startsWith("trophy:")) {
     const t = R.TROPHIES.find(x => x.id === what.slice(7));
     if (t) toast(`${t.icon} Trophy: ${t.name}! +${Math.round(R.TROPHY_BONUS * 100)}% bones.`, "good");
+    twitch();
     renderTrophies(game.me);
     return;
   }

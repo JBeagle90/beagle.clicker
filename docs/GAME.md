@@ -50,7 +50,7 @@ Tabs in the header (the address's #hash, so Back works): **Dig** (the corgi; You
 ## Trophies
 
 - 18 trophies for pats (1, 100, 1,000, 10,000, and Pat Legend 🌈 for 100,000), bones dug up (1,000, 100,000, 10 M), 10 Dig Buddies, 50 upgrades, one of every upgrade, a first boost, treasures (1, 25), a Dig Frenzy, gold chests (Gold Rush for 1, Golden Paws for 10) and a treasure streak (On a Roll).
-- Each one is kept for good and gives +1% bones from pats and digging. The Trophies screen shows every one; a message pops up at the bottom when you earn one.
+- Each one is kept for good and gives +1% bones from pats and digging. The Trophies screen shows every one; a message pops up at the bottom when you earn one, and the corgi's ears give a happy little twitch (not with reduced motion).
 
 ## Suggestions and updates
 

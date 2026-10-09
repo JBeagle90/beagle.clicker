@@ -210,6 +210,11 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 .beagle.boop .ear-r { animation-name: flop-r; }
 @keyframes flop { 40% { transform: rotate(10deg); } 100% { transform: none; } }
 @keyframes flop-r { 40% { transform: rotate(-10deg); } 100% { transform: none; } }
+/* A new trophy: the ears give a happy little twitch, out and back twice */
+.beagle.twitching .ear { animation: twitch .9s ease-in-out; }
+.beagle.twitching .ear-r { animation-name: twitch-r; }
+@keyframes twitch { 15%, 55% { transform: rotate(-12deg); } 35%, 75% { transform: rotate(4deg); } 100% { transform: none; } }
+@keyframes twitch-r { 15%, 55% { transform: rotate(12deg); } 35%, 75% { transform: rotate(-4deg); } 100% { transform: none; } }
 .floater {
   position: absolute; pointer-events: none; font-weight: 800; color: var(--accent); font-size: 1.3rem;
   transform: translate(-50%, -50%); animation: float .9s ease-out forwards; text-shadow: 0 1px 0 var(--card);
@@ -290,7 +295,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 @keyframes dig-up { from { transform: translate(-50%, 0) scale(.4); opacity: 0; } }
 @keyframes bob { 50% { transform: translate(-50%, -58%); } }
 @media (prefers-reduced-motion: reduce) {
-  .beagle.boop svg, .beagle.boop .ear, .beagle .tail { animation: none; }
+  .beagle.boop svg, .beagle.boop .ear, .beagle.twitching .ear, .beagle .tail { animation: none; }
   .floater { animation-duration: .5s; }
   .heart { animation-name: heart-fade; }
   .treasure, .treasure .chest-flame, .streak .paw.hop { animation: none; }

@@ -304,3 +304,13 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 The corgi loves all those pats! Now, every 100th pat, a tiny pink heart floats up from its head.
 - On the Dig screen, every 100th pat sends a little 💗 floating up from the corgi, swaying side to side.
 - With reduced motion on, the heart gently fades in and out instead.
+
+## 2026-10-09 · Happy ear twitches for every new trophy!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> The corgi's ears give a happy little twitch each time you earn a new trophy.
+
+The corgi is so proud of you! Now its big pointy ears give a happy little twitch each time you earn a new trophy.
+- On the Dig screen, the corgi's ears twitch out and back twice when a new trophy pops up.
+- It's a gentle wiggle that won't play if your device is set to reduce motion.

@@ -7,6 +7,7 @@ add ones that fit the game as it is now, and keep at most 15.
 - A trophy for owning every boost.
 - The corgi's big ears perk up for a moment when you buy something in the shop.
 - The corgi's tail wags fast the whole time a Dig Frenzy is on.
+- The Trophies tab gives a little sparkle when you earn a new trophy.
 - The bones counter gives a little bounce each time you buy something in the shop.
 - A dirt mound beside the corgi that grows as your Dig Sites do.
 - Each upgrade in the shop says how long until you can afford it ("in 12s").
