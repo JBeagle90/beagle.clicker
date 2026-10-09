@@ -25,8 +25,18 @@ beagle.addEventListener("click", e => {
   const x = e.clientX ? e.clientX - r.left : r.width / 2, y = e.clientY ? e.clientY - r.top : r.height / 3;
   floater("+" + fmtRate(n), x, y);
   if (!calm.matches) chips(x, y);
+  if (game.me.pats % 100 === 0) heart();
   renderBank();
 });
+
+// Every 100th pat, a tiny heart floats up from the corgi's head, swaying side to side (just fades with reduced motion).
+function heart() {
+  const r = area.getBoundingClientRect(), b = beagle.getBoundingClientRect();
+  const el = h("span", { class: "heart", text: "💗", "aria-hidden": "true" });
+  el.style.left = (b.left + b.width / 2 - r.left) + "px"; el.style.top = (b.top + b.height * 0.2 - r.top) + "px";
+  area.append(el);
+  setTimeout(() => el.remove(), 2200);
+}
 
 // Three little bones that burst out from (x, y) and fall.
 function chips(x, y) {

@@ -294,3 +294,13 @@ The corgi has a fluffy tail now! It wags gently all the time, and wags super fas
 - A fluffy tail with a cream tip peeks out beside the corgi's head on the Dig screen.
 - Grab a treasure chest and watch the tail wag fast with joy.
 - With reduced motion turned on, the tail stays still.
+
+## 2026-10-09 · A tiny heart for every 100th pat!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> A tiny heart floats up from the corgi every 100th pat.
+
+The corgi loves all those pats! Now, every 100th pat, a tiny pink heart floats up from its head.
+- On the Dig screen, every 100th pat sends a little 💗 floating up from the corgi, swaying side to side.
+- With reduced motion on, the heart gently fades in and out instead.

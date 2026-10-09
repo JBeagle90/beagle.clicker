@@ -14,7 +14,7 @@ add ones that fit the game as it is now, and keep at most 15.
 - In Bone Breaker, a blue biscuit that splits the tennis ball into two for a while.
 - In Bone Breaker, the corgi says "Yum!" out loud when it catches a golden biscuit.
 - A trophy on the Trophies screen for reaching level 3 in Bone Breaker (kept on this browser).
-- In Bone Breaker, a sprinkle biscuit gives a little wobble when its sprinkles get knocked off.
 - In Bone Breaker, a sparkly "twinkle" sound when you break the rainbow biscuit.
 - In Bone Breaker, a happy "ding" when you catch a golden biscuit and the paw grows wide.
 - In Bone Breaker, the tennis ball leaves a short sparkly trail as it flies.
+- The corgi blinks its eyes now and then while you're not patting it.

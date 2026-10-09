@@ -224,6 +224,18 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
   60% { opacity: 1; }
   to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy) + 40px)) rotate(var(--spin)); opacity: 0; }
 }
+.heart {
+  position: absolute; pointer-events: none; font-size: 1.5rem; transform: translate(-50%, -50%);
+  animation: heart-up 2.2s ease-out forwards;
+}
+@keyframes heart-up {
+  0% { transform: translate(-50%, -50%) scale(.3); opacity: 0; }
+  15% { transform: translate(-50%, -80%) scale(1.1); opacity: 1; }
+  40% { transform: translate(calc(-50% - 10px), -180%) scale(1); }
+  65% { transform: translate(calc(-50% + 10px), -280%) scale(1); opacity: 1; }
+  to { transform: translate(-50%, -380%) scale(.9); opacity: 0; }
+}
+@keyframes heart-fade { 20%, 70% { opacity: 1; } from, to { opacity: 0; } }
 .frenzy-bar {
   display: inline-block; margin-top: 6px; padding: 3px 12px; border-radius: 999px; font-weight: 800; font-size: .85rem;
   background: var(--gold); color: #3a2604; font-variant-numeric: tabular-nums;
@@ -280,6 +292,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 @media (prefers-reduced-motion: reduce) {
   .beagle.boop svg, .beagle.boop .ear, .beagle .tail { animation: none; }
   .floater { animation-duration: .5s; }
+  .heart { animation-name: heart-fade; }
   .treasure, .treasure .chest-flame, .streak .paw.hop { animation: none; }
   .treasure.chest-pop { animation: chest-fade .9s step-end forwards; }
   .chest-pop .chest-lid, .chest-pop .chest-lock, .chest-pop .chest-glint { animation: none; transform: translate(-4px, -8px) rotate(-35deg); }
