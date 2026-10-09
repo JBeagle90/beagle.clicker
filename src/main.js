@@ -3,7 +3,7 @@
 // the ticker; board.js: suggestions and patch notes; news.js; api.js; ui.js).
 import { game, start, pat, buy, tick, onChange, serverNow, grabTreasure, frenzy, rename } from "./game.js";
 import { startBoard, refresh as refreshBoard } from "./board.js";
-import { setupTabs, ping, view, renderScene, startTicker, renderTrophies, renderStats } from "./screens.js";
+import { setupTabs, ping, sparkle, view, renderScene, startTicker, renderTrophies, renderStats } from "./screens.js";
 import { getSave, setSave, SAVE } from "./api.js";
 import { setupBricks, showBricks } from "./bricks.js";
 import { h, fmt, fmtRate } from "./ui.js";
@@ -284,6 +284,7 @@ onChange(what => {
     const t = R.TROPHIES.find(x => x.id === what.slice(7));
     if (t) toast(`${t.icon} Trophy: ${t.name}! +${Math.round(R.TROPHY_BONUS * 100)}% bones.`, "good");
     twitch();
+    sparkle("trophies");
     renderTrophies(game.me);
     return;
   }

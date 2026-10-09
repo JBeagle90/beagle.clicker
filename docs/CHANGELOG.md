@@ -314,3 +314,13 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 The corgi is so proud of you! Now its big pointy ears give a happy little twitch each time you earn a new trophy.
 - On the Dig screen, the corgi's ears twitch out and back twice when a new trophy pops up.
 - It's a gentle wiggle that won't play if your device is set to reduce motion.
+
+## 2026-10-09 · A twinkly sparkle on the Trophies tab!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> The Trophies tab gives a little sparkle when you earn a new trophy.
+
+Now when you earn a new trophy, the Trophies tab lights up with a golden glow and a little twinkling star, so you know where to look.
+- The Trophies tab at the top glows gold and a ✨ twinkles on its corner for a moment each time you earn a trophy.
+- With reduced motion turned on, the tab just glows gold for a moment, without the twinkle.

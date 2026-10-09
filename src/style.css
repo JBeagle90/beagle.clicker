@@ -101,6 +101,20 @@ ol { list-style: none; margin: 0; padding: 0; }
   content: ""; position: absolute; top: 3px; right: 6px; width: 9px; height: 9px; border-radius: 50%;
   background: var(--gold); box-shadow: 0 0 0 2px var(--card);
 }
+/* A new trophy: the Trophies tab glows gold and a star twinkles on its corner */
+.tabs a.sparkle { animation: tab-glow 1.4s ease-out; }
+.tabs a.sparkle::before {
+  content: "✨"; position: absolute; top: -8px; right: -4px; font-size: .95rem; pointer-events: none;
+  animation: tab-twinkle 1.4s ease-out forwards;
+}
+@keyframes tab-glow { 20%, 60% { box-shadow: 0 0 0 2px var(--gold), 0 0 12px var(--gold); } }
+@keyframes tab-twinkle {
+  from { opacity: 0; transform: scale(.3) rotate(-30deg); }
+  25% { opacity: 1; transform: scale(1.25) rotate(10deg); }
+  50% { transform: scale(.9) rotate(-5deg); }
+  75% { opacity: 1; transform: scale(1.1); }
+  to { opacity: 0; transform: scale(.8) translateY(-4px); }
+}
 @media (max-width: 640px) {
   .tabs { order: 3; width: 100%; justify-content: space-between; }
   .brand { font-size: 1.25rem; }
@@ -299,6 +313,8 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
   .floater { animation-duration: .5s; }
   .heart { animation-name: heart-fade; }
   .treasure, .treasure .chest-flame, .streak .paw.hop { animation: none; }
+  .tabs a.sparkle { animation: none; box-shadow: 0 0 0 2px var(--gold); }
+  .tabs a.sparkle::before { animation: none; }
   .treasure.chest-pop { animation: chest-fade .9s step-end forwards; }
   .chest-pop .chest-lid, .chest-pop .chest-lock, .chest-pop .chest-glint { animation: none; transform: translate(-4px, -8px) rotate(-35deg); }
   .chest-pop .chest-bone { animation: none; transform: translateY(-8px) rotate(-6deg); }

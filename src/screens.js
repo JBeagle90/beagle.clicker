@@ -25,6 +25,17 @@ export function setupTabs(onShow) {
 // A dot on the Dig tab while a treasure is up and you're looking at another screen.
 export function ping(on) { document.querySelector('.tabs a[data-view="dig"]').classList.toggle("ping", on && view !== "dig"); }
 
+// A tab gives a little sparkle for a moment (the Trophies tab, when a new trophy comes in)
+let sparkling = 0;
+export function sparkle(name) {
+  const tab = document.querySelector(`.tabs a[data-view="${name}"]`);
+  tab.classList.remove("sparkle");
+  void tab.offsetWidth; // restart it if two come close together
+  tab.classList.add("sparkle");
+  clearTimeout(sparkling);
+  sparkling = setTimeout(() => tab.classList.remove("sparkle"), 1400);
+}
+
 // --- Your dig: a row for each kind of upgrade you own, with what they make ---
 const ROW_ICONS = 24; // icons drawn in a row; past that, "+N"
 export function renderScene(me) {
