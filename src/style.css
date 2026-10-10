@@ -162,6 +162,16 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 .play { text-align: center; }
 .bones { font-size: clamp(2.2rem, 7vw, 3.2rem); font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
 .bones.bounce { transform-origin: 50% 100%; animation: bones-bounce .55s ease-out; }
+/* Buying ten or more: little bones sprinkle down past the counter (sprinkle() in main.js) */
+.bank { position: relative; }
+.sprinkle-bone {
+  position: absolute; top: 0; z-index: 2; pointer-events: none; font-size: 1rem; opacity: 0;
+  transform: translate(-50%, 0); animation: sprinkle-fall 1s ease-in forwards;
+}
+@keyframes sprinkle-fall {
+  15%, 80% { opacity: 1; }
+  to { transform: translate(-50%, 110px) rotate(var(--spin)); opacity: 0; }
+}
 @keyframes bones-bounce { 30% { transform: translateY(-8px) scale(1.12); } 60% { transform: translateY(2px) scale(.96); } 100% { transform: none; } }
 .unit { color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .12em; font-size: .75rem; }
 .rate { color: var(--muted); font-size: .9rem; margin-top: 4px; min-height: 1.3em; }

@@ -194,6 +194,20 @@ function bounce() {
   bouncing = setTimeout(() => bones.classList.remove("bounce"), 600);
 }
 
+// Buying ten or more at once sprinkles little bones down past the bones counter (none with reduced motion).
+function sprinkle() {
+  if (calm.matches) return;
+  const bank = document.querySelector(".bank"), w = bank.offsetWidth;
+  for (let i = 0; i < 10; i++) {
+    const b = h("span", { class: "sprinkle-bone", text: "🦴", "aria-hidden": "true" });
+    b.style.left = Math.round(w * (0.15 + Math.random() * 0.7)) + "px";
+    b.style.animationDelay = Math.round(Math.random() * 350) + "ms";
+    b.style.setProperty("--spin", Math.round(Math.random() * 300 - 150) + "deg");
+    bank.append(b);
+    setTimeout(() => b.remove(), 1500);
+  }
+}
+
 // --- The shop: upgrades a few at a time (the next one shows once you own the one before), boosts once
 // you've unlocked them, and how many to buy at once (×1, ×10, ×100 or Max, 0 here: as many as you can
 // afford, up to MAX_BUY; remembered on this browser) ---
@@ -211,8 +225,15 @@ function setupAmounts() {
   });
   mark();
 }
+// One click in the shop: buy, bounce the counter, and sprinkle bones for ten or more.
+function buyItem(id) {
+  const n = howMany(id, game.me);
+  if (!buy(id, n)) return;
+  bounce();
+  if (n >= 10) sprinkle();
+}
 function shopItem(u, desc, side, me) {
-  return h("button", { type: "button", class: "item", "data-id": u.id, disabled: !me || me.bones < price(u.id, me), on: { click: () => { if (buy(u.id, howMany(u.id, game.me))) bounce(); } } },
+  return h("button", { type: "button", class: "item", "data-id": u.id, disabled: !me || me.bones < price(u.id, me), on: { click: () => buyItem(u.id) } },
     h("span", { class: "item-icon", "aria-hidden": "true", text: u.icon }),
     h("span", { class: "item-main" }, h("span", { class: "item-name", text: u.name }), h("span", { class: "item-desc", text: desc })),
     h("span", { class: "item-side" }, h("span", { class: "item-cost", text: costText(u.id, me) }), h("span", { class: "item-owned", text: side })));

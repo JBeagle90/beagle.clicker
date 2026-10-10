@@ -38,6 +38,7 @@ Tabs in the header (the address's #hash, so Back works): **Dig** (the corgi; You
 - Each one you own makes the next 15% dearer. Buy ×1, ×10 or ×100 at once (all or none), or Max: as many as you can afford right now, up to 100 (the price shows "×5 · 103 🦴"). The choice is remembered on the browser.
 - The shop shows the first three, then one more past the last kind you own.
 - Each time you buy something, the bones counter gives a little bounce (not with reduced motion).
+- Buy ten or more at once (×10, ×100, or Max when it's 10 or more) and little bones sprinkle down past the bones counter (not with reduced motion).
 - **Boosts** appear at the top of the shop once you own 10 of an upgrade. Each is bought once and makes that upgrade give twice as much: Sniffing School (`bloodhound-training`; Sharp Nose, 1,000), Turbo Buddies (Dig Buddy, 2,500), Treasure Maps (Dig Site, 30,000), Diamond Shovel (Steel Shovel, 60,000), Night Shift (Bone Digger, 400,000), Express Tracks (Bone Train, 4.5 M).
 
 ## Buried treasure

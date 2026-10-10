@@ -355,3 +355,14 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 Every time you buy something, your bones counter now gives a happy little bounce.
 - Buy any upgrade or boost in the shop on the Dig screen and watch the bones number hop.
 - With reduced motion turned on, the counter stays still.
+
+## 2026-10-10 · A sprinkle of bones for big buys!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> Little bones sprinkle down past the counter when you buy ten or more at once.
+
+Buy ten or more of something at once and little bones now sprinkle down past your bones counter!
+- In the shop, pick ×10, ×100 or Max and buy 10 or more: a shower of tiny 🦴 tumbles down under the bones counter.
+- The counter still gives its happy bounce on every buy.
+- No sprinkle if your device asks for less motion.
