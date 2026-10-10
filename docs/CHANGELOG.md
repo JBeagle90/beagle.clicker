@@ -324,3 +324,13 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 Now when you earn a new trophy, the Trophies tab lights up with a golden glow and a little twinkling star, so you know where to look.
 - The Trophies tab at the top glows gold and a ✨ twinkles on its corner for a moment each time you earn a trophy.
 - With reduced motion turned on, the tab just glows gold for a moment, without the twinkle.
+
+## 2026-10-10 · The Stats tab wiggles for a Dig Frenzy!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> The Stats tab gives a little wiggle each time a Dig Frenzy starts.
+
+When a treasure chest starts a Dig Frenzy, the Stats tab now does a happy little wiggle to cheer you on.
+- The Stats tab at the top tilts side to side with a warm ring each time a Dig Frenzy starts.
+- With reduced motion turned on, the tab just shows the ring for a moment, without the wiggle.

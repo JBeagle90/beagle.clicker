@@ -115,6 +115,14 @@ ol { list-style: none; margin: 0; padding: 0; }
   75% { opacity: 1; transform: scale(1.1); }
   to { opacity: 0; transform: scale(.8) translateY(-4px); }
 }
+/* A Dig Frenzy starts: the Stats tab gives a happy little wiggle with a warm ring */
+.tabs a.wiggle { animation: tab-wiggle .9s ease-in-out; }
+@keyframes tab-wiggle {
+  15% { transform: rotate(-8deg) scale(1.08); box-shadow: 0 0 0 2px var(--accent); }
+  35% { transform: rotate(7deg) scale(1.08); }
+  55% { transform: rotate(-5deg) scale(1.05); box-shadow: 0 0 0 2px var(--accent); }
+  75% { transform: rotate(3deg); }
+}
 @media (max-width: 640px) {
   .tabs { order: 3; width: 100%; justify-content: space-between; }
   .brand { font-size: 1.25rem; }
@@ -315,6 +323,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
   .treasure, .treasure .chest-flame, .streak .paw.hop { animation: none; }
   .tabs a.sparkle { animation: none; box-shadow: 0 0 0 2px var(--gold); }
   .tabs a.sparkle::before { animation: none; }
+  .tabs a.wiggle { animation: none; box-shadow: 0 0 0 2px var(--accent); }
   .treasure.chest-pop { animation: chest-fade .9s step-end forwards; }
   .chest-pop .chest-lid, .chest-pop .chest-lock, .chest-pop .chest-glint { animation: none; transform: translate(-4px, -8px) rotate(-35deg); }
   .chest-pop .chest-bone { animation: none; transform: translateY(-8px) rotate(-6deg); }

@@ -25,16 +25,20 @@ export function setupTabs(onShow) {
 // A dot on the Dig tab while a treasure is up and you're looking at another screen.
 export function ping(on) { document.querySelector('.tabs a[data-view="dig"]').classList.toggle("ping", on && view !== "dig"); }
 
-// A tab gives a little sparkle for a moment (the Trophies tab, when a new trophy comes in)
-let sparkling = 0;
-export function sparkle(name) {
+// A tab plays a little animation for a moment: class cls on, then off again after ms
+const flashing = {};
+function flash(name, cls, ms) {
   const tab = document.querySelector(`.tabs a[data-view="${name}"]`);
-  tab.classList.remove("sparkle");
+  tab.classList.remove(cls);
   void tab.offsetWidth; // restart it if two come close together
-  tab.classList.add("sparkle");
-  clearTimeout(sparkling);
-  sparkling = setTimeout(() => tab.classList.remove("sparkle"), 1400);
+  tab.classList.add(cls);
+  clearTimeout(flashing[cls]);
+  flashing[cls] = setTimeout(() => tab.classList.remove(cls), ms);
 }
+// A tab gives a little sparkle (the Trophies tab, when a new trophy comes in)
+export const sparkle = name => flash(name, "sparkle", 1400);
+// A tab gives a happy little wiggle (the Stats tab, when a Dig Frenzy starts)
+export const wiggle = name => flash(name, "wiggle", 900);
 
 // --- Your dig: a row for each kind of upgrade you own, with what they make ---
 const ROW_ICONS = 24; // icons drawn in a row; past that, "+N"

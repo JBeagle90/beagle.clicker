@@ -3,7 +3,7 @@
 // the ticker; board.js: suggestions and patch notes; news.js; api.js; ui.js).
 import { game, start, pat, buy, tick, onChange, serverNow, grabTreasure, frenzy, rename } from "./game.js";
 import { startBoard, refresh as refreshBoard } from "./board.js";
-import { setupTabs, ping, sparkle, view, renderScene, startTicker, renderTrophies, renderStats } from "./screens.js";
+import { setupTabs, ping, sparkle, wiggle, view, renderScene, startTicker, renderTrophies, renderStats } from "./screens.js";
 import { getSave, setSave, SAVE } from "./api.js";
 import { setupBricks, showBricks } from "./bricks.js";
 import { h, fmt, fmtRate } from "./ui.js";
@@ -99,7 +99,7 @@ chest.addEventListener("click", async () => {
   grabbed = chestAt; popOpen(x, y); chest.hidden = true; wag();
   try {
     const r = await grabTreasure();
-    if (r.frenzy) { floater("FRENZY!", x, y, "big"); toast(`🔥 Dig Frenzy! Everything gives ×${R.FRENZY.x} for ${R.FRENZY.seconds} seconds.`, "good"); }
+    if (r.frenzy) { floater("FRENZY!", x, y, "big"); toast(`🔥 Dig Frenzy! Everything gives ×${R.FRENZY.x} for ${R.FRENZY.seconds} seconds.`, "good"); wiggle("stats"); }
     else if (r.gold) { floater("+" + fmt(r.found), x, y, "big"); toast(`🌟 A gold chest! ×${R.GOLD.x} bones: +${fmt(r.found)}.`, "good"); }
     else { floater("+" + fmt(r.found), x, y, "big"); toast(`Treasure! +${fmt(r.found)} bones.`, "good"); }
     // The treasure streak: the fifth chest in a row says so instead.

@@ -17,4 +17,4 @@ add ones that fit the game as it is now, and keep at most 15.
 - In Bone Breaker, a sparkly "twinkle" sound when you break the rainbow biscuit.
 - In Bone Breaker, the tennis ball leaves a short sparkly trail as it flies.
 - The corgi blinks its eyes now and then while you're not patting it.
-- The Stats tab gives a little wiggle each time a Dig Frenzy starts.
+- The Shop title does a little hop when a brand new upgrade shows up in it.
