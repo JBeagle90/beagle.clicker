@@ -137,6 +137,16 @@ function twitch() {
   twitching = setTimeout(() => beagle.classList.remove("twitching"), 1000);
 }
 
+// The corgi's ears perk up tall for a moment each time you buy something in the shop (none with reduced motion, in CSS).
+let perking = 0;
+function perk() {
+  beagle.classList.remove("perking");
+  void beagle.offsetWidth; // restart the perk if you buy again quickly
+  beagle.classList.add("perking");
+  clearTimeout(perking);
+  perking = setTimeout(() => beagle.classList.remove("perking"), 700);
+}
+
 // The grabbed chest pops open where it was, its lid flipping up, with a burst of sparkles (no burst with reduced motion).
 function popOpen(x, y) {
   const pop = h("span", { class: "treasure chest-pop" + (chest.classList.contains("gold") ? " gold" : ""), "aria-hidden": "true" });
@@ -225,11 +235,12 @@ function setupAmounts() {
   });
   mark();
 }
-// One click in the shop: buy, bounce the counter, and sprinkle bones for ten or more.
+// One click in the shop: buy, bounce the counter, perk up the corgi's ears, and sprinkle bones for ten or more.
 function buyItem(id) {
   const n = howMany(id, game.me);
   if (!buy(id, n)) return;
   bounce();
+  perk();
   if (n >= 10) sprinkle();
 }
 function shopItem(u, desc, side, me) {

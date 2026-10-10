@@ -366,3 +366,14 @@ Buy ten or more of something at once and little bones now sprinkle down past you
 - In the shop, pick ×10, ×100 or Max and buy 10 or more: a shower of tiny 🦴 tumbles down under the bones counter.
 - The counter still gives its happy bounce on every buy.
 - No sprinkle if your device asks for less motion.
+
+## 2026-10-10 · The corgi's ears perk up when you shop!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> The corgi's big ears perk up for a moment when you buy something in the shop.
+
+Your corgi gets excited about shopping too! Every time you buy something, its big pointy ears perk up tall for a happy moment.
+- In the shop on the Dig tab, each buy makes the corgi's ears stand up tall and straight, then settle back down.
+- It joins the bones counter's bounce, so every buy gets a little cheer.
+- If your device asks for less motion, the ears stay still.
