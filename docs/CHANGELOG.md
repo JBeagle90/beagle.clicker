@@ -345,3 +345,13 @@ The corgi now gives a quick, sweet blink every few seconds when you're not patti
 - On the Dig screen, watch the corgi's eyes: they close for a blink now and then.
 - It doesn't blink while you're busy patting, only when you take a break.
 - With reduced motion turned on, the corgi keeps its eyes open.
+
+## 2026-10-10 · A happy bounce for your bones!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> The bones counter gives a little bounce each time you buy something in the shop.
+
+Every time you buy something, your bones counter now gives a happy little bounce.
+- Buy any upgrade or boost in the shop on the Dig screen and watch the bones number hop.
+- With reduced motion turned on, the counter stays still.

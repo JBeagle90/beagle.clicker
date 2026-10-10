@@ -183,6 +183,17 @@ function renderBank() {
   }
 }
 
+// The bones counter gives a little bounce each time you buy something (none with reduced motion, in CSS).
+let bouncing = 0;
+function bounce() {
+  const bones = $("bones");
+  bones.classList.remove("bounce");
+  void bones.offsetWidth; // restart the bounce if you buy again quickly
+  bones.classList.add("bounce");
+  clearTimeout(bouncing);
+  bouncing = setTimeout(() => bones.classList.remove("bounce"), 600);
+}
+
 // --- The shop: upgrades a few at a time (the next one shows once you own the one before), boosts once
 // you've unlocked them, and how many to buy at once (×1, ×10, ×100 or Max, 0 here: as many as you can
 // afford, up to MAX_BUY; remembered on this browser) ---
@@ -201,7 +212,7 @@ function setupAmounts() {
   mark();
 }
 function shopItem(u, desc, side, me) {
-  return h("button", { type: "button", class: "item", "data-id": u.id, disabled: !me || me.bones < price(u.id, me), on: { click: () => buy(u.id, howMany(u.id, game.me)) } },
+  return h("button", { type: "button", class: "item", "data-id": u.id, disabled: !me || me.bones < price(u.id, me), on: { click: () => { if (buy(u.id, howMany(u.id, game.me))) bounce(); } } },
     h("span", { class: "item-icon", "aria-hidden": "true", text: u.icon }),
     h("span", { class: "item-main" }, h("span", { class: "item-name", text: u.name }), h("span", { class: "item-desc", text: desc })),
     h("span", { class: "item-side" }, h("span", { class: "item-cost", text: costText(u.id, me) }), h("span", { class: "item-owned", text: side })));

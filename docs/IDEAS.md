@@ -7,7 +7,6 @@ add ones that fit the game as it is now, and keep at most 15.
 - A trophy for owning every boost.
 - The corgi's big ears perk up for a moment when you buy something in the shop.
 - The corgi's tail wags fast the whole time a Dig Frenzy is on.
-- The bones counter gives a little bounce each time you buy something in the shop.
 - A dirt mound beside the corgi that grows as your Dig Sites do.
 - Each upgrade in the shop says how long until you can afford it ("in 12s").
 - Choose the corgi's colour in the save panel: orange, black-and-tan or fluffy cream.
@@ -19,3 +18,4 @@ add ones that fit the game as it is now, and keep at most 15.
 - The Shop title does a little hop when a brand new upgrade shows up in it.
 - The corgi's cheeks turn a little rosy pink during a Dig Frenzy.
 - If you leave the corgi alone for a minute, it gives a big sleepy yawn.
+- The upgrade you just bought gives a quick happy glow in the shop.
