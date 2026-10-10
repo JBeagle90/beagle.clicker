@@ -223,6 +223,10 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 .beagle .blaze, .beagle .cheek, .beagle .muzzle { fill: var(--cream); }
 .beagle .nose, .beagle .eye { fill: #2b1d14; }
 .beagle .shine { fill: #fff; }
+/* A blink: the eyes squash shut around their middle (y 88) for a moment and their shine hides */
+.beagle .eye, .beagle .shine { transform-box: view-box; transform-origin: 100px 88px; transition: transform .07s, opacity .07s; }
+.beagle.blinking .eye { transform: scaleY(.12); }
+.beagle.blinking .shine { opacity: 0; }
 .beagle .mouth { fill: none; stroke: #2b1d14; stroke-width: 3; stroke-linecap: round; }
 .beagle .tongue { fill: #e46b7b; opacity: 0; transition: opacity .15s; }
 .beagle.boop .tongue { opacity: 1; }

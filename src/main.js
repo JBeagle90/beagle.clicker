@@ -21,6 +21,7 @@ beagle.addEventListener("click", e => {
   if (!n) return;
   beagle.classList.remove("boop"); void beagle.offsetWidth; beagle.classList.add("boop");
   clearTimeout(beagle.boopTimer); beagle.boopTimer = setTimeout(() => beagle.classList.remove("boop"), 350);
+  lastPat = Date.now();
   const r = area.getBoundingClientRect();
   const x = e.clientX ? e.clientX - r.left : r.width / 2, y = e.clientY ? e.clientY - r.top : r.height / 3;
   floater("+" + fmtRate(n), x, y);
@@ -114,6 +115,17 @@ function wag() {
   clearTimeout(wagging);
   wagging = setTimeout(() => beagle.classList.remove("wagging"), 1600);
 }
+
+// The corgi blinks now and then, every 2.5 to 6 s, but not while you're patting it (none with reduced motion).
+let lastPat = 0;
+function blink() {
+  if (!calm.matches && !document.hidden && Date.now() - lastPat > 1500) {
+    beagle.classList.add("blinking");
+    setTimeout(() => beagle.classList.remove("blinking"), 180);
+  }
+  setTimeout(blink, 2500 + Math.random() * 3500);
+}
+setTimeout(blink, 3000);
 
 // The corgi's ears give a happy little twitch when you earn a new trophy (none with reduced motion).
 let twitching = 0;

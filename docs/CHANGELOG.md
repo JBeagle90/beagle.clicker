@@ -334,3 +334,14 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 When a treasure chest starts a Dig Frenzy, the Stats tab now does a happy little wiggle to cheer you on.
 - The Stats tab at the top tilts side to side with a warm ring each time a Dig Frenzy starts.
 - With reduced motion turned on, the tab just shows the ring for a moment, without the wiggle.
+
+## 2026-10-10 · The corgi blinks now and then!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> The corgi blinks its eyes now and then while you're not patting it.
+
+The corgi now gives a quick, sweet blink every few seconds when you're not patting it, so it looks even more alive.
+- On the Dig screen, watch the corgi's eyes: they close for a blink now and then.
+- It doesn't blink while you're busy patting, only when you take a break.
+- With reduced motion turned on, the corgi keeps its eyes open.
