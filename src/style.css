@@ -305,6 +305,9 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 }
 .in-frenzy .beagle { box-shadow: 0 0 0 6px color-mix(in srgb, var(--gold) 55%, transparent), var(--shadow); }
 .in-frenzy .bones { color: var(--gold-ink); }
+/* A Dig Frenzy: the corgi's cheeks turn a little rosy pink (two .blush ellipses in the SVG fade in) */
+.beagle .blush { fill: #ff8fa3; opacity: 0; transition: opacity .6s ease; }
+.in-frenzy .beagle .blush { opacity: .6; }
 .hint { color: var(--muted); font-size: .9rem; margin-top: 6px; }
 .toast {
   position: fixed; left: 50%; bottom: 18px; transform: translate(-50%, 12px); z-index: 10; max-width: min(520px, calc(100vw - 32px));
@@ -365,7 +368,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
   .treasure.chest-pop { animation: chest-fade .9s step-end forwards; }
   .chest-pop .chest-lid, .chest-pop .chest-lock, .chest-pop .chest-glint { animation: none; transform: translate(-4px, -8px) rotate(-35deg); }
   .chest-pop .chest-bone { animation: none; transform: translateY(-8px) rotate(-6deg); }
-  .toast { transition: none; }
+  .toast, .beagle .blush { transition: none; }
 }
 
 /* --- Shop --- */

@@ -399,3 +399,13 @@ Big numbers deserve a little shine! When your bones pass 1,000, a million or a b
 - On the Dig screen, the bones counter turns gold and glows when you pass 1,000, 1 M and 1 B bones.
 - It shines the first time you pass each one while you play, not when the page loads.
 - With reduced motion it just turns gold for a moment, with no glowing pulse.
+
+## 2026-10-11 · Rosy cheeks for a Dig Frenzy!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> The corgi's cheeks turn a little rosy pink during a Dig Frenzy.
+
+The corgi gets so excited during a Dig Frenzy that its cheeks turn a little rosy pink!
+- When a treasure chest starts a Dig Frenzy, two soft pink patches fade in on the corgi's cheeks on the Dig screen.
+- They fade away again when the frenzy ends.
