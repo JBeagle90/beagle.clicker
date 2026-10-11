@@ -377,3 +377,14 @@ Your corgi gets excited about shopping too! Every time you buy something, its bi
 - In the shop on the Dig tab, each buy makes the corgi's ears stand up tall and straight, then settle back down.
 - It joins the bones counter's bounce, so every buy gets a little cheer.
 - If your device asks for less motion, the ears stay still.
+
+## 2026-10-11 · The corgi gives a big sleepy yawn!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> If you leave the corgi alone for a minute, it gives a big sleepy yawn.
+
+Leave the corgi alone for a minute and it gives a big, cozy, sleepy yawn!
+- On the Dig screen, after a quiet minute with no pats, the corgi's mouth opens wide and round, its eyes squeeze shut and it stretches up a little.
+- A soft "Yaaawn…" floats up while it yawns, and it yawns again after every quiet minute.
+- With reduced motion on, the corgi just shows its open yawn for a moment.

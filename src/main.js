@@ -127,6 +127,21 @@ function blink() {
 }
 setTimeout(blink, 3000);
 
+// Leave the corgi alone for a minute and it gives a big sleepy yawn, then again after each quiet minute.
+let quietSince = Date.now();
+function yawn() {
+  if (document.hidden) quietSince = Date.now(); // it only yawns while you can see it
+  else if (Date.now() - Math.max(lastPat, quietSince) > 60000) {
+    quietSince = Date.now();
+    beagle.classList.add("yawning");
+    setTimeout(() => beagle.classList.remove("yawning"), 2200);
+    const r = area.getBoundingClientRect();
+    floater("Yaaawn…", r.width / 2, r.height / 5, "yawn");
+  }
+  setTimeout(yawn, 1000);
+}
+setTimeout(yawn, 1000);
+
 // The corgi's ears give a happy little twitch when you earn a new trophy (none with reduced motion).
 let twitching = 0;
 function twitch() {
