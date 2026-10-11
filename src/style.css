@@ -162,6 +162,9 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 .play { text-align: center; }
 .bones { font-size: clamp(2.2rem, 7vw, 3.2rem); font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
 .bones.bounce { transform-origin: 50% 100%; animation: bones-bounce .55s ease-out; }
+/* Passing 1,000, 1 M or 1 B bones: the counter turns gold for a moment (gild() in main.js) */
+.bones.golden { color: var(--gold-ink); text-shadow: 0 0 10px var(--gold); animation: bones-glow 2s ease-out; }
+@keyframes bones-glow { 0% { text-shadow: 0 0 0 var(--gold); } 25% { text-shadow: 0 0 18px var(--gold), 0 0 4px var(--gold); } }
 /* Buying ten or more: little bones sprinkle down past the counter (sprinkle() in main.js) */
 .bank { position: relative; }
 .sprinkle-bone {
@@ -350,7 +353,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
 @keyframes dig-up { from { transform: translate(-50%, 0) scale(.4); opacity: 0; } }
 @keyframes bob { 50% { transform: translate(-50%, -58%); } }
 @media (prefers-reduced-motion: reduce) {
-  .beagle.boop svg, .beagle.boop .ear, .beagle.twitching .ear, .beagle.perking .ear, .beagle .tail, .bones.bounce,
+  .beagle.boop svg, .beagle.boop .ear, .beagle.twitching .ear, .beagle.perking .ear, .beagle .tail, .bones.bounce, .bones.golden,
   .beagle.yawning .eye, .beagle.yawning svg { animation: none; }
   .beagle.yawning .yawn { animation: none; opacity: 1; }
   .floater { animation-duration: .5s; }

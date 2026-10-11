@@ -388,3 +388,14 @@ Leave the corgi alone for a minute and it gives a big, cozy, sleepy yawn!
 - On the Dig screen, after a quiet minute with no pats, the corgi's mouth opens wide and round, its eyes squeeze shut and it stretches up a little.
 - A soft "Yaaawn…" floats up while it yawns, and it yawns again after every quiet minute.
 - With reduced motion on, the corgi just shows its open yawn for a moment.
+
+## 2026-10-11 · Your bones turn gold at big numbers!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> The bones counter turns gold for a moment when you pass 1,000, 1 M and 1 B bones.
+
+Big numbers deserve a little shine! When your bones pass 1,000, a million or a billion, the counter turns gold and glows for a moment.
+- On the Dig screen, the bones counter turns gold and glows when you pass 1,000, 1 M and 1 B bones.
+- It shines the first time you pass each one while you play, not when the page loads.
+- With reduced motion it just turns gold for a moment, with no glowing pulse.

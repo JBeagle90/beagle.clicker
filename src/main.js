@@ -186,6 +186,7 @@ function popOpen(x, y) {
 function renderBank() {
   const me = game.me, x = frenzy();
   $("bones").textContent = fmt(me ? me.bones : 0);
+  if (me) milestone(me.bones);
   $("rate").textContent = me ? `${fmtRate(me.perClick * x)} per pat · ${fmtRate(me.perSecond * x)} per second` : "";
   const left = me ? Math.ceil(((me.game.frenzyUntil || 0) - serverNow()) / 1000) : 0;
   const bar = $("frenzy");
@@ -206,6 +207,23 @@ function renderBank() {
     streak.hidden = !(n > 0);
     streak.setAttribute("aria-label", `Treasure streak: ${n} of ${R.STREAK.needs}`);
   }
+}
+
+// The bones counter turns gold for a moment when you first pass 1,000, 1 M and 1 B bones.
+// `best` is the most bones seen since the page loaded (null until the save loads, so loading doesn't count).
+const MILESTONES = [1e3, 1e6, 1e9];
+let best = null, gilding = 0;
+function milestone(bones) {
+  if (best !== null && MILESTONES.some(m => best < m && bones >= m)) gild();
+  if (best === null || bones > best) best = bones;
+}
+function gild() {
+  const bones = $("bones");
+  bones.classList.remove("golden");
+  void bones.offsetWidth; // restart the glow if it was still on
+  bones.classList.add("golden");
+  clearTimeout(gilding);
+  gilding = setTimeout(() => bones.classList.remove("golden"), 2000);
 }
 
 // The bones counter gives a little bounce each time you buy something (none with reduced motion, in CSS).

@@ -17,4 +17,4 @@ add ones that fit the game as it is now, and keep at most 15.
 - The Shop title does a little hop when a brand new upgrade shows up in it.
 - The corgi's cheeks turn a little rosy pink during a Dig Frenzy.
 - After the corgi yawns, a few little "z"s float up from its head until you pat it again.
-- The bones counter turns gold for a moment when you pass 1,000, 1 M and 1 B bones.
+- A little "Bones today" line on the Stats screen that counts what you've dug since midnight.
