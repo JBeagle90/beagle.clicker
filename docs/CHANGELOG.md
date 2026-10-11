@@ -419,3 +419,14 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 During a Dig Frenzy, the corgi is so happy that little pink hearts pop out of its rosy cheeks every time you pat it!
 - On the Dig screen, pat the corgi during a Dig Frenzy: a pink heart pops out of each cheek and floats away.
 - With reduced motion on, the hearts gently fade in and out instead.
+
+## 2026-10-11 · The corgi sniffs out the treasure!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> The corgi's nose does a happy sniff-wiggle when a treasure chest pops up.
+
+When a treasure chest pops up, the corgi's nose now does a happy little sniff-wiggle, so you know there's something to grab.
+- On the Dig screen, the corgi's nose puffs and wiggles side to side as each chest appears.
+- A little "sniff sniff!" floats up under the corgi's chin at the same time.
+- With reduced motion on, the nose stays still and just the words show.

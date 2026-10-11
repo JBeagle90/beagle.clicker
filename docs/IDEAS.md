@@ -5,7 +5,6 @@ add ones that fit the game as it is now, and keep at most 15.
 
 - A boost for Bone Mines ("Deep Drills"), unlocked at 10 Bone Mines.
 - A trophy for owning every boost.
-- The corgi's nose gives a little sniff-wiggle when a treasure chest pops up.
 - The gold frenzy bar gives a tiny happy bounce in its last five seconds.
 - A dirt mound beside the corgi that grows as your Dig Sites do.
 - Each upgrade in the shop says how long until you can afford it ("in 12s").
@@ -18,3 +17,4 @@ add ones that fit the game as it is now, and keep at most 15.
 - After the corgi yawns, a few little "z"s float up from its head until you pat it again.
 - A little "Bones today" line on the Stats screen that counts what you've dug since midnight.
 - The corgi's eyes turn into happy little arcs for a moment when you grab a gold chest.
+- The corgi's head tilts toward the treasure chest while it's up, as if curious.

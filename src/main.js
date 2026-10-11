@@ -101,6 +101,7 @@ function checkTreasure() {
     const gold = !!game.me.game.treasureGold;
     chest.classList.toggle("gold", gold);
     chest.setAttribute("aria-label", gold ? "Grab the gold treasure!" : "Grab the buried treasure!");
+    sniff();
   }
   // One grab away from a streak bonus: the chest wears a little flame, so you know this one counts.
   const hot = up && (game.me.game.streak || 0) === R.STREAK.needs - 1;
@@ -124,6 +125,20 @@ chest.addEventListener("click", async () => {
     if (r.bonus) { floater("STREAK! +" + fmt(r.bonus), x, y - 40, "big"); toast(`🎯 ${R.STREAK.needs} treasures in a row! Streak bonus: +${fmt(r.bonus)} bones.`, "good"); }
   } catch (e) { toast(e.message || "The treasure got away.", "bad"); }
 });
+
+// The corgi's nose does a happy sniff-wiggle when a chest pops up, with a little "sniff sniff!" beside it
+// (CSS keeps the nose still with reduced motion).
+let sniffing = 0;
+function sniff() {
+  beagle.classList.remove("sniffing");
+  void beagle.offsetWidth; // restart it if another chest comes quickly
+  beagle.classList.add("sniffing");
+  clearTimeout(sniffing);
+  sniffing = setTimeout(() => beagle.classList.remove("sniffing"), 1200);
+  // The words show just under the chin (100, 178 in the SVG's 200-unit viewBox), clear of the face.
+  const r = area.getBoundingClientRect(), s = beagle.querySelector("svg").getBoundingClientRect(), k = s.width / 200;
+  if (s.width) floater("sniff sniff!", s.left - r.left + 100 * k, s.top - r.top + 178 * k, "sniff");
+}
 
 // The corgi's tail wags fast for a moment when you grab a chest (CSS keeps it still with reduced motion).
 let wagging = 0;

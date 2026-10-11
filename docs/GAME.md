@@ -44,7 +44,7 @@ Tabs in the header (the address's #hash, so Back works): **Dig** (the corgi; You
 
 ## Buried treasure
 
-- A treasure chest pops up beside the corgi now and then: the first 1 to 2 minutes after you start, then every 3 to 6 minutes. It stays 12 seconds.
+- A treasure chest pops up beside the corgi now and then: the first 1 to 2 minutes after you start, then every 3 to 6 minutes. It stays 12 seconds. As it pops up, the corgi's nose does a happy sniff-wiggle and "sniff sniff!" floats up under its chin (no wiggle with reduced motion).
 - Grab it for a minute's worth of digging plus 30 pats' worth (at least 50 bones). Miss it and it sinks back. A grabbed chest pops open, its lid flipping up and a little bone peeking out of it, with a burst of stars and sparkles (just the open chest with reduced motion). The corgi's fluffy tail (it gently wags all the time) wags fast for a moment when you grab one.
 - One chest in five is a **Dig Frenzy** instead: everything gives ×7 for 30 seconds (a gold bar counts down, the corgi glows and its cheeks turn a little rosy pink, little pink hearts pop out of its cheeks each time you pat it, and the Stats tab gives a happy little wiggle as it starts).
 - One chest in ten is a shiny **gold chest** (all gold, with sparkles and a glow, so you can see it): it always gives ×3 the bones, never a frenzy. Stats counts them.
