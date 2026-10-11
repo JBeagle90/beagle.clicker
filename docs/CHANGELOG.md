@@ -409,3 +409,13 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 The corgi gets so excited during a Dig Frenzy that its cheeks turn a little rosy pink!
 - When a treasure chest starts a Dig Frenzy, two soft pink patches fade in on the corgi's cheeks on the Dig screen.
 - They fade away again when the frenzy ends.
+
+## 2026-10-11 · Little pink hearts in a Dig Frenzy!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> Little pink hearts pop out of the corgi's cheeks when you pat it during a Dig Frenzy.
+
+During a Dig Frenzy, the corgi is so happy that little pink hearts pop out of its rosy cheeks every time you pat it!
+- On the Dig screen, pat the corgi during a Dig Frenzy: a pink heart pops out of each cheek and floats away.
+- With reduced motion on, the hearts gently fade in and out instead.

@@ -298,6 +298,16 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
   65% { transform: translate(calc(-50% + 10px), -280%) scale(1); opacity: 1; }
   to { transform: translate(-50%, -380%) scale(.9); opacity: 0; }
 }
+/* A Dig Frenzy: little pink hearts pop out of the cheeks on a pat (cheekHearts() in main.js), off to each side */
+.cheek-heart {
+  position: absolute; pointer-events: none; font-size: 1.3rem; font-weight: 800; color: #ff6f91; line-height: 1;
+  transform: translate(-50%, -50%); animation: cheek-heart .9s ease-out forwards; text-shadow: 0 1px 0 var(--card);
+}
+@keyframes cheek-heart {
+  0% { transform: translate(-50%, -50%) scale(.2); opacity: 0; }
+  25% { transform: translate(calc(-50% + var(--dx) / 2), -90%) scale(1.15); opacity: 1; }
+  to { transform: translate(calc(-50% + var(--dx)), -260%) scale(.8); opacity: 0; }
+}
 @keyframes heart-fade { 20%, 70% { opacity: 1; } from, to { opacity: 0; } }
 .frenzy-bar {
   display: inline-block; margin-top: 6px; padding: 3px 12px; border-radius: 999px; font-weight: 800; font-size: .85rem;
@@ -360,7 +370,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
   .beagle.yawning .eye, .beagle.yawning svg { animation: none; }
   .beagle.yawning .yawn { animation: none; opacity: 1; }
   .floater { animation-duration: .5s; }
-  .heart { animation-name: heart-fade; }
+  .heart, .cheek-heart { animation-name: heart-fade; }
   .treasure, .treasure .chest-flame, .streak .paw.hop { animation: none; }
   .tabs a.sparkle { animation: none; box-shadow: 0 0 0 2px var(--gold); }
   .tabs a.sparkle::before { animation: none; }

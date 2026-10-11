@@ -6,7 +6,7 @@ add ones that fit the game as it is now, and keep at most 15.
 - A boost for Bone Mines ("Deep Drills"), unlocked at 10 Bone Mines.
 - A trophy for owning every boost.
 - The corgi's nose gives a little sniff-wiggle when a treasure chest pops up.
-- The corgi's tail wags fast the whole time a Dig Frenzy is on.
+- The gold frenzy bar gives a tiny happy bounce in its last five seconds.
 - A dirt mound beside the corgi that grows as your Dig Sites do.
 - Each upgrade in the shop says how long until you can afford it ("in 12s").
 - Choose the corgi's colour in the save panel: orange, black-and-tan or fluffy cream.

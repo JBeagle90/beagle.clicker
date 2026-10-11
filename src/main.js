@@ -27,6 +27,7 @@ beagle.addEventListener("click", e => {
   floater("+" + fmtRate(n), x, y);
   if (!calm.matches) chips(x, y);
   if (game.me.pats % 100 === 0) heart();
+  if (frenzy() > 1) cheekHearts();
   renderBank();
 });
 
@@ -37,6 +38,22 @@ function heart() {
   el.style.left = (b.left + b.width / 2 - r.left) + "px"; el.style.top = (b.top + b.height * 0.2 - r.top) + "px";
   area.append(el);
   setTimeout(() => el.remove(), 2200);
+}
+
+// During a Dig Frenzy, a pat pops a little pink heart out of each rosy cheek (the .blush spots at x 54 and 146,
+// y 114 of the SVG's 200 × 200). At most one pair every 250 ms, so fast patting doesn't fill the screen.
+let lastCheekHearts = 0;
+function cheekHearts() {
+  if (Date.now() - lastCheekHearts < 250) return;
+  lastCheekHearts = Date.now();
+  const r = area.getBoundingClientRect(), s = beagle.querySelector("svg").getBoundingClientRect();
+  for (const [cx, side] of [[54, -1], [146, 1]]) {
+    const el = h("span", { class: "cheek-heart", text: "♥", "aria-hidden": "true" });
+    el.style.left = (s.left + s.width * cx / 200 - r.left) + "px"; el.style.top = (s.top + s.height * 114 / 200 - r.top) + "px";
+    el.style.setProperty("--dx", side * (14 + Math.round(Math.random() * 12)) + "px");
+    area.append(el);
+    setTimeout(() => el.remove(), 900);
+  }
 }
 
 // Three little bones that burst out from (x, y) and fall.
