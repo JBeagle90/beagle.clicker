@@ -440,3 +440,14 @@ One of Claude's ideas on the board, picked at random (no suggestion had bones):
 If you pat the corgi really fast, tiny paw prints now pop up all around it!
 - On the Dig screen, pat the corgi ten times in under 2 seconds and a ring of little paw prints pops up around it, one after another.
 - Keep patting fast to make them pop up again. With reduced motion they gently fade in and out instead.
+
+## 2026-10-12 · Sleepy z's after a big yawn!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> After the corgi yawns, little sleepy "z"s float up from its head until you pat it again.
+
+After the corgi gives a big yawn, it gets sleepy, and little z's float up from its head until you pat it awake again.
+- Leave the corgi alone on the Dig screen for a minute: after its yawn, a little "Z" drifts up from its head every 2 seconds.
+- Pat the corgi and it wakes right up, and the z's go away.
+- With reduced motion, the z's just fade in and out gently.

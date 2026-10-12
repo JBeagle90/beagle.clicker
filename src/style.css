@@ -327,6 +327,19 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
   70% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--turn)) scale(1); }
   to { opacity: 0; transform: translate(-50%, -50%) rotate(var(--turn)) scale(.9); }
 }
+/* Sleepy after a yawn: little z's float up from the head and drift off to the right (snooze() in main.js) */
+.snooze-z {
+  position: absolute; pointer-events: none; font-size: 1.3rem; font-weight: 800; font-style: italic; line-height: 1;
+  color: var(--muted); text-shadow: 0 1px 0 var(--card); opacity: 0; transform: translate(-50%, -50%);
+  animation: snooze-up 2.6s ease-out forwards;
+}
+@keyframes snooze-up {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.4) rotate(-10deg); }
+  20% { opacity: 1; }
+  50% { transform: translate(calc(-50% + 14px), -200%) scale(1) rotate(8deg); }
+  75% { opacity: .9; }
+  to { opacity: 0; transform: translate(calc(-50% + 30px), -360%) scale(1.25) rotate(-6deg); }
+}
 @keyframes heart-fade { 20%, 70% { opacity: 1; } from, to { opacity: 0; } }
 .frenzy-bar {
   display: inline-block; margin-top: 6px; padding: 3px 12px; border-radius: 999px; font-weight: 800; font-size: .85rem;
@@ -389,7 +402,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
   .beagle.yawning .eye, .beagle.yawning svg, .beagle.sniffing .nose { animation: none; }
   .beagle.yawning .yawn { animation: none; opacity: 1; }
   .floater { animation-duration: .5s; }
-  .heart, .cheek-heart, .paw-print { animation-name: heart-fade; }
+  .heart, .cheek-heart, .paw-print, .snooze-z { animation-name: heart-fade; }
   .treasure, .treasure .chest-flame, .streak .paw.hop { animation: none; }
   .tabs a.sparkle { animation: none; box-shadow: 0 0 0 2px var(--gold); }
   .tabs a.sparkle::before { animation: none; }

@@ -22,6 +22,7 @@ beagle.addEventListener("click", e => {
   beagle.classList.remove("boop"); void beagle.offsetWidth; beagle.classList.add("boop");
   clearTimeout(beagle.boopTimer); beagle.boopTimer = setTimeout(() => beagle.classList.remove("boop"), 350);
   lastPat = Date.now();
+  wake();
   const r = area.getBoundingClientRect();
   const x = e.clientX ? e.clientX - r.left : r.width / 2, y = e.clientY ? e.clientY - r.top : r.height / 3;
   floater("+" + fmtRate(n), x, y);
@@ -192,10 +193,28 @@ function yawn() {
     setTimeout(() => beagle.classList.remove("yawning"), 2200);
     const r = area.getBoundingClientRect();
     floater("Yaaawn…", r.width / 2, r.height / 5, "yawn");
-  }
+    sleepy = quietSince + 2200; // the z's start when the yawn ends
+  } else if (sleepy && Date.now() > sleepy && ++dozing % 2) snooze();
   setTimeout(yawn, 1000);
 }
 setTimeout(yawn, 1000);
+
+// After a yawn the corgi gets sleepy: a little "z" floats up from the top of its head every 2 s, drifting
+// off to the right, until you pat it again (wake()). They just fade in and out with reduced motion.
+let sleepy = 0, dozing = 0;
+function snooze() {
+  const r = area.getBoundingClientRect(), s = beagle.querySelector("svg").getBoundingClientRect(), k = s.width / 200;
+  if (!s.width) return;
+  const el = h("span", { class: "snooze-z", text: dozing % 4 === 1 ? "z" : "Z", "aria-hidden": "true" });
+  el.style.left = (s.left - r.left + 132 * k) + "px"; el.style.top = (s.top - r.top + 44 * k) + "px";
+  area.append(el);
+  setTimeout(() => el.remove(), 2600);
+}
+function wake() {
+  if (!sleepy) return;
+  sleepy = 0;
+  for (const z of area.querySelectorAll(".snooze-z")) z.remove();
+}
 
 // The corgi's ears give a happy little twitch when you earn a new trophy (none with reduced motion).
 let twitching = 0;

@@ -14,7 +14,7 @@ add ones that fit the game as it is now, and keep at most 15.
 - A trophy on the Trophies screen for reaching level 3 in Bone Breaker (kept on this browser).
 - In Bone Breaker, a sparkly "twinkle" sound when you break the rainbow biscuit.
 - The Shop title does a little hop when a brand new upgrade shows up in it.
-- After the corgi yawns, a few little "z"s float up from its head until you pat it again.
 - A little "Bones today" line on the Stats screen that counts what you've dug since midnight.
 - The corgi's eyes turn into happy little arcs for a moment when you grab a gold chest.
 - The corgi's head tilts toward the treasure chest while it's up, as if curious.
+- While the corgi is sleepy, its ears droop down softly until you pat it again.
