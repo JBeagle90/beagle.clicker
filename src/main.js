@@ -28,6 +28,7 @@ beagle.addEventListener("click", e => {
   if (!calm.matches) chips(x, y);
   if (game.me.pats % 100 === 0) heart();
   if (frenzy() > 1) cheekHearts();
+  pawPrints();
   renderBank();
 });
 
@@ -53,6 +54,28 @@ function cheekHearts() {
     el.style.setProperty("--dx", side * (14 + Math.round(Math.random() * 12)) + "px");
     area.append(el);
     setTimeout(() => el.remove(), 900);
+  }
+}
+
+// Ten pats in under 2 s: a ring of tiny paw prints pops up around the corgi, one after another
+// (they just fade in and out with reduced motion, in CSS). Then the count starts over.
+const PAWS = { pats: 10, ms: 2000, count: 8 };
+let quickPats = [];
+function pawPrints() {
+  const now = Date.now();
+  quickPats = quickPats.filter(t => now - t < PAWS.ms).concat(now);
+  if (quickPats.length < PAWS.pats) return;
+  quickPats = [];
+  const r = area.getBoundingClientRect(), s = beagle.querySelector("svg").getBoundingClientRect();
+  const cx = s.left + s.width / 2 - r.left, cy = s.top + s.height / 2 - r.top, far = s.width * 0.56;
+  for (let i = 0; i < PAWS.count; i++) {
+    const a = (i / PAWS.count) * Math.PI * 2 - Math.PI / 2;
+    const el = h("span", { class: "paw-print", text: "🐾", "aria-hidden": "true" });
+    el.style.left = (cx + Math.cos(a) * far) + "px"; el.style.top = (cy + Math.sin(a) * far) + "px";
+    el.style.setProperty("--turn", Math.round(a * 180 / Math.PI + 90) + "deg");
+    el.style.animationDelay = i * 60 + "ms";
+    area.append(el);
+    setTimeout(() => el.remove(), 1200 + i * 60);
   }
 }
 

@@ -430,3 +430,13 @@ When a treasure chest pops up, the corgi's nose now does a happy little sniff-wi
 - On the Dig screen, the corgi's nose puffs and wiggles side to side as each chest appears.
 - A little "sniff sniff!" floats up under the corgi's chin at the same time.
 - With reduced motion on, the nose stays still and just the words show.
+
+## 2026-10-12 · Speedy pats make paw prints!
+
+One of Claude's ideas on the board, picked at random (no suggestion had bones):
+
+> Tiny paw prints pop up around the corgi when you pat it ten times really fast.
+
+If you pat the corgi really fast, tiny paw prints now pop up all around it!
+- On the Dig screen, pat the corgi ten times in under 2 seconds and a ring of little paw prints pops up around it, one after another.
+- Keep patting fast to make them pop up again. With reduced motion they gently fade in and out instead.
